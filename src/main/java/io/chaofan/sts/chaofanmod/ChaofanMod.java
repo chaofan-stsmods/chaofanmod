@@ -48,6 +48,8 @@ public class ChaofanMod implements
         return id.substring((MOD_ID + ":").length());
     }
 
+    public static boolean enable3rdPerspectiveView = true;
+
     @SuppressWarnings("unused")
     public static void initialize() {
         logger.info("Initializing ChaofanMod");

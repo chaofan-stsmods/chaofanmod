@@ -4,5 +4,9 @@
     "DESCRIPTION": "每当你用手机拍屏时，失去10点最大生命。",
     "UPGRADE_DESCRIPTION": "N/A",
     "EXTENDED_DESCRIPTION": []
+  },
+  "chaofanmod:card.ProgressCard": {
+    "NAME": "进度条",
+    "DESCRIPTION": ""
   }
 }
