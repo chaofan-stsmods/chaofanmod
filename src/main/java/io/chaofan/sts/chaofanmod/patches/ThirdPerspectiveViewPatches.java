@@ -70,7 +70,7 @@ public class ThirdPerspectiveViewPatches {
                 return;
             }
 
-            x[0] = 60f * Settings.scale + (AbstractPlayerRenderPatch.playerDrawX / Settings.WIDTH * (Settings.WIDTH - 120f * Settings.scale)) - __instance.healthHb.width / 2;
+            x[0] = 40f * Settings.scale + (AbstractPlayerRenderPatch.playerDrawX - Settings.WIDTH / 6f) / (Settings.WIDTH * 2 / 3f) * (Settings.WIDTH - 80f * Settings.scale - __instance.healthHb.width);
             y[0] = Settings.HEIGHT - 250f * Settings.scale;
         }
 
@@ -164,16 +164,19 @@ public class ThirdPerspectiveViewPatches {
             sb.setColor(Color.WHITE);
             __instance.renderHand(sb);
 
+            float distance = Settings.WIDTH - 1920 * Settings.scale;
+            float percentage = (playerDrawX - Settings.WIDTH / 6f) / (Settings.WIDTH * 2 / 3f);
+
             float v1 = playerDrawX < Settings.WIDTH / 3f ? 1 : (playerDrawX > Settings.WIDTH * 2 / 3f ? 0 : (2 * Settings.WIDTH / 3f - playerDrawX) / (Settings.WIDTH / 3f));
             if (v1 > 0) {
                 sb.setColor(1, 1, 1, playerVisibility * v1);
-                sb.draw(__instance.shoulderImg, __instance.animX - Settings.WIDTH / 6f + playerDrawX, 0.0F, 1920.0F * Settings.scale, 1136.0F * Settings.scale, 0, 0, __instance.shoulderImg.getWidth(), __instance.shoulderImg.getHeight(), false, false);
+                sb.draw(__instance.shoulderImg, __instance.animX - Settings.WIDTH / 6f + playerDrawX + distance * percentage, 0.0F, 1920.0F * Settings.scale, 1136.0F * Settings.scale, 0, 0, __instance.shoulderImg.getWidth(), __instance.shoulderImg.getHeight(), false, false);
             }
 
             float v2 = playerDrawX < Settings.WIDTH / 3f ? 0 : (playerDrawX > Settings.WIDTH * 2 / 3f ? 1 : (playerDrawX - Settings.WIDTH / 3f) / (Settings.WIDTH / 3f));
             if (v2 > 0) {
                 sb.setColor(1, 1, 1, playerVisibility * v2);
-                sb.draw(__instance.shoulderImg, -__instance.animX - Settings.WIDTH * 5 / 6f + playerDrawX, 0.0F, 1920.0F * Settings.scale, 1136.0F * Settings.scale, 0, 0, __instance.shoulderImg.getWidth(), __instance.shoulderImg.getHeight(), true, false);
+                sb.draw(__instance.shoulderImg, -__instance.animX - Settings.WIDTH * 5 / 6f + playerDrawX + distance * percentage, 0.0F, 1920.0F * Settings.scale, 1136.0F * Settings.scale, 0, 0, __instance.shoulderImg.getWidth(), __instance.shoulderImg.getHeight(), true, false);
             }
 
             if (!(AbstractDungeon.getCurrRoom() instanceof RestRoom)) {
