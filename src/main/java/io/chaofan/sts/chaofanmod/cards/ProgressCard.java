@@ -22,7 +22,7 @@ public class ProgressCard extends CustomCard {
     private float time;
 
     public ProgressCard() {
-        super(ID, getCardStrings(ID).NAME, new RegionName("red/attack/bash"), 0, getCardStrings(ID).DESCRIPTION, CardType.ATTACK, CardColor.COLORLESS, CardRarity.COMMON, CardTarget.ALL);
+        super(ID, getCardStrings(ID).NAME, new RegionName("red/attack/bash"), 0, getCardStrings(ID).DESCRIPTION, CardType.ATTACK, CardColor.COLORLESS, CardRarity.SPECIAL, CardTarget.ALL);
     }
 
     @Override

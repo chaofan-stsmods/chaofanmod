@@ -4,6 +4,7 @@ import basemod.ReflectionHacks;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.math.MathUtils;
 import com.evacipated.cardcrawl.modthespire.lib.*;
 import com.megacrit.cardcrawl.characters.AbstractPlayer;
 import com.megacrit.cardcrawl.core.AbstractCreature;
@@ -18,6 +19,7 @@ import com.megacrit.cardcrawl.rooms.AbstractRoom;
 import com.megacrit.cardcrawl.rooms.RestRoom;
 import com.megacrit.cardcrawl.scenes.AbstractScene;
 import com.megacrit.cardcrawl.screens.CharSelectInfo;
+import com.megacrit.cardcrawl.screens.DeathScreen;
 import javassist.CannotCompileException;
 import javassist.CtBehavior;
 import javassist.expr.ExprEditor;
@@ -147,12 +149,28 @@ public class ThirdPerspectiveViewPatches {
                 AbstractPlayerRenderPatch.playerDrawX = MathHelper.cardLerpSnap(AbstractPlayerRenderPatch.playerDrawX, drawX);
                 __instance.dialogX = drawX + 0.8f * __instance.hb_w / 2 * (__instance.flipHorizontal ? -1 : 1);
             }
+
+            if (!__instance.isDead) {
+                AbstractPlayerRenderPatch.playerDrawY = 0;
+            }
+        }
+    }
+
+    @SpirePatch(clz = DeathScreen.class, method = "update")
+    public static class DeathScreenUpdatePatch {
+        @SpirePostfixPatch
+        public static void Postfix() {
+            if (AbstractDungeon.player != null && AbstractDungeon.player.isDead) {
+                AbstractPlayerRenderPatch.playerDrawY -= Gdx.graphics.getDeltaTime() * 800.0F * Settings.scale;
+                AbstractDungeon.player.animX = MathUtils.sinDeg(AbstractPlayerRenderPatch.playerDrawY) * 80f * Settings.scale;
+            }
         }
     }
 
     @SpirePatch(clz = AbstractPlayer.class, method = "render")
     public static class AbstractPlayerRenderPatch {
         public static float playerDrawX = Settings.WIDTH / 6f;
+        public static float playerDrawY = 0;
         public static float playerVisibility = 1;
 
         @SpireInsertPatch(locator = Locator.class)
@@ -170,13 +188,13 @@ public class ThirdPerspectiveViewPatches {
             float v1 = playerDrawX < Settings.WIDTH / 3f ? 1 : (playerDrawX > Settings.WIDTH * 2 / 3f ? 0 : (2 * Settings.WIDTH / 3f - playerDrawX) / (Settings.WIDTH / 3f));
             if (v1 > 0) {
                 sb.setColor(1, 1, 1, playerVisibility * v1);
-                sb.draw(__instance.shoulderImg, __instance.animX - Settings.WIDTH / 6f + playerDrawX + distance * percentage, 0.0F, 1920.0F * Settings.scale, 1136.0F * Settings.scale, 0, 0, __instance.shoulderImg.getWidth(), __instance.shoulderImg.getHeight(), false, false);
+                sb.draw(__instance.shoulderImg, __instance.animX - Settings.WIDTH / 6f + playerDrawX + distance * percentage, playerDrawY, 1920.0F * Settings.scale, 1136.0F * Settings.scale, 0, 0, __instance.shoulderImg.getWidth(), __instance.shoulderImg.getHeight(), false, false);
             }
 
             float v2 = playerDrawX < Settings.WIDTH / 3f ? 0 : (playerDrawX > Settings.WIDTH * 2 / 3f ? 1 : (playerDrawX - Settings.WIDTH / 3f) / (Settings.WIDTH / 3f));
             if (v2 > 0) {
                 sb.setColor(1, 1, 1, playerVisibility * v2);
-                sb.draw(__instance.shoulderImg, -__instance.animX - Settings.WIDTH * 5 / 6f + playerDrawX + distance * percentage, 0.0F, 1920.0F * Settings.scale, 1136.0F * Settings.scale, 0, 0, __instance.shoulderImg.getWidth(), __instance.shoulderImg.getHeight(), true, false);
+                sb.draw(__instance.shoulderImg, -__instance.animX - Settings.WIDTH * 5 / 6f + playerDrawX + distance * percentage, playerDrawY, 1920.0F * Settings.scale, 1136.0F * Settings.scale, 0, 0, __instance.shoulderImg.getWidth(), __instance.shoulderImg.getHeight(), true, false);
             }
 
             if (!(AbstractDungeon.getCurrRoom() instanceof RestRoom)) {

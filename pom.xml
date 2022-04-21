@@ -8,7 +8,7 @@
     <artifactId>chaofanmod</artifactId>
     <version>1.0.0</version>
     <name>Chaofan Mod</name>
-    <description>Some relic and cards.</description>
+    <description>Playground of Chaofan.</description>
 
     <properties>
         <maven.compiler.source>1.8</maven.compiler.source>

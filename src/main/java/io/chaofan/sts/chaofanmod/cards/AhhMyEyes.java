@@ -11,7 +11,7 @@ public class AhhMyEyes extends CustomCard {
     public static final String ID = makeCardId(AhhMyEyes.class.getSimpleName());
 
     public AhhMyEyes() {
-        super(ID, getCardStrings(ID).NAME, new RegionName("green/attack/endless_agony"), 0, getCardStrings(ID).DESCRIPTION, CardType.ATTACK, CardColor.COLORLESS, CardRarity.COMMON, CardTarget.ALL);
+        super(ID, getCardStrings(ID).NAME, new RegionName("green/attack/endless_agony"), 0, getCardStrings(ID).DESCRIPTION, CardType.ATTACK, CardColor.COLORLESS, CardRarity.SPECIAL, CardTarget.ALL);
     }
 
     @Override
