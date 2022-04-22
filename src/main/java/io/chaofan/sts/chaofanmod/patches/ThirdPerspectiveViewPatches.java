@@ -4,6 +4,7 @@ import basemod.ReflectionHacks;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.math.Interpolation;
 import com.badlogic.gdx.math.MathUtils;
 import com.evacipated.cardcrawl.modthespire.lib.*;
 import com.megacrit.cardcrawl.characters.AbstractPlayer;
@@ -12,14 +13,17 @@ import com.megacrit.cardcrawl.core.EnergyManager;
 import com.megacrit.cardcrawl.core.OverlayMenu;
 import com.megacrit.cardcrawl.core.Settings;
 import com.megacrit.cardcrawl.dungeons.AbstractDungeon;
+import com.megacrit.cardcrawl.helpers.Hitbox;
 import com.megacrit.cardcrawl.helpers.MathHelper;
 import com.megacrit.cardcrawl.monsters.AbstractMonster;
 import com.megacrit.cardcrawl.monsters.MonsterGroup;
+import com.megacrit.cardcrawl.orbs.AbstractOrb;
 import com.megacrit.cardcrawl.rooms.AbstractRoom;
 import com.megacrit.cardcrawl.rooms.RestRoom;
 import com.megacrit.cardcrawl.scenes.AbstractScene;
 import com.megacrit.cardcrawl.screens.CharSelectInfo;
 import com.megacrit.cardcrawl.screens.DeathScreen;
+import com.megacrit.cardcrawl.stances.AbstractStance;
 import javassist.CannotCompileException;
 import javassist.CtBehavior;
 import javassist.expr.ExprEditor;
@@ -104,6 +108,8 @@ public class ThirdPerspectiveViewPatches {
     public static class AbstractPlayerUpdatePatch {
         private static final int[] HAND_HIDE_COUNT = { 0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 4 };
         private static int floor = -1;
+        private static float playerTargetDrawX;
+        private static float oldPlayerTargetDrawX;
 
         @SpirePostfixPatch
         public static void Postfix(AbstractPlayer __instance) {
@@ -145,9 +151,15 @@ public class ThirdPerspectiveViewPatches {
             if (__instance.isEscaping) {
                 AbstractPlayerRenderPatch.playerDrawX += (Gdx.graphics.getDeltaTime() * 500.0F * Settings.scale) * (__instance.flipHorizontal ? -1 : 1);
             } else if (AbstractDungeon.getCurrRoom().phase != AbstractRoom.RoomPhase.COMBAT || !AbstractDungeon.getCurrRoom().isBattleOver) {
-                float drawX = Settings.WIDTH / 6f * (__instance.flipHorizontal ? 5 : 1);
-                AbstractPlayerRenderPatch.playerDrawX = MathHelper.cardLerpSnap(AbstractPlayerRenderPatch.playerDrawX, drawX);
-                __instance.dialogX = drawX + 0.8f * __instance.hb_w / 2 * (__instance.flipHorizontal ? -1 : 1);
+                playerTargetDrawX = Settings.WIDTH / 6f * (__instance.flipHorizontal ? 5 : 1);
+                AbstractPlayerRenderPatch.playerDrawX = MathHelper.cardLerpSnap(AbstractPlayerRenderPatch.playerDrawX, playerTargetDrawX);
+                __instance.dialogX = playerTargetDrawX + 0.8f * __instance.hb_w / 2 * (__instance.flipHorizontal ? -1 : 1);
+                if (oldPlayerTargetDrawX != playerTargetDrawX) {
+                    for (int i = 0; i < __instance.orbs.size(); i++) {
+                        __instance.orbs.get(i).setSlot(i, __instance.maxOrbs);
+                    }
+                    oldPlayerTargetDrawX = playerTargetDrawX;
+                }
             }
 
             if (!__instance.isDead) {
@@ -173,10 +185,22 @@ public class ThirdPerspectiveViewPatches {
         public static float playerDrawY = 0;
         public static float playerVisibility = 1;
 
-        @SpireInsertPatch(locator = Locator.class)
-        public static SpireReturn<Void> Insert(AbstractPlayer __instance, SpriteBatch sb) {
-            if (ReflectionHacks.<Boolean>getPrivate(__instance, AbstractPlayer.class, "renderCorpse")) {
-                return SpireReturn.Return();
+        @SpireInstrumentPatch
+        public static ExprEditor Instrument() {
+            return new ExprEditor() {
+                @Override
+                public void edit(MethodCall m) throws CannotCompileException {
+                    // Hide combat room foreground
+                    if (m.getClassName().equals(AbstractStance.class.getName()) && m.getMethodName().equals("render")) {
+                        m.replace(String.format("$_ = $proceed($$); %s.renderPlayer(this, sb);", AbstractPlayerRenderPatch.class.getName()));
+                    }
+                }
+            };
+        }
+
+        public static void renderPlayer(AbstractPlayer __instance, SpriteBatch sb) {
+            if (ReflectionHacks.getPrivate(__instance, AbstractPlayer.class, "renderCorpse")) {
+                return;
             }
 
             sb.setColor(Color.WHITE);
@@ -196,11 +220,16 @@ public class ThirdPerspectiveViewPatches {
                 sb.setColor(1, 1, 1, playerVisibility * v2);
                 sb.draw(__instance.shoulderImg, -__instance.animX - Settings.WIDTH * 5 / 6f + playerDrawX + distance * percentage, playerDrawY, 1920.0F * Settings.scale, 1136.0F * Settings.scale, 0, 0, __instance.shoulderImg.getWidth(), __instance.shoulderImg.getHeight(), true, false);
             }
+        }
 
-            if (!(AbstractDungeon.getCurrRoom() instanceof RestRoom)) {
+        @SpireInsertPatch(locator = Locator.class)
+        public static SpireReturn<Void> Insert(AbstractPlayer __instance, SpriteBatch sb) {
+            if (!ReflectionHacks.<Boolean>getPrivate(__instance, AbstractPlayer.class, "renderCorpse") &&
+                    !(AbstractDungeon.getCurrRoom() instanceof RestRoom)) {
                 __instance.hb.render(sb);
                 __instance.healthHb.render(sb);
             }
+
             return SpireReturn.Return();
         }
 
@@ -254,6 +283,44 @@ public class ThirdPerspectiveViewPatches {
                     }
                 }
             };
+        }
+    }
+
+    @SpirePatch(clz = AbstractOrb.class, method = "setSlot")
+    public static class AbstractOrbSetSlot {
+        @SpireInsertPatch(locator = Locator.class)
+        public static void Insert(AbstractOrb __instance, int slotNum, int maxOrbs) {
+            float dist = 160.0F * Settings.scale + (float)maxOrbs * 15.0F * Settings.scale;
+            float angle = 100.0F + (float)maxOrbs * 12.0F;
+            float offsetAngle = angle / 2.0F;// 122
+            angle *= (float)slotNum / ((float)maxOrbs - 1.0F);// 123
+            angle += 90.0F - offsetAngle;// 124
+            float drawX = AbstractPlayerUpdatePatch.playerTargetDrawX;
+            float drawY = AbstractDungeon.player.hb_y;
+            __instance.tX = dist * MathUtils.cosDeg(angle) + drawX;
+            __instance.tY = 60.0F * Settings.scale + dist * MathUtils.sinDeg(angle) + drawY + AbstractDungeon.player.hb_h;
+            if (maxOrbs == 1) {// 128
+                __instance.tX = drawX;
+                __instance.tY = 220.0F * Settings.scale + drawY + AbstractDungeon.player.hb_h;
+            }
+        }
+
+        public static class Locator extends SpireInsertLocator {
+            @Override
+            public int[] Locate(CtBehavior ctBehavior) throws Exception {
+                Matcher.MethodCallMatcher matcher = new Matcher.MethodCallMatcher(Hitbox.class, "move");
+                return LineFinder.findInOrder(ctBehavior, matcher);
+            }
+        }
+    }
+
+    @SpirePatch(clz = AbstractOrb.class, method = "updateAnimation")
+    public static class AbstractOrbUpdateAnimation {
+        @SpirePostfixPatch
+        public static void Postfix(AbstractOrb __instance) {
+            ReflectionHacks.setPrivate(__instance, AbstractOrb.class, "scale",
+                Interpolation.swingIn.apply(Settings.scale * 1.5f, 0.01F,
+                        ReflectionHacks.<Float>getPrivate(__instance, AbstractOrb.class, "channelAnimTimer") / 0.5F));
         }
     }
 }
