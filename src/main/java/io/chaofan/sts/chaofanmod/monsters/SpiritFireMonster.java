@@ -33,7 +33,7 @@ public class SpiritFireMonster extends AbstractMonster {
     private static final byte INTENT_BUFF = 3;
 
     public SpiritFireMonster() {
-        super(CardCrawlGame.languagePack.getMonsterStrings(ID).NAME, ID, 130, 0, 0, 600, 400, getImagePath("monsters/blank.png"), 0, 0);
+        super(CardCrawlGame.languagePack.getMonsterStrings(ID).NAME, ID, 120, 0, 0, 600, 400, getImagePath("monsters/blank.png"), 0, 0);
         if (AbstractDungeon.ascensionLevel >= 18) {
             strengthAmt = 4;
         } else {
@@ -41,7 +41,7 @@ public class SpiritFireMonster extends AbstractMonster {
         }
 
         if (AbstractDungeon.ascensionLevel >= 8) {
-            setHp(150);
+            setHp(135);
         }
 
         if (AbstractDungeon.ascensionLevel >= 3) {
