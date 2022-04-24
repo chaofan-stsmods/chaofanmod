@@ -5,5 +5,14 @@
     "DESCRIPTIONS": [
       "At the start of combat, add #yStrike to names of ALL Attacks in your draw pile."
     ]
+  },
+  "chaofanmod:relic.SpiritFire": {
+    "NAME": "Spirit Fire",
+    "FLAVOR": "The fire is happy.",
+    "DESCRIPTIONS": [
+      "You may combat at campfire to get reward.",
+      "Combat",
+      "Fight and get reward."
+    ]
   }
 }

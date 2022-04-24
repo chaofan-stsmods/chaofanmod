@@ -1,0 +1,8 @@
+{
+  "chaofanmod:power.Flammable": {
+    "NAME": "易燃",
+    "DESCRIPTIONS": [
+      "如果你没有 #y易伤 ，当你抽到 #y灼伤 时，获得 #b%s 层 #y易伤 。"
+    ]
+  }
+}

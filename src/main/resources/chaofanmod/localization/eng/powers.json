@@ -1,0 +1,8 @@
+{
+  "chaofanmod:power.Flammable": {
+    "NAME": "Flammable",
+    "DESCRIPTIONS": [
+      "If you are not #yVulnerable. Gain #b%d #yVulnerable when you draw a #yBurn."
+    ]
+  }
+}

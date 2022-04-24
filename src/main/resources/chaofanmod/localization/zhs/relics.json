@@ -5,5 +5,14 @@
     "DESCRIPTIONS": [
       "战斗开始时，给抽牌堆里所有攻击牌的名字中都加入 #y打击 。"
     ]
+  },
+  "chaofanmod:relic.SpiritFire": {
+    "NAME": "精神小火",
+    "FLAVOR": "小火它很高兴。",
+    "DESCRIPTIONS": [
+      "你可以在篝火处战斗。",
+      "战斗",
+      "战斗以获得奖励。"
+    ]
   }
 }

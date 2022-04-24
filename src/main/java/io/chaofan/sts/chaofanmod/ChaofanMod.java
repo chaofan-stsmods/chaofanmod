@@ -14,8 +14,12 @@ import com.evacipated.cardcrawl.modthespire.lib.SpireInitializer;
 import com.megacrit.cardcrawl.core.Settings;
 import com.megacrit.cardcrawl.helpers.ImageMaster;
 import com.megacrit.cardcrawl.localization.CardStrings;
+import com.megacrit.cardcrawl.localization.MonsterStrings;
+import com.megacrit.cardcrawl.localization.PowerStrings;
 import com.megacrit.cardcrawl.localization.RelicStrings;
+import com.megacrit.cardcrawl.monsters.MonsterGroup;
 import io.chaofan.sts.chaofanmod.cards.AhhMyEyes;
+import io.chaofan.sts.chaofanmod.monsters.SpiritFireMonster;
 import io.chaofan.sts.chaofanmod.relics.Stool;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -62,6 +66,8 @@ public class ChaofanMod implements
 
         Texture badgeTexture = ImageMaster.loadImage(MOD_ID + "/images/badge.png");
         BaseMod.registerModBadge(badgeTexture, "Better CN Font", "Chaofan", "", settingsPanel);
+
+        BaseMod.addMonster(SpiritFireMonster.ID, () -> new MonsterGroup(new SpiritFireMonster()));
     }
 
     private ModPanel initSettings() {
@@ -87,6 +93,8 @@ public class ChaofanMod implements
     public void receiveEditStrings() {
         loadCustomStringsFile(RelicStrings.class, "relics.json");
         loadCustomStringsFile(CardStrings.class, "cards.json");
+        loadCustomStringsFile(MonsterStrings.class, "monsters.json");
+        loadCustomStringsFile(PowerStrings.class, "powers.json");
     }
 
     private static String getLocalizationFilePath(String file) {
