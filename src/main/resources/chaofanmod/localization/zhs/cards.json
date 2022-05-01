@@ -7,6 +7,10 @@
   },
   "chaofanmod:card.ProgressCard": {
     "NAME": "进度条",
-    "DESCRIPTION": ""
+    "DESCRIPTION": " 消耗 。 虚无 。 红色 : 对随机一个敌人造成 !chaofanmod:var.ShootCount! 点伤害。"
+  },
+  "chaofanmod:card.AlphaBlue": {
+    "NAME": "阿尔法",
+    "DESCRIPTION": "生成 !M! 个 chaofanmod:阿尔法 充能球。"
   }
 }

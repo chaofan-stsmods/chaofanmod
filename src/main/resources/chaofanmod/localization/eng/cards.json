@@ -8,5 +8,9 @@
   "chaofanmod:card.ProgressCard": {
     "NAME": "Progress",
     "DESCRIPTION": ""
+  },
+  "chaofanmod:card.AlphaBlue": {
+    "NAME": "Alpha",
+    "DESCRIPTION": "Channel !M! chaofanmod:Alpha."
   }
 }

@@ -1,0 +1,20 @@
+{
+  "chaofanmod:orb.Alpha": {
+    "DESCRIPTION": [
+      "#yEvoke: #yChannel a #yBeta."
+    ],
+    "NAME": "Alpha"
+  },
+  "chaofanmod:orb.Beta": {
+    "DESCRIPTION": [
+      "#yEvoke: #yChannel an #yOmega."
+    ],
+    "NAME": "Beta"
+  },
+  "chaofanmod:orb.Omega": {
+    "DESCRIPTION": [
+      "#yEvoke: Deal #b%d damage to ALL enemies."
+    ],
+    "NAME": "Omega"
+  }
+}
