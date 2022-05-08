@@ -1,9 +1,9 @@
-package io.chaofan.sts.chaofanmod.xiangqi;
+package io.chaofan.sts.xiangqi;
 
-import io.chaofan.sts.chaofanmod.xiangqi.piece.Jiang;
-import io.chaofan.sts.chaofanmod.xiangqi.piece.Ma;
-import io.chaofan.sts.chaofanmod.xiangqi.piece.PieceBase;
-import io.chaofan.sts.chaofanmod.xiangqi.piece.Shi;
+import io.chaofan.sts.xiangqi.piece.Jiang;
+import io.chaofan.sts.xiangqi.piece.Ma;
+import io.chaofan.sts.xiangqi.piece.PieceBase;
+import io.chaofan.sts.xiangqi.piece.Shi;
 
 import java.util.ArrayList;
 import java.util.List;

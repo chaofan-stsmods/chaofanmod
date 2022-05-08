@@ -1,4 +1,4 @@
-package io.chaofan.sts.chaofanmod.patches;
+package io.chaofan.sts.thirdview.patches;
 
 import basemod.ReflectionHacks;
 import com.badlogic.gdx.Gdx;

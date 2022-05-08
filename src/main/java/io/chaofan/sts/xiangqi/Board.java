@@ -1,6 +1,7 @@
-package io.chaofan.sts.chaofanmod.xiangqi;
+package io.chaofan.sts.xiangqi;
 
 import io.chaofan.sts.chaofanmod.xiangqi.piece.*;
+import io.chaofan.sts.xiangqi.piece.*;
 
 import java.util.ArrayList;
 import java.util.List;

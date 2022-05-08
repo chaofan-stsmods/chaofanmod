@@ -1,4 +1,4 @@
-package io.chaofan.sts.chaofanmod.xiangqi;
+package io.chaofan.sts.xiangqi;
 
 public class Position {
     public int x;

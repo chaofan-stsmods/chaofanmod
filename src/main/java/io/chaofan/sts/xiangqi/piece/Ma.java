@@ -1,7 +1,7 @@
-package io.chaofan.sts.chaofanmod.xiangqi.piece;
+package io.chaofan.sts.xiangqi.piece;
 
-import io.chaofan.sts.chaofanmod.xiangqi.Board;
-import io.chaofan.sts.chaofanmod.xiangqi.Position;
+import io.chaofan.sts.xiangqi.Board;
+import io.chaofan.sts.xiangqi.Position;
 
 import java.util.List;
 
