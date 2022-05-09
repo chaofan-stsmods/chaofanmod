@@ -12,5 +12,12 @@
   "chaofanmod:card.AlphaBlue": {
     "NAME": "Alpha",
     "DESCRIPTION": "Channel !M! chaofanmod:Alpha."
+  },
+  "chaofanmod:card.RiskManagement": {
+    "NAME": "Risk Management",
+    "DESCRIPTION": "Deal damage to ALL enemies equal to your mod count.",
+    "EXTENDED_DESCRIPTION": [
+      "Deal damage to ALL enemies equal to your mod count. NL (Deal !D! damage.)"
+    ]
   }
 }

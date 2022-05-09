@@ -12,5 +12,12 @@
   "chaofanmod:card.AlphaBlue": {
     "NAME": "阿尔法",
     "DESCRIPTION": "生成 !M! 个 chaofanmod:阿尔法 充能球。"
+  },
+  "chaofanmod:card.RiskManagement": {
+    "NAME": "风险管理",
+    "DESCRIPTION": "对所有敌人造成已启用Ｍｏｄ数的伤害。",
+    "EXTENDED_DESCRIPTION": [
+      "对所有敌人造成已启用Ｍｏｄ数的伤害。 NL （ !D! 点伤害 ）"
+    ]
   }
 }

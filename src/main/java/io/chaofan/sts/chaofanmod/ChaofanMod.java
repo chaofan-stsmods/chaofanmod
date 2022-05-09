@@ -19,6 +19,9 @@ import io.chaofan.sts.CommonModUtils;
 import io.chaofan.sts.chaofanmod.cards.AhhMyEyes;
 import io.chaofan.sts.chaofanmod.monsters.SpiritFireMonster;
 import io.chaofan.sts.chaofanmod.relics.Stool;
+import io.chaofan.sts.chaofanmod.rewards.HealReward;
+import io.chaofan.sts.chaofanmod.rewards.RubyKeyReward;
+import io.chaofan.sts.chaofanmod.utils.ChaofanModEnums;
 import io.chaofan.sts.chaofanmod.variables.ShootCountVariable;
 import io.chaofan.sts.enhancedsteamstatus.EnhancedSteamStatus;
 import org.apache.logging.log4j.LogManager;
@@ -68,6 +71,9 @@ public class ChaofanMod implements
         BaseMod.registerModBadge(badgeTexture, "Better CN Font", "Chaofan", "", settingsPanel);
 
         BaseMod.addMonster(SpiritFireMonster.ID, () -> new MonsterGroup(new SpiritFireMonster()));
+
+        BaseMod.registerCustomReward(ChaofanModEnums.CHAOFAN_MOD_HEAL, HealReward::load, HealReward::save);
+        BaseMod.registerCustomReward(ChaofanModEnums.CHAOFAN_MOD_RUBY_KEY, RubyKeyReward::load, RubyKeyReward::save);
     }
 
     private ModPanel initSettings() {

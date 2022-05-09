@@ -12,7 +12,9 @@
     "DESCRIPTIONS": [
       "You may combat at campfire to get reward.",
       "Combat",
-      "Fight and get reward."
+      "Fight and get reward.",
+      "Ruby Key",
+      "Heal %d HP"
     ]
   }
 }
