@@ -8,6 +8,8 @@ import basemod.helpers.RelicType;
 import basemod.interfaces.*;
 import com.badlogic.gdx.graphics.Texture;
 import com.evacipated.cardcrawl.modthespire.lib.SpireInitializer;
+import com.megacrit.cardcrawl.cards.AbstractCard;
+import com.megacrit.cardcrawl.dungeons.AbstractDungeon;
 import com.megacrit.cardcrawl.helpers.ImageMaster;
 import com.megacrit.cardcrawl.localization.CardStrings;
 import com.megacrit.cardcrawl.localization.OrbStrings;
@@ -18,6 +20,8 @@ import com.megacrit.cardcrawl.monsters.MonsterGroup;
 import io.chaofan.sts.CommonModUtils;
 import io.chaofan.sts.chaofanmod.cards.AhhMyEyes;
 import io.chaofan.sts.chaofanmod.monsters.SpiritFireMonster;
+import io.chaofan.sts.chaofanmod.monsters.SpiritFireMonsterAct2;
+import io.chaofan.sts.chaofanmod.powers.AddFuelPower;
 import io.chaofan.sts.chaofanmod.relics.Stool;
 import io.chaofan.sts.chaofanmod.rewards.HealReward;
 import io.chaofan.sts.chaofanmod.rewards.RubyKeyReward;
@@ -36,7 +40,8 @@ public class ChaofanMod implements
         EditRelicsSubscriber,
         EditCardsSubscriber,
         EditKeywordsSubscriber,
-        PostInitializeSubscriber {
+        PostInitializeSubscriber,
+        PostExhaustSubscriber {
 
     public static final String MOD_ID = "chaofanmod";
     public static final Logger logger = LogManager.getLogger(ChaofanMod.class.getName());
@@ -70,7 +75,13 @@ public class ChaofanMod implements
         Texture badgeTexture = ImageMaster.loadImage(MOD_ID + "/images/badge.png");
         BaseMod.registerModBadge(badgeTexture, "Better CN Font", "Chaofan", "", settingsPanel);
 
-        BaseMod.addMonster(SpiritFireMonster.ID, () -> new MonsterGroup(new SpiritFireMonster()));
+        BaseMod.addMonster(SpiritFireMonster.ID, () -> {
+            if (AbstractDungeon.actNum == 2) {
+                return new MonsterGroup(new SpiritFireMonsterAct2());
+            } else {
+                return new MonsterGroup(new SpiritFireMonster());
+            }
+        });
 
         BaseMod.registerCustomReward(ChaofanModEnums.CHAOFAN_MOD_HEAL, HealReward::load, HealReward::save);
         BaseMod.registerCustomReward(ChaofanModEnums.CHAOFAN_MOD_RUBY_KEY, RubyKeyReward::load, RubyKeyReward::save);
@@ -108,5 +119,10 @@ public class ChaofanMod implements
     public void receiveEditKeywords() {
         ChaofanMod.keywords = new HashMap<>();
         CommonModUtils.loadKeywordsFile(ChaofanMod.keywords);
+    }
+
+    @Override
+    public void receivePostExhaust(AbstractCard abstractCard) {
+        AddFuelPower.triggerExhaust(abstractCard);
     }
 }

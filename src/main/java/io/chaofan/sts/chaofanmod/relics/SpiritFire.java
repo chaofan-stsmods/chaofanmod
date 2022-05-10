@@ -66,7 +66,7 @@ public class SpiritFire extends CustomRelic implements CustomSavable<SpiritFire.
     @Override
     public void onLoad(Usage usage) {
         if (usage != null) {
-            //this.usage = usage;
+            this.usage = usage;
         }
     }
 

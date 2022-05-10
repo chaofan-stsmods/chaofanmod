@@ -4,5 +4,25 @@
     "DESCRIPTIONS": [
       "If you are not #yVulnerable. Gain #b%d #yVulnerable when you draw a #yBurn."
     ]
+  },
+  "chaofanmod:power.AddFuel": {
+    "NAME": "Add Fuel",
+    "DESCRIPTIONS": [
+      "Whenever you #yExhaust a card, #ySpirit #yFire gain #b%d #yStrength."
+    ]
+  },
+  "chaofanmod:power.Spark": {
+    "NAME": "Spark",
+    "DESCRIPTIONS": [
+      "At the end of its turn, #ySpirit #yFire lose #b%d #yStrength if it's positive."
+    ]
+  },
+  "chaofanmod:power.Dazzled": {
+    "NAME": "Dazzled",
+    "DESCRIPTIONS": [
+      "After you play #b%d cards, the next #yNon-Exhaust card you played will be #yExhausted, then reset amount to #b%d.",
+      "After you play #b%d card, the next #yNon-Exhaust card you played will be #yExhausted, then reset amount to #b%d.",
+      "The next #yNon-Exhaust card you played will be #yExhausted, then reset amount to #b%d."
+    ]
   }
 }
