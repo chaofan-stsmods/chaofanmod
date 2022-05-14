@@ -3,22 +3,23 @@ package io.chaofan.sts.chaofanmod;
 import basemod.AutoAdd;
 import basemod.BaseMod;
 import basemod.ModPanel;
+import basemod.ReflectionHacks;
 import basemod.abstracts.CustomRelic;
 import basemod.helpers.RelicType;
 import basemod.interfaces.*;
 import com.badlogic.gdx.graphics.Texture;
 import com.evacipated.cardcrawl.modthespire.lib.SpireInitializer;
 import com.megacrit.cardcrawl.cards.AbstractCard;
+import com.megacrit.cardcrawl.core.CardCrawlGame;
+import com.megacrit.cardcrawl.daily.mods.AbstractDailyMod;
 import com.megacrit.cardcrawl.dungeons.AbstractDungeon;
 import com.megacrit.cardcrawl.helpers.ImageMaster;
-import com.megacrit.cardcrawl.localization.CardStrings;
-import com.megacrit.cardcrawl.localization.OrbStrings;
-import com.megacrit.cardcrawl.localization.MonsterStrings;
-import com.megacrit.cardcrawl.localization.PowerStrings;
-import com.megacrit.cardcrawl.localization.RelicStrings;
+import com.megacrit.cardcrawl.helpers.ModHelper;
+import com.megacrit.cardcrawl.localization.*;
 import com.megacrit.cardcrawl.monsters.MonsterGroup;
 import io.chaofan.sts.CommonModUtils;
 import io.chaofan.sts.chaofanmod.cards.AhhMyEyes;
+import io.chaofan.sts.chaofanmod.mods.Lonely;
 import io.chaofan.sts.chaofanmod.monsters.SpiritFireMonster;
 import io.chaofan.sts.chaofanmod.monsters.SpiritFireMonsterAct2;
 import io.chaofan.sts.chaofanmod.powers.AddFuelPower;
@@ -85,6 +86,9 @@ public class ChaofanMod implements
 
         BaseMod.registerCustomReward(ChaofanModEnums.CHAOFAN_MOD_HEAL, HealReward::load, HealReward::save);
         BaseMod.registerCustomReward(ChaofanModEnums.CHAOFAN_MOD_RUBY_KEY, RubyKeyReward::load, RubyKeyReward::save);
+
+        HashMap<String, AbstractDailyMod> difficultyMods = ReflectionHacks.getPrivate(null, ModHelper.class, "difficultyMods");
+        difficultyMods.put(Lonely.ID, new Lonely());
     }
 
     private ModPanel initSettings() {
@@ -113,6 +117,7 @@ public class ChaofanMod implements
         CommonModUtils.loadCustomStringsFile(MOD_ID, MonsterStrings.class, "monsters.json");
         CommonModUtils.loadCustomStringsFile(MOD_ID, PowerStrings.class, "powers.json");
         CommonModUtils.loadCustomStringsFile(MOD_ID, OrbStrings.class, "orbs.json");
+        CommonModUtils.loadCustomStringsFile(MOD_ID, RunModStrings.class, "run_mods.json");
     }
 
     @Override
