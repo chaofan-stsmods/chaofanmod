@@ -19,6 +19,7 @@ import com.megacrit.cardcrawl.localization.*;
 import com.megacrit.cardcrawl.monsters.MonsterGroup;
 import io.chaofan.sts.CommonModUtils;
 import io.chaofan.sts.chaofanmod.cards.AhhMyEyes;
+import io.chaofan.sts.chaofanmod.events.Gremlin2048;
 import io.chaofan.sts.chaofanmod.mods.Lonely;
 import io.chaofan.sts.chaofanmod.monsters.SpiritFireMonster;
 import io.chaofan.sts.chaofanmod.monsters.SpiritFireMonsterAct2;
@@ -89,6 +90,8 @@ public class ChaofanMod implements
 
         HashMap<String, AbstractDailyMod> difficultyMods = ReflectionHacks.getPrivate(null, ModHelper.class, "difficultyMods");
         difficultyMods.put(Lonely.ID, new Lonely());
+
+        BaseMod.addEvent(Gremlin2048.ID, Gremlin2048.class);
     }
 
     private ModPanel initSettings() {
@@ -118,6 +121,7 @@ public class ChaofanMod implements
         CommonModUtils.loadCustomStringsFile(MOD_ID, PowerStrings.class, "powers.json");
         CommonModUtils.loadCustomStringsFile(MOD_ID, OrbStrings.class, "orbs.json");
         CommonModUtils.loadCustomStringsFile(MOD_ID, RunModStrings.class, "run_mods.json");
+        CommonModUtils.loadCustomStringsFile(MOD_ID, EventStrings.class, "events.json");
     }
 
     @Override
