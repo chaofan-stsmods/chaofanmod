@@ -16,5 +16,12 @@
       "Ruby Key",
       "Heal %d HP"
     ]
+  },
+  "chaofanmod:relic.OldPhone": {
+    "NAME": "Old Phone",
+    "FLAVOR": "It's good to take photo with it.",
+    "DESCRIPTIONS": [
+      "Gain [E] at the start of your turn. Your UI looks like shooting using a phone."
+    ]
   }
 }

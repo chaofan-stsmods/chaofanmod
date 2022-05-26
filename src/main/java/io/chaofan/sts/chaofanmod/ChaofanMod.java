@@ -5,12 +5,12 @@ import basemod.BaseMod;
 import basemod.ModPanel;
 import basemod.ReflectionHacks;
 import basemod.abstracts.CustomRelic;
+import basemod.devcommands.relic.RelicPool;
 import basemod.helpers.RelicType;
 import basemod.interfaces.*;
 import com.badlogic.gdx.graphics.Texture;
 import com.evacipated.cardcrawl.modthespire.lib.SpireInitializer;
 import com.megacrit.cardcrawl.cards.AbstractCard;
-import com.megacrit.cardcrawl.core.CardCrawlGame;
 import com.megacrit.cardcrawl.daily.mods.AbstractDailyMod;
 import com.megacrit.cardcrawl.dungeons.AbstractDungeon;
 import com.megacrit.cardcrawl.helpers.ImageMaster;
@@ -23,7 +23,9 @@ import io.chaofan.sts.chaofanmod.events.Gremlin2048;
 import io.chaofan.sts.chaofanmod.mods.Lonely;
 import io.chaofan.sts.chaofanmod.monsters.SpiritFireMonster;
 import io.chaofan.sts.chaofanmod.monsters.SpiritFireMonsterAct2;
+import io.chaofan.sts.chaofanmod.patches.ScreenFilterPatches;
 import io.chaofan.sts.chaofanmod.powers.AddFuelPower;
+import io.chaofan.sts.chaofanmod.relics.OldPhone;
 import io.chaofan.sts.chaofanmod.relics.Stool;
 import io.chaofan.sts.chaofanmod.rewards.HealReward;
 import io.chaofan.sts.chaofanmod.rewards.RubyKeyReward;
@@ -43,7 +45,8 @@ public class ChaofanMod implements
         EditCardsSubscriber,
         EditKeywordsSubscriber,
         PostInitializeSubscriber,
-        PostExhaustSubscriber {
+        PostExhaustSubscriber,
+        StartGameSubscriber {
 
     public static final String MOD_ID = "chaofanmod";
     public static final Logger logger = LogManager.getLogger(ChaofanMod.class.getName());
@@ -51,6 +54,10 @@ public class ChaofanMod implements
 
     public static String getImagePath(String file) {
         return MOD_ID + "/images/" + file;
+    }
+
+    public static String getShaderPath(String file) {
+        return MOD_ID + "/shaders/" + file;
     }
 
     public static String makeId(String id) {
@@ -133,5 +140,12 @@ public class ChaofanMod implements
     @Override
     public void receivePostExhaust(AbstractCard abstractCard) {
         AddFuelPower.triggerExhaust(abstractCard);
+    }
+
+    @Override
+    public void receiveStartGame() {
+        if (AbstractDungeon.player.hasRelic(OldPhone.ID)) {
+            ScreenFilterPatches.enable = true;
+        }
     }
 }

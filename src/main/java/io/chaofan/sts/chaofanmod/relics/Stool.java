@@ -18,7 +18,7 @@ public class Stool extends CustomRelic {
     private static final Texture OUTLINE = TextureLoader.getTexture(getImagePath("relics/outline/stool.png"));
 
     public Stool() {
-        super(ID, IMG, OUTLINE, RelicTier.SPECIAL, LandingSound.CLINK);
+        super(ID, IMG, OUTLINE, RelicTier.UNCOMMON, LandingSound.CLINK);
     }
 
     @Override

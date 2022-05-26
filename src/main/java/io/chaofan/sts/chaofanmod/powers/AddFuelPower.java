@@ -45,7 +45,9 @@ public class AddFuelPower extends AbstractPower {
                 for (AbstractMonster monster : room.monsters.monsters) {
                     if (!monster.isDeadOrEscaped()) {
                         AbstractPower power = monster.getPower(POWER_ID);
-                        power.onExhaust(card);
+                        if (power != null) {
+                            power.onExhaust(card);
+                        }
                     }
                 }
             }

@@ -16,5 +16,12 @@
       "红宝石钥匙",
       "回复 %d 点生命"
     ]
+  },
+  "chaofanmod:relic.OldPhone": {
+    "NAME": "旧手机",
+    "FLAVOR": "用它拍照很不错。",
+    "DESCRIPTIONS": [
+      "每回合开始获得 [E] 。 你的界面看上去像是用手机拍的一样。"
+    ]
   }
 }

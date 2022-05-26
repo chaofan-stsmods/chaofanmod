@@ -4,8 +4,6 @@ import basemod.ReflectionHacks;
 import basemod.abstracts.CustomRelic;
 import basemod.abstracts.CustomSavable;
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.math.Interpolation;
-import com.megacrit.cardcrawl.characters.AbstractPlayer;
 import com.megacrit.cardcrawl.core.Settings;
 import com.megacrit.cardcrawl.dungeons.AbstractDungeon;
 import com.megacrit.cardcrawl.helpers.ImageMaster;
@@ -19,9 +17,9 @@ import com.megacrit.cardcrawl.ui.campfire.AbstractCampfireOption;
 import io.chaofan.sts.chaofanmod.monsters.SpiritFireMonster;
 import io.chaofan.sts.chaofanmod.rewards.HealReward;
 import io.chaofan.sts.chaofanmod.rewards.RubyKeyReward;
+import io.chaofan.sts.chaofanmod.patches.ThirdPerspectiveViewPatches;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import static io.chaofan.sts.chaofanmod.ChaofanMod.getImagePath;
 import static io.chaofan.sts.chaofanmod.ChaofanMod.makeId;
@@ -35,7 +33,7 @@ public class SpiritFire extends CustomRelic implements CustomSavable<SpiritFire.
     private Usage usage = new Usage();
 
     public SpiritFire() {
-        super(ID, "burningBlood.png", RelicTier.SPECIAL, LandingSound.MAGICAL);
+        super(ID, "burningBlood.png", RelicTier.RARE, LandingSound.MAGICAL);
     }
 
     @Override
@@ -70,6 +68,11 @@ public class SpiritFire extends CustomRelic implements CustomSavable<SpiritFire.
         }
     }
 
+    @Override
+    public void onEnterRoom(AbstractRoom room) {
+        ThirdPerspectiveViewPatches.enable = false;
+    }
+
     public class CombatOption extends AbstractCampfireOption {
         private boolean setRewards = true;
 
@@ -101,6 +104,8 @@ public class SpiritFire extends CustomRelic implements CustomSavable<SpiritFire.
             room.monsters.init();
             AbstractRoom.waitTimer = 0.1F;
             AbstractDungeon.player.preBattlePrep();
+
+            ThirdPerspectiveViewPatches.enable = true;
         }
 
         @Override
