@@ -24,5 +24,11 @@
       "After you play #b%d card, the next #yNon-Exhaust card you played will be #yExhausted, then reset amount to #b%d.",
       "The next #yNon-Exhaust card you played will be #yExhausted, then reset amount to #b%d."
     ]
+  },
+  "chaofanmod:power.HeavyHand": {
+    "NAME": "Heavy Hand",
+    "DESCRIPTIONS": [
+      "Cards in your hand cost #b%d more [E]."
+    ]
   }
 }

@@ -2,14 +2,14 @@
   "chaofanmod:event.Grimlin2048": {
     "NAME": "2048",
     "DESCRIPTIONS": [
-      "有一位地精正在桌子上疯狂地摆弄着一副牌，他似乎没有危害。你出于好奇接近了他。",
-      "“ #b组合 两张牌，拿到 #y更强 的牌！ NL 准备好了吗？开始！”",
-      "你完成了地精的游戏，当你抬头看时，却发现…… NL 他已经不见了？"
+      "A gremlin is madly shuffling cards on a table. This monster seems to be a harmless one. You approach him out of curiosity.",
+      "\" #bCombine two cards and get a more powerful card! NL Are you ready? Let's start!\"",
+      "You complete the gremlin's game and look up. NL He disappeared?"
     ],
     "OPTIONS": [
-      "[继续]",
-      "[离开]",
-      "[玩小游戏]"
+      "[Continue]",
+      "[Leave]",
+      "[Play]"
     ]
   }
 }

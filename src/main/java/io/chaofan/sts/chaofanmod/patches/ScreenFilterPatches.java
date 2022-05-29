@@ -52,7 +52,29 @@ public class ScreenFilterPatches {
                 if (!shader.isCompiled()) {
                     throw new RuntimeException("Shader error");
                 }
-                projMat = createProjMatrix();
+                // LT 0, 38   RT 1918, -18
+                // LB 126,913 RT 1747, 1154
+                projMat = createProjMatrix(
+                        screen.getWidth(), screen.getHeight(),
+                        0, 38,
+                        1918, -18,
+                        126, 913,
+                        1747, 1154
+                );
+                /*projMat = createProjMatrix(
+                        screen.getWidth(), screen.getHeight(),
+                        1155, 547,
+                        1317, 579,
+                        1128, 685,
+                        1283, 734
+                );*/
+                /*projMat = createProjMatrix(
+                        screen.getWidth(), screen.getHeight(),
+                        177, 309,
+                        714, 211,
+                        246, 664,
+                        754, 527
+                );*/
             }
 
             usingFbo = true;
@@ -66,6 +88,7 @@ public class ScreenFilterPatches {
                 return LineFinder.findInOrder(ctBehavior, matcher);
             }
         }
+
         @SpireInsertPatch(locator = EndLocator.class)
         public static void BeforeSbEnd(CardCrawlGame __instance, SpriteBatch ___sb, OrthographicCamera ___camera) {
             if (!usingFbo) {
@@ -86,9 +109,11 @@ public class ScreenFilterPatches {
             ___sb.setProjectionMatrix(___camera.combined);
             ___sb.draw(screen, 0, 0, Settings.WIDTH, Settings.HEIGHT);
 
-            ___sb.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE);
-            ___sb.draw(screenHighlight, 0, 0, Settings.WIDTH, Settings.HEIGHT);
-            ___sb.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+            if (screenHighlight != null) {
+                ___sb.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE);
+                ___sb.draw(screenHighlight, 0, 0, Settings.WIDTH, Settings.HEIGHT);
+                ___sb.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+            }
 
             usingFbo = false;
         }
@@ -101,19 +126,22 @@ public class ScreenFilterPatches {
             }
         }
 
-        public static Matrix4 createProjMatrix() {
-            // LT 0, 38   RT 1918, -18
-            // LB 126,913 RT 1747, 1154
-            float[] u = {0, 1918, 126, 1747};
-            float[] v = {38, -18, 913, 1154};
+        public static Matrix4 createProjMatrix(
+                float imageWidth, float imageHeight,
+                float leftTopX, float leftTopY,
+                float rightTopX, float rightTopY,
+                float leftBottomX, float leftBottomY,
+                float rightBottomX, float rightBottomY) {
+            float[] u = {leftTopX, rightTopX, leftBottomX, rightBottomX};
+            float[] v = {leftTopY, rightTopY, leftBottomY, rightBottomY};
             //float[] u = {0, 1920, 0, 1920};
             //float[] v = {0, 0, 1080, 1080};
             float[] x = {0, Settings.WIDTH, 0, Settings.WIDTH};
             float[] y = {Settings.HEIGHT, Settings.HEIGHT, 0, 0};
 
             for (int i = 0; i < 4; i++) {
-                u[i] = u[i] / 1920 * 2 - 1;
-                v[i] = (1080 - v[i]) / 1080 * 2 - 1;
+                u[i] = u[i] / imageWidth * 2 - 1;
+                v[i] = (imageHeight - v[i]) / imageHeight * 2 - 1;
             }
 
             float[][] mat = new float[12][12];
@@ -185,13 +213,6 @@ public class ScreenFilterPatches {
                     0, 0, 0, 0,
                     result[2], result[5], 0, 1
             });
-        }
-    }
-
-    @SpirePatch(clz = ShaderHelper.class, method = "initializeShaders")
-    public static class ShaderHelperInitializeShadersPatch {
-        @SpirePostfixPatch
-        public static void Postfix() {
         }
     }
 }

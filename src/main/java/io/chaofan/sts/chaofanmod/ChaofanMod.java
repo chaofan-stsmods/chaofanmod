@@ -25,6 +25,7 @@ import io.chaofan.sts.chaofanmod.monsters.SpiritFireMonster;
 import io.chaofan.sts.chaofanmod.monsters.SpiritFireMonsterAct2;
 import io.chaofan.sts.chaofanmod.patches.ScreenFilterPatches;
 import io.chaofan.sts.chaofanmod.powers.AddFuelPower;
+import io.chaofan.sts.chaofanmod.powers.HeavyHandPower;
 import io.chaofan.sts.chaofanmod.relics.OldPhone;
 import io.chaofan.sts.chaofanmod.relics.Stool;
 import io.chaofan.sts.chaofanmod.rewards.HealReward;
@@ -99,6 +100,8 @@ public class ChaofanMod implements
         difficultyMods.put(Lonely.ID, new Lonely());
 
         BaseMod.addEvent(Gremlin2048.ID, Gremlin2048.class);
+
+        BaseMod.addPower(HeavyHandPower.class, HeavyHandPower.POWER_ID);
     }
 
     private ModPanel initSettings() {

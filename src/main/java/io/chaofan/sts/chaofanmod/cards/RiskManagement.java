@@ -17,7 +17,7 @@ public class RiskManagement extends CustomCard {
     public static final String ID = makeCardId(RiskManagement.class.getSimpleName());
 
     public RiskManagement() {
-        super(ID, getCardStrings(ID).NAME, new RegionName("purple/skill/blasphemy"), 1, getCardStrings(ID).DESCRIPTION, CardType.ATTACK, CardColor.COLORLESS, CardRarity.SPECIAL, CardTarget.ALL);
+        super(ID, getCardStrings(ID).NAME, new RegionName("purple/skill/blasphemy"), 1, getCardStrings(ID).DESCRIPTION, CardType.ATTACK, CardColor.COLORLESS, CardRarity.UNCOMMON, CardTarget.ALL);
         isMultiDamage = true;
         baseDamage = damage = Loader.MODINFOS.length;
     }
