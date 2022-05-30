@@ -30,7 +30,46 @@ import javassist.expr.ExprEditor;
 import javassist.expr.MethodCall;
 
 public class ThirdPerspectiveViewPatches {
-    public static boolean enable = false;
+    private static boolean enable = false;
+    private static float oldHbX = 0;
+    private static float oldHbY = 0;
+    private static float oldHbH = 0;
+    private static float oldHbW = 0;
+
+    public static void setEnable(boolean value) {
+        if (value == enable) {
+            return;
+        }
+
+        AbstractPlayer player = AbstractDungeon.player;
+        if (player == null) {
+            return;
+        }
+
+        enable = value;
+        if (enable) {
+            oldHbX = player.hb_x;
+            oldHbY = player.hb_y;
+            oldHbW = player.hb_w;
+            oldHbH = player.hb_h;
+            player.hb_x = 0;
+            player.hb_y = 0;
+            player.hb_w = 1920 / 3f;
+            player.hb_h = 1080 / 9f * 4f;
+        } else {
+            player.hb_x = oldHbX;
+            player.hb_y = oldHbY;
+            player.hb_w = oldHbW;
+            player.hb_h = oldHbH;
+        }
+        player.hb.width = player.hb_w;
+        player.hb.height = player.hb_h;
+        player.healthBarUpdatedEvent();
+    }
+
+    public static boolean getEnable() {
+        return enable;
+    }
 
     @SpirePatch(clz = AbstractDungeon.class, method = "render")
     public static class AbstractDungeonRenderPatch {
@@ -41,7 +80,7 @@ public class ThirdPerspectiveViewPatches {
                 public void edit(MethodCall m) throws CannotCompileException {
                     // Hide combat room foreground
                     if (m.getClassName().equals(AbstractScene.class.getName()) && m.getMethodName().equals("renderCombatRoomFg")) {
-                        m.replace(String.format(" if (!%s.enable) { $_ = $proceed($$); } ", ThirdPerspectiveViewPatches.class.getName()));
+                        m.replace(String.format(" if (!%s.getEnable()) { $_ = $proceed($$); } ", ThirdPerspectiveViewPatches.class.getName()));
                     }
                 }
             };
@@ -56,6 +95,10 @@ public class ThirdPerspectiveViewPatches {
                 return;
             }
 
+            oldHbX = hb_x[0];
+            oldHbY = hb_y[0];
+            oldHbW = hb_w[0];
+            oldHbH = hb_h[0];
             hb_w[0] = 1920 / 3f;
             hb_h[0] = 1080 / 9f * 4f;
             hb_y[0] = 0;
@@ -322,7 +365,7 @@ public class ThirdPerspectiveViewPatches {
                 public void edit(MethodCall m) throws CannotCompileException {
                     // Hide original monster rendering
                     if (m.getClassName().equals(MonsterGroup.class.getName()) && m.getMethodName().equals("render")) {
-                        m.replace(String.format(" if (!%s.enable) { $_ = $proceed($$); } ", ThirdPerspectiveViewPatches.class.getName()));
+                        m.replace(String.format(" if (!%s.getEnable()) { $_ = $proceed($$); } ", ThirdPerspectiveViewPatches.class.getName()));
                     }
                 }
             };

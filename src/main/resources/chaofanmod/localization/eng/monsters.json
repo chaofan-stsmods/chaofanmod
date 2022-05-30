@@ -12,5 +12,12 @@
     "NAME": "Spirit Fire",
     "DIALOG": [
     ]
+  },
+  "chaofanmod:monster.SpiritFireAct3": {
+    "MOVES": [
+    ],
+    "NAME": "Spirit Fire",
+    "DIALOG": [
+    ]
   }
 }

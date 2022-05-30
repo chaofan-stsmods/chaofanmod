@@ -30,5 +30,11 @@
     "DESCRIPTIONS": [
       "Cards in your hand cost #b%d more [E]."
     ]
+  },
+  "chaofanmod:power.Overheat": {
+    "NAME": "Overheat",
+    "DESCRIPTIONS": [
+      "After you deal #b%d damage, you lose #b1 #yStrength this turn, #ySpirit #yFire gain #b1 #yStrength this turn, then reset amount to #b%d."
+    ]
   }
 }

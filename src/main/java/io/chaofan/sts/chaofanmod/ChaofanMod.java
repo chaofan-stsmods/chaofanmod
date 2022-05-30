@@ -5,7 +5,6 @@ import basemod.BaseMod;
 import basemod.ModPanel;
 import basemod.ReflectionHacks;
 import basemod.abstracts.CustomRelic;
-import basemod.devcommands.relic.RelicPool;
 import basemod.helpers.RelicType;
 import basemod.interfaces.*;
 import com.badlogic.gdx.graphics.Texture;
@@ -23,7 +22,9 @@ import io.chaofan.sts.chaofanmod.events.Gremlin2048;
 import io.chaofan.sts.chaofanmod.mods.Lonely;
 import io.chaofan.sts.chaofanmod.monsters.SpiritFireMonster;
 import io.chaofan.sts.chaofanmod.monsters.SpiritFireMonsterAct2;
+import io.chaofan.sts.chaofanmod.monsters.SpiritFireMonsterAct3;
 import io.chaofan.sts.chaofanmod.patches.ScreenFilterPatches;
+import io.chaofan.sts.chaofanmod.patches.ThirdPerspectiveViewPatches;
 import io.chaofan.sts.chaofanmod.powers.AddFuelPower;
 import io.chaofan.sts.chaofanmod.powers.HeavyHandPower;
 import io.chaofan.sts.chaofanmod.relics.OldPhone;
@@ -83,10 +84,12 @@ public class ChaofanMod implements
         ModPanel settingsPanel = initSettings();
 
         Texture badgeTexture = ImageMaster.loadImage(MOD_ID + "/images/badge.png");
-        BaseMod.registerModBadge(badgeTexture, "Better CN Font", "Chaofan", "", settingsPanel);
+        BaseMod.registerModBadge(badgeTexture, "Chaofan Mod", "Chaofan", "", settingsPanel);
 
         BaseMod.addMonster(SpiritFireMonster.ID, () -> {
-            if (AbstractDungeon.actNum == 2) {
+            if (AbstractDungeon.actNum == 3) {
+                return new MonsterGroup(new SpiritFireMonsterAct3());
+            } else if (AbstractDungeon.actNum == 2) {
                 return new MonsterGroup(new SpiritFireMonsterAct2());
             } else {
                 return new MonsterGroup(new SpiritFireMonster());
@@ -150,5 +153,7 @@ public class ChaofanMod implements
         if (AbstractDungeon.player.hasRelic(OldPhone.ID)) {
             ScreenFilterPatches.enable = true;
         }
+
+        ThirdPerspectiveViewPatches.setEnable(false);
     }
 }

@@ -12,5 +12,12 @@
     "NAME": "精神小火",
     "DIALOG": [
     ]
+  },
+  "chaofanmod:monster.SpiritFireAct3": {
+    "MOVES": [
+    ],
+    "NAME": "精神小火",
+    "DIALOG": [
+    ]
   }
 }

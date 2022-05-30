@@ -70,7 +70,7 @@ public class SpiritFire extends CustomRelic implements CustomSavable<SpiritFire.
 
     @Override
     public void onEnterRoom(AbstractRoom room) {
-        ThirdPerspectiveViewPatches.enable = false;
+        ThirdPerspectiveViewPatches.setEnable(false);
     }
 
     public class CombatOption extends AbstractCampfireOption {
@@ -105,7 +105,7 @@ public class SpiritFire extends CustomRelic implements CustomSavable<SpiritFire.
             AbstractRoom.waitTimer = 0.1F;
             AbstractDungeon.player.preBattlePrep();
 
-            ThirdPerspectiveViewPatches.enable = true;
+            ThirdPerspectiveViewPatches.setEnable(true);
         }
 
         @Override
