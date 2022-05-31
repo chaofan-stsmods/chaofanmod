@@ -1,0 +1,178 @@
+{
+  "chaofanmod:monster.SpiritFire":  {
+    "width": 5.5,
+    "height": 1.5,
+    "a0": {
+      "damages": [
+        {
+          "min": 5
+        },
+        {
+          "min": 10
+        }
+      ],
+      "icons": [
+        {
+          "x": 0,
+          "y": 0,
+          "type": "STRONG_DEBUFF"
+        },
+        {
+          "x": 1.5,
+          "y": 0,
+          "type": "ATTACK_DEBUFF",
+          "damageIndex": 0,
+          "attackCount": 1
+        },
+        {
+          "x": 3,
+          "y": 0,
+          "type": "ATTACK",
+          "damageIndex": 1,
+          "attackCount": 1
+        },
+        {
+          "x": 4.5,
+          "y": 0,
+          "type": "BUFF"
+        }
+      ],
+      "arrows": [
+        {
+          "path": [ 0, 1, 0.5, 1.5 ]
+        },
+        {
+          "path": [ 0, 2.5, 0.5, 3 ]
+        },
+        {
+          "path": [ 0, 4, 0.5, 4.5 ]
+        },
+        {
+          "path": [ 1, 5, 1, 1.5, 2, 1 ]
+        }
+      ]
+    },
+    "a1": {
+      "damages": [
+        {
+          "min": 6
+        },
+        {
+          "min": 12
+        }
+      ]
+    }
+  },
+  "chaofanmod:monster.SpiritFireAct2":  {
+    "width": 4,
+    "height": 1.5,
+    "a0": {
+      "damages": [
+        {
+          "min": 5
+        },
+        {
+          "min": 10
+        }
+      ],
+      "icons": [
+        {
+          "x": 0,
+          "y": 0,
+          "type": "STRONG_DEBUFF"
+        },
+        {
+          "x": 1.5,
+          "y": 0,
+          "type": "ATTACK_DEBUFF",
+          "damageIndex": 0,
+          "attackCount": 1
+        },
+        {
+          "x": 3,
+          "y": 0,
+          "type": "ATTACK_BUFF",
+          "damageIndex": 1,
+          "attackCount": 1
+        }
+      ],
+      "arrows": [
+        {
+          "path": [ 0, 1, 0.5, 1.5 ]
+        },
+        {
+          "path": [ 0, 2.5, 0.5, 3 ]
+        },
+        {
+          "path": [ 1, 3.5, 1, 1.5, 2, 1 ]
+        }
+      ]
+    },
+    "a1": {
+      "damages": [
+        {
+          "min": 6
+        },
+        {
+          "min": 12
+        }
+      ]
+    }
+  },
+  "chaofanmod:monster.SpiritFireAct3":  {
+    "width": 4,
+    "height": 1.5,
+    "a0": {
+      "damages": [
+        {
+          "min": 5
+        },
+        {
+          "min": 10
+        }
+      ],
+      "icons": [
+        {
+          "x": 0,
+          "y": 0,
+          "type": "STRONG_DEBUFF"
+        },
+        {
+          "x": 1.5,
+          "y": 0,
+          "type": "ATTACK_DEBUFF",
+          "damageIndex": 0,
+          "attackCount": 1
+        },
+        {
+          "x": 3,
+          "y": 0,
+          "type": "ATTACK_BUFF",
+          "damageIndex": 1,
+          "attackCount": 1
+        }
+      ],
+      "arrows": [
+        {
+          "path": [ 0, 1, 0.5, 1.5 ]
+        },
+        {
+          "path": [ 0, 2.5, 0.5, 3 ]
+        },
+        {
+          "path": [ 1, 3.5, 1, 1.5, 2, 1 ]
+        }
+      ]
+    },
+    "a1": {
+      "damages": [
+        {
+          "min": 6
+        },
+        {
+          "min": 12
+        }
+      ]
+    }
+  }
+}

@@ -73,6 +73,11 @@ public class SpiritFire extends CustomRelic implements CustomSavable<SpiritFire.
         ThirdPerspectiveViewPatches.setEnable(false);
     }
 
+    @Override
+    public boolean canSpawn() {
+        return Settings.isEndless || AbstractDungeon.floorNum <= 48;
+    }
+
     public class CombatOption extends AbstractCampfireOption {
         private boolean setRewards = true;
 

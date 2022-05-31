@@ -51,6 +51,8 @@ public class SpiritFireMonsterAct2 extends AbstractMonster {
 
         this.damage.add(new DamageInfo(this, this.burnDmg));
         this.damage.add(new DamageInfo(this, this.flameDmg));
+
+        this.type = EnemyType.ELITE;
     }
 
     @Override
