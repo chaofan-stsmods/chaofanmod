@@ -40,6 +40,25 @@ public class Shi extends PieceBase {
     }
 
     @Override
+    public boolean canAttack(Board board, int x, int y) {
+        if (x < 3 || x > 5) {
+            return false;
+        }
+
+        int xDiff = x - this.x;
+        int yDiff = y - this.y;
+        if (Math.abs(xDiff) != 1 || Math.abs(yDiff) != 1) {
+            return false;
+        }
+
+        if (isFirstPlayer) {
+            return y <= 2;
+        } else {
+            return y >= 7;
+        }
+    }
+
+    @Override
     public PieceBase moveTo(int x, int y) {
         return new Shi(x, y, isFirstPlayer);
     }

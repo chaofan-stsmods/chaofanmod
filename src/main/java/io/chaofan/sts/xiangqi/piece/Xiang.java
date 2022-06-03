@@ -40,6 +40,21 @@ public class Xiang extends PieceBase {
     }
 
     @Override
+    public boolean canAttack(Board board, int x, int y) {
+        if ((isFirstPlayer && y > Board.RIVER_MIN) || (!isFirstPlayer && y < Board.RIVER_MAX)) {
+            return false;
+        }
+
+        int xDiff = x - this.x;
+        int yDiff = y - this.y;
+        if (Math.abs(xDiff) != 2 || Math.abs(yDiff) != 2) {
+            return false;
+        }
+
+        return !board.hasPieceAt(this.x + xDiff / 2, this.y + yDiff / 2);
+    }
+
+    @Override
     public PieceBase moveTo(int x, int y) {
         return new Xiang(x, y, isFirstPlayer);
     }

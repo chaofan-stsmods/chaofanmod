@@ -38,6 +38,37 @@ public class Ma extends PieceBase {
     }
 
     @Override
+    public boolean canAttack(Board board, int x, int y) {
+        int xDiff = x - this.x;
+        int yDiff = y - this.y;
+        if (Math.abs(xDiff) + Math.abs(yDiff) != 3) {
+            return false;
+        }
+
+        if (xDiff == 0 || yDiff == 0) {
+            return false;
+        }
+
+        if (xDiff == 2) {
+            return !board.hasPieceAt(this.x + 1, this.y);
+        }
+
+        if (xDiff == -2) {
+            return !board.hasPieceAt(this.x - 1, this.y);
+        }
+
+        if (yDiff == 2) {
+            return !board.hasPieceAt(this.x, this.y + 1);
+        }
+
+        if (yDiff == -2) {
+            return !board.hasPieceAt(this.x, this.y - 1);
+        }
+
+        return false;
+    }
+
+    @Override
     public PieceBase moveTo(int x, int y) {
         return new Ma(x, y, isFirstPlayer);
     }

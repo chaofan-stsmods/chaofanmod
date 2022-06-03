@@ -20,6 +20,14 @@ public abstract class PieceBase {
 
     public abstract void getPossibleMoves(Board board, List<Position> result);
 
+    public abstract String getPieceName();
+
+    public abstract boolean canAttack(Board board, int x, int y);
+
+    public abstract PieceBase moveTo(int x, int y);
+
+    public abstract float getPieceScore();
+
     protected boolean addMoveIfValid(Board board, List<Position> result, int x, int y) {
         if (board.isInsideBoard(x, y)) {
             PieceBase existingPiece = board.getPieceAt(x, y);
@@ -43,12 +51,6 @@ public abstract class PieceBase {
 
         return false;
     }
-
-    public abstract String getPieceName();
-
-    public abstract PieceBase moveTo(int x, int y);
-
-    public abstract float getPieceScore();
 
     public String getMoveName(int x, int y) {
         if (y == this.y) {

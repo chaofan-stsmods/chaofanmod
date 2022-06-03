@@ -56,6 +56,27 @@ public class Jiang extends PieceBase {
     }
 
     @Override
+    public boolean canAttack(Board board, int x, int y) {
+        if (x != this.x && y != this.y) {
+            return false;
+        }
+
+        if (x < 3 || x > 5) {
+            return false;
+        }
+
+        if (Math.abs(x - this.x) > 1 || Math.abs(y - this.y) > 1) {
+            return false;
+        }
+
+        if (isFirstPlayer ? y <= 2 : y >= 7) {
+            return true;
+        }
+
+        return false;
+    }
+
+    @Override
     public PieceBase moveTo(int x, int y) {
         return new Jiang(x, y, isFirstPlayer);
     }
@@ -63,5 +84,10 @@ public class Jiang extends PieceBase {
     @Override
     public float getPieceScore() {
         return 999999;
+    }
+
+    private void addMoveIfValidAndNotAttacked(Board board, List<Position> result, int x, int y) {
+        List<PieceBase> enemyPieces = board.getAllPieces(!isFirstPlayer);
+
     }
 }

@@ -26,6 +26,19 @@ public class Zu extends PieceBase {
     }
 
     @Override
+    public boolean canAttack(Board board, int x, int y) {
+        if (x == this.x && (isFirstPlayer ? y == this.y + 1 : y == this.y - 1)) {
+            return true;
+        }
+
+        if ((isFirstPlayer && y > Board.RIVER_MIN) || (!isFirstPlayer && y < Board.RIVER_MAX)) {
+            return y == this.y && Math.abs(x - this.x) == 1;
+        }
+
+        return false;
+    }
+
+    @Override
     public PieceBase moveTo(int x, int y) {
         return new Zu(x, y, isFirstPlayer);
     }
