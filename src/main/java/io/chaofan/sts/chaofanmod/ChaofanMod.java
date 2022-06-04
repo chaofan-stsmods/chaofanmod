@@ -16,6 +16,7 @@ import com.megacrit.cardcrawl.helpers.ImageMaster;
 import com.megacrit.cardcrawl.helpers.ModHelper;
 import com.megacrit.cardcrawl.localization.*;
 import com.megacrit.cardcrawl.monsters.MonsterGroup;
+import com.megacrit.cardcrawl.relics.AbstractRelic;
 import io.chaofan.sts.CommonModUtils;
 import io.chaofan.sts.chaofanmod.cards.AhhMyEyes;
 import io.chaofan.sts.chaofanmod.events.Gremlin2048;
@@ -28,6 +29,7 @@ import io.chaofan.sts.chaofanmod.patches.ThirdPerspectiveViewPatches;
 import io.chaofan.sts.chaofanmod.powers.AddFuelPower;
 import io.chaofan.sts.chaofanmod.powers.HeavyHandPower;
 import io.chaofan.sts.chaofanmod.relics.OldPhone;
+import io.chaofan.sts.chaofanmod.relics.SpotLight;
 import io.chaofan.sts.chaofanmod.relics.Stool;
 import io.chaofan.sts.chaofanmod.rewards.HealReward;
 import io.chaofan.sts.chaofanmod.rewards.RubyKeyReward;
@@ -150,8 +152,13 @@ public class ChaofanMod implements
 
     @Override
     public void receiveStartGame() {
-        if (AbstractDungeon.player.hasRelic(OldPhone.ID)) {
-            ScreenFilterPatches.enable = true;
+        for (AbstractRelic relic : AbstractDungeon.player.relics) {
+            if (relic.relicId.equals(OldPhone.ID)) {
+                ScreenFilterPatches.postProcessors.add(new OldPhone.OldPhonePostProcessor());
+            }
+            if (relic.relicId.equals(SpotLight.ID)) {
+                ScreenFilterPatches.postProcessors.add(new SpotLight.SpotLightPostProcessor());
+            }
         }
 
         ThirdPerspectiveViewPatches.setEnable(false);

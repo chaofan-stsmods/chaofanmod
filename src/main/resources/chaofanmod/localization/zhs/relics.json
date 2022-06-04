@@ -23,5 +23,12 @@
     "DESCRIPTIONS": [
       "每回合开始获得 [E] 。 你的界面看上去像是用手机拍的一样。"
     ]
+  },
+  "chaofanmod:relic.SpotLight": {
+    "NAME": "聚光灯",
+    "FLAVOR": "我只应该看我正在注意的地方。",
+    "DESCRIPTIONS": [
+      "每回合开始获得 [E] 。 你只能看到鼠标附近的界面。"
+    ]
   }
 }

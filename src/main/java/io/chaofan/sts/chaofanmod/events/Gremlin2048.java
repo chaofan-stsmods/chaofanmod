@@ -2,7 +2,10 @@ package io.chaofan.sts.chaofanmod.events;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
+import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.math.MathUtils;
 import com.megacrit.cardcrawl.cards.AbstractCard;
 import com.megacrit.cardcrawl.cards.CardGroup;
 import com.megacrit.cardcrawl.cards.red.SearingBlow;
@@ -11,12 +14,17 @@ import com.megacrit.cardcrawl.core.Settings;
 import com.megacrit.cardcrawl.dungeons.AbstractDungeon;
 import com.megacrit.cardcrawl.events.AbstractImageEvent;
 import com.megacrit.cardcrawl.events.GenericEventDialog;
+import com.megacrit.cardcrawl.helpers.Hitbox;
+import com.megacrit.cardcrawl.helpers.ImageMaster;
+import com.megacrit.cardcrawl.helpers.controller.CInputActionSet;
+import com.megacrit.cardcrawl.helpers.input.InputHelper;
 import com.megacrit.cardcrawl.localization.EventStrings;
 import com.megacrit.cardcrawl.random.Random;
 import com.megacrit.cardcrawl.vfx.cardManip.ShowCardAndObtainEffect;
 
 import java.util.Optional;
 
+import static io.chaofan.sts.chaofanmod.ChaofanMod.getImagePath;
 import static io.chaofan.sts.chaofanmod.ChaofanMod.makeId;
 
 public class Gremlin2048 extends AbstractImageEvent {
@@ -25,42 +33,82 @@ public class Gremlin2048 extends AbstractImageEvent {
     public static final String NAME = eventStrings.NAME;
     public static final String[] DESCRIPTIONS = eventStrings.DESCRIPTIONS;
     public static final String[] OPTIONS = eventStrings.OPTIONS;
+    private final Texture pressKey1;
+    private final Texture pressKey2;
     private Screen screen;
     private final AbstractCard[][] cardsMatrix = new AbstractCard[4][4];
     private final CardGroup cards;
     private final CardGroup cardsToBeRemoved;
+    private AbstractCard hoverCard;
+    private float timer = 0;
+
+    private final Hitbox left;
+    private final Hitbox right;
+    private final Hitbox up;
+    private final Hitbox down;
 
     public Gremlin2048() {
         super(NAME, DESCRIPTIONS[0], "images/events/matchAndKeep.jpg");
+        this.pressKey1 = ImageMaster.loadImage(getImagePath("ui/press_key_1.png"));
+        this.pressKey2 = ImageMaster.loadImage(getImagePath("ui/press_key_2.png"));
         this.screen = Screen.INTRO;
         this.cards = new CardGroup(CardGroup.CardGroupType.UNSPECIFIED);
         this.cardsToBeRemoved = new CardGroup(CardGroup.CardGroupType.UNSPECIFIED);
         this.imageEventText.setDialogOption(OPTIONS[0]);
+
+        left = new Hitbox(120, 120);
+        right = new Hitbox(120, 120);
+        up = new Hitbox(120, 120);
+        down = new Hitbox(120, 120);
+        left.move(convertX(-1.5f), convertY(1.5f));
+        right.move(convertX(-0.5f), convertY(1.5f));
+        up.move(convertX(-1f), convertY(1f));
+        down.move(convertX(-1f), convertY(2f));
     }
 
     @Override
     public void update() {
+        timer += Gdx.graphics.getDeltaTime();
         super.update();
         this.cards.update();
         this.cardsToBeRemoved.update();
         this.cardsToBeRemoved.group.removeIf(card -> Math.abs(card.current_x - card.target_x) < 0.01f && Math.abs(card.current_y - card.target_y) < 0.01f);
+        hoverCard = null;
         for (AbstractCard card : this.cards.group) {
             card.hb.update();
             if (card.hb.hovered) {
                 card.targetDrawScale = .7f;
+                hoverCard = card;
             } else {
                 card.targetDrawScale = .5f;
             }
         }
 
         if (screen == Screen.PLAY) {
+            updateHitbox(left);
+            updateHitbox(right);
+            updateHitbox(up);
+            updateHitbox(down);
             updateGameLogic();
+
+            if (InputHelper.justReleasedClickLeft) {
+                left.clicked = false;
+                right.clicked = false;
+                up.clicked = false;
+                down.clicked = false;
+            }
+        }
+    }
+
+    private void updateHitbox(Hitbox hitbox) {
+        hitbox.update();
+        if (InputHelper.justClickedLeft && hitbox.hovered) {
+            hitbox.clickStarted = true;
         }
     }
 
     private void updateGameLogic() {
-
-        if (Gdx.input.isKeyJustPressed(Input.Keys.UP)) {
+        if (Gdx.input.isKeyJustPressed(Input.Keys.UP) || CInputActionSet.up.isJustPressed() || CInputActionSet.altUp.isJustPressed() || up.clicked) {
             boolean hasMove = false;
             for (int x = 0; x < 4; x++) {
                 AbstractCard currentCard = cardsMatrix[x][0];
@@ -96,7 +144,7 @@ public class Gremlin2048 extends AbstractImageEvent {
                 putNewCard();
                 checkValidMoveAndComplete();
             }
-        } else if (Gdx.input.isKeyJustPressed(Input.Keys.DOWN)) {
+        } else if (Gdx.input.isKeyJustPressed(Input.Keys.DOWN) || CInputActionSet.down.isJustPressed() || CInputActionSet.altDown.isJustPressed() || down.clicked) {
             boolean hasMove = false;
             for (int x = 0; x < 4; x++) {
                 AbstractCard currentCard = cardsMatrix[x][3];
@@ -132,7 +180,7 @@ public class Gremlin2048 extends AbstractImageEvent {
                 putNewCard();
                 checkValidMoveAndComplete();
             }
-        } else if (Gdx.input.isKeyJustPressed(Input.Keys.LEFT)) {
+        } else if (Gdx.input.isKeyJustPressed(Input.Keys.LEFT) || CInputActionSet.left.isJustPressed() || CInputActionSet.altLeft.isJustPressed() || left.clicked) {
             boolean hasMove = false;
             for (int y = 0; y < 4; y++) {
                 AbstractCard currentCard = cardsMatrix[0][y];
@@ -168,7 +216,7 @@ public class Gremlin2048 extends AbstractImageEvent {
                 putNewCard();
                 checkValidMoveAndComplete();
             }
-        } else if (Gdx.input.isKeyJustPressed(Input.Keys.RIGHT)) {
+        } else if (Gdx.input.isKeyJustPressed(Input.Keys.RIGHT) || CInputActionSet.right.isJustPressed() || CInputActionSet.altRight.isJustPressed() || right.clicked) {
             boolean hasMove = false;
             for (int y = 0; y < 4; y++) {
                 AbstractCard currentCard = cardsMatrix[3][y];
@@ -210,8 +258,77 @@ public class Gremlin2048 extends AbstractImageEvent {
     @Override
     public void render(SpriteBatch sb) {
         super.render(sb);
-        this.cardsToBeRemoved.render(sb);
-        this.cards.render(sb);
+
+        if (screen == Screen.PLAY) {
+            this.cardsToBeRemoved.render(sb);
+            this.cards.render(sb);
+            if (hoverCard != null) {
+                hoverCard.render(sb);
+            }
+
+            Texture img = pressKey1;
+            if (MathUtils.floor(timer) % 2 == 0) {
+                img = pressKey2;
+            }
+
+            sb.draw(img,
+                    convertX(-1) - img.getWidth() / 2f * Settings.scale,
+                    convertY(1.5f) - img.getHeight() / 2f * Settings.scale,
+                    img.getWidth() * Settings.scale,
+                    img.getHeight() * Settings.scale);
+
+            renderArrow(sb, left, 0, false);
+            left.render(sb);
+            renderArrow(sb, right, 0, true);
+            right.render(sb);
+            renderArrow(sb, up, 90, true);
+            up.render(sb);
+            renderArrow(sb, down, 90, false);
+            down.render(sb);
+        }
+    }
+
+    private void renderArrow(SpriteBatch sb, Hitbox hitbox, float rotation, boolean flipX) {
+        Texture popupArrow = ImageMaster.POPUP_ARROW;
+        sb.setColor(1, 1, 1, 1);
+        sb.draw(popupArrow,
+                hitbox.cX - popupArrow.getWidth() / 2f,
+                hitbox.cY - popupArrow.getHeight() / 2f,
+                popupArrow.getWidth() / 2f,
+                popupArrow.getHeight() / 2f,
+                popupArrow.getWidth(),
+                popupArrow.getHeight(),
+                Settings.scale * 0.8f,
+                Settings.scale * 0.8f,
+                rotation,
+                0,
+                0,
+                popupArrow.getWidth(),
+                popupArrow.getHeight(),
+                flipX,
+                false);
+
+        if (hitbox.hovered) {
+            sb.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE);
+            sb.setColor(1, 1, 1, 0.5f);
+            sb.draw(popupArrow,
+                    hitbox.cX - popupArrow.getWidth() / 2f,
+                    hitbox.cY - popupArrow.getHeight() / 2f,
+                    popupArrow.getWidth() / 2f,
+                    popupArrow.getHeight() / 2f,
+                    popupArrow.getWidth(),
+                    popupArrow.getHeight(),
+                    Settings.scale * 0.8f,
+                    Settings.scale * 0.8f,
+                    rotation,
+                    0,
+                    0,
+                    popupArrow.getWidth(),
+                    popupArrow.getHeight(),
+                    flipX,
+                    false);
+            sb.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+        }
     }
 
     @Override
@@ -327,11 +444,11 @@ public class Gremlin2048 extends AbstractImageEvent {
         }
     }
 
-    private float convertX(int x) {
+    private float convertX(float x) {
         return x * 235.0F * Settings.scale + 640.0F * Settings.scale;
     }
 
-    private float convertY(int y) {
+    private float convertY(float y) {
         return y * -235.0F * Settings.scale + 850.0F * Settings.scale;
     }
 

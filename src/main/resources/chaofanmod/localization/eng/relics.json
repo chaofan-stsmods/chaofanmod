@@ -23,5 +23,12 @@
     "DESCRIPTIONS": [
       "Gain [E] at the start of your turn. Your UI looks like shooting using a phone."
     ]
+  },
+  "chaofanmod:relic.SpotLight": {
+    "NAME": "Spotlight",
+    "FLAVOR": "I should only see what I'm focusing.",
+    "DESCRIPTIONS": [
+      "Gain [E] at the start of your turn. You can only see UI near your mouse."
+    ]
   }
 }

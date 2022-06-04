@@ -1,33 +1,35 @@
 package io.chaofan.sts.chaofanmod.patches;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.graphics.*;
+import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.FrameBuffer;
-import com.badlogic.gdx.graphics.glutils.ShaderProgram;
-import com.badlogic.gdx.math.Matrix4;
 import com.evacipated.cardcrawl.modthespire.lib.*;
 import com.megacrit.cardcrawl.core.CardCrawlGame;
 import com.megacrit.cardcrawl.core.Settings;
-import com.megacrit.cardcrawl.helpers.ImageMaster;
-import com.megacrit.cardcrawl.helpers.ShaderHelper;
 import javassist.CtBehavior;
 
-import static io.chaofan.sts.chaofanmod.ChaofanMod.getImagePath;
-import static io.chaofan.sts.chaofanmod.ChaofanMod.getShaderPath;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ScreenFilterPatches {
-    public static boolean enable = false;
+    public static boolean enable = true;
+
+    public interface PostProcessor {
+        void postProcess(SpriteBatch sb, TextureRegion frameTexture, OrthographicCamera camera);
+    }
+
+    public static final List<PostProcessor> postProcessors = new ArrayList<>();
 
     @SpirePatch(clz = CardCrawlGame.class, method = "render")
     public static class GameRenderPatch {
-        private static FrameBuffer fbo;
-        private static TextureRegion fboRegion;
-        private static Texture screen;
-        private static Texture screenHighlight;
-        private static Matrix4 projMat;
-        private static ShaderProgram shader;
+        private static FrameBuffer primaryFrameBuffer;
+        private static FrameBuffer secondaryFrameBuffer;
+        private static TextureRegion primaryFboRegion;
+        private static TextureRegion secondaryFboRegion;
         private static boolean usingFbo = false;
 
         @SpireInsertPatch(locator = StartLocator.class)
@@ -36,49 +38,18 @@ public class ScreenFilterPatches {
                 return;
             }
 
-            int width = Gdx.graphics.getWidth();
-            int height = Gdx.graphics.getHeight();
-
-            if (fbo == null) {
-                fbo = new FrameBuffer(Pixmap.Format.RGB888, width, height, false);
-                fboRegion = new TextureRegion(fbo.getColorBufferTexture());
-                fboRegion.flip(false, true);
-
-                screen = ImageMaster.loadImage(getImagePath("ui/screen.png"));
-                screenHighlight = ImageMaster.loadImage(getImagePath("ui/screen_highlight.png"));
-                shader = new ShaderProgram(
-                        Gdx.files.internal(getShaderPath("screen/vertexShader.vs")).readString(),
-                        Gdx.files.internal(getShaderPath("screen/fragShader.fs")).readString());
-                if (!shader.isCompiled()) {
-                    throw new RuntimeException("Shader error");
-                }
-                // LT 0, 38   RT 1918, -18
-                // LB 126,913 RT 1747, 1154
-                projMat = createProjMatrix(
-                        screen.getWidth(), screen.getHeight(),
-                        0, 38,
-                        1918, -18,
-                        126, 913,
-                        1747, 1154
-                );
-                /*projMat = createProjMatrix(
-                        screen.getWidth(), screen.getHeight(),
-                        1155, 547,
-                        1317, 579,
-                        1128, 685,
-                        1283, 734
-                );*/
-                /*projMat = createProjMatrix(
-                        screen.getWidth(), screen.getHeight(),
-                        177, 309,
-                        714, 211,
-                        246, 664,
-                        754, 527
-                );*/
+            if (primaryFrameBuffer == null) {
+                initFrameBuffer();
             }
 
-            usingFbo = true;
-            fbo.begin();
+            if (CardCrawlGame.mode != CardCrawlGame.GameMode.GAMEPLAY && !postProcessors.isEmpty()) {
+                postProcessors.clear();
+            }
+
+            if (!postProcessors.isEmpty()) {
+                usingFbo = true;
+                primaryFrameBuffer.begin();
+            }
         }
 
         public static class StartLocator extends SpireInsertLocator {
@@ -96,24 +67,32 @@ public class ScreenFilterPatches {
             }
 
             ___sb.end();
-            fbo.end();
+            primaryFrameBuffer.end();
 
-            ___sb.setShader(shader);
+            for (PostProcessor postProcessor : postProcessors) {
+                FrameBuffer tempBuffer = primaryFrameBuffer;
+                primaryFrameBuffer = secondaryFrameBuffer;
+                secondaryFrameBuffer = tempBuffer;
+
+                TextureRegion tempRegion = primaryFboRegion;
+                primaryFboRegion = secondaryFboRegion;
+                secondaryFboRegion = tempRegion;
+
+                primaryFrameBuffer.begin();
+                ___sb.begin();
+
+                postProcessor.postProcess(___sb, secondaryFboRegion, ___camera);
+
+                ___sb.end();
+                primaryFrameBuffer.end();
+            }
+
+            ___sb.setShader(null);
             ___sb.begin();
             ___sb.setColor(Color.WHITE);
 
-            ___sb.setProjectionMatrix(projMat);
-            ___sb.draw(fboRegion, 0, 0);
-
-            ShaderHelper.setShader(___sb, ShaderHelper.Shader.DEFAULT);
             ___sb.setProjectionMatrix(___camera.combined);
-            ___sb.draw(screen, 0, 0, Settings.WIDTH, Settings.HEIGHT);
-
-            if (screenHighlight != null) {
-                ___sb.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE);
-                ___sb.draw(screenHighlight, 0, 0, Settings.WIDTH, Settings.HEIGHT);
-                ___sb.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
-            }
+            ___sb.draw(primaryFboRegion, 0, 0, Settings.WIDTH, Settings.HEIGHT);
 
             usingFbo = false;
         }
@@ -126,93 +105,17 @@ public class ScreenFilterPatches {
             }
         }
 
-        public static Matrix4 createProjMatrix(
-                float imageWidth, float imageHeight,
-                float leftTopX, float leftTopY,
-                float rightTopX, float rightTopY,
-                float leftBottomX, float leftBottomY,
-                float rightBottomX, float rightBottomY) {
-            float[] u = {leftTopX, rightTopX, leftBottomX, rightBottomX};
-            float[] v = {leftTopY, rightTopY, leftBottomY, rightBottomY};
-            //float[] u = {0, 1920, 0, 1920};
-            //float[] v = {0, 0, 1080, 1080};
-            float[] x = {0, Settings.WIDTH, 0, Settings.WIDTH};
-            float[] y = {Settings.HEIGHT, Settings.HEIGHT, 0, 0};
+        private static void initFrameBuffer() {
+            int width = Gdx.graphics.getWidth();
+            int height = Gdx.graphics.getHeight();
 
-            for (int i = 0; i < 4; i++) {
-                u[i] = u[i] / imageWidth * 2 - 1;
-                v[i] = (imageHeight - v[i]) / imageHeight * 2 - 1;
-            }
+            primaryFrameBuffer = new FrameBuffer(Pixmap.Format.RGB888, width, height, false);
+            primaryFboRegion = new TextureRegion(primaryFrameBuffer.getColorBufferTexture());
+            primaryFboRegion.flip(false, true);
 
-            float[][] mat = new float[12][12];
-            float[] result = new float[12];
-            for (int i = 0, j = 0; i < 4; i++, j+=3) {
-                mat[j][0] = x[i];
-                mat[j][1] = y[i];
-                mat[j][2] = 1;
-                mat[j][8 + i] = -u[i];
-                mat[j + 1][3] = x[i];
-                mat[j + 1][4] = y[i];
-                mat[j + 1][5] = 1;
-                mat[j + 1][8 + i] = -v[i];
-                mat[j + 2][6] = x[i];
-                mat[j + 2][7] = y[i];
-                mat[j + 2][8 + i] = -1;
-                result[j + 2] = -1;
-            }
-
-            for (int i = 0; i < mat.length; i++) {
-                if (mat[i][i] == 0) {
-                    for (int j = i + 1; j < mat.length; j++) {
-                        if (mat[j][i] != 0) {
-                            float[] tmp = mat[i];
-                            mat[i] = mat[j];
-                            mat[j] = tmp;
-                            float tmp2 = result[i];
-                            result[i] = result[j];
-                            result[j] = tmp2;
-                            break;
-                        }
-                    }
-                }
-                for (int j = i + 1; j < mat.length; j++) {
-                    if (mat[j][i] == 0) {
-                        continue;
-                    }
-
-                    float scale = mat[j][i] / mat[i][i];
-                    for (int k = 0; k < mat[j].length; k++) {
-                        mat[j][k] = mat[j][k] - scale * mat[i][k];
-                    }
-                    result[j] = result[j] - scale * result[i];
-                }
-            }
-
-            for (int i = mat.length - 1; i >= 0; i--) {
-                for (int j = i - 1; j >= 0; j--) {
-                    if (mat[j][i] == 0) {
-                        continue;
-                    }
-
-                    float scale = mat[j][i] / mat[i][i];
-                    for (int k = 0; k < mat[j].length; k++) {
-                        mat[j][k] = mat[j][k] - scale * mat[i][k];
-                    }
-                    result[j] = result[j] - scale * result[i];
-                }
-            }
-
-            for (int i = mat.length - 1; i >= 0; i--) {
-                result[i] /= mat[i][i];
-                mat[i][i] = 1;
-            }
-
-            return new Matrix4(new float[] {
-                    result[0], result[3], 0, result[6],
-                    result[1], result[4], 0, result[7],
-                    0, 0, 0, 0,
-                    result[2], result[5], 0, 1
-            });
+            secondaryFrameBuffer = new FrameBuffer(Pixmap.Format.RGB888, width, height, false);
+            secondaryFboRegion = new TextureRegion(secondaryFrameBuffer.getColorBufferTexture());
+            secondaryFboRegion.flip(false, true);
         }
     }
 }
