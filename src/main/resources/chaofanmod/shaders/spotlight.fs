@@ -18,8 +18,10 @@ void main() {
     if (d < dmin) {
         gl_FragColor = vec4(texColor.rgb * 1.2f, 1.0);
     } else if (d < dmax) {
-        gl_FragColor = vec4((texColor * ((dmax - d) / (dmax - dmin))).rgb * 1.2f, 1.0);
+        gl_FragColor = vec4((texColor * (((dmax - d) * 1.2f + (d - dmin) * 0.1f) / (dmax - dmin))).rgb, 1.0);
     } else {
-        gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
+        vec2 texDiff = vec2(rand(screenCoord), rand(screenCoord + vec2(2000.0, 2000.0)));
+        texColor = texture2D(u_texture, v_texCoord + texDiff / vec2(1920.0, 1080.0) * 3);
+        gl_FragColor = vec4(texColor.rgb * 0.1f, 1.0);
     }
 }
