@@ -1,9 +1,13 @@
 package io.chaofan.sts.chaofanmod.events;
 
+import basemod.ReflectionHacks;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.MathUtils;
 import com.megacrit.cardcrawl.cards.AbstractCard;
@@ -14,6 +18,7 @@ import com.megacrit.cardcrawl.core.Settings;
 import com.megacrit.cardcrawl.dungeons.AbstractDungeon;
 import com.megacrit.cardcrawl.events.AbstractImageEvent;
 import com.megacrit.cardcrawl.events.GenericEventDialog;
+import com.megacrit.cardcrawl.helpers.FontHelper;
 import com.megacrit.cardcrawl.helpers.Hitbox;
 import com.megacrit.cardcrawl.helpers.ImageMaster;
 import com.megacrit.cardcrawl.helpers.controller.CInputActionSet;
@@ -374,9 +379,13 @@ public class Gremlin2048 extends AbstractImageEvent {
         this.imageEventText.setDialogOption(OPTIONS[1]);
 
         Optional<AbstractCard> optionalCard = cards.group.stream().reduce((c1, c2) -> c1.timesUpgraded >= c2.timesUpgraded ? c1 : c2);
-        optionalCard.ifPresent(card ->
-            AbstractDungeon.effectList.add(new ShowCardAndObtainEffect(card.makeStatEquivalentCopy(), (float) Settings.WIDTH / 2.0F, (float) Settings.HEIGHT / 2.0F))
-        );
+        optionalCard.ifPresent(card -> {
+            AbstractCard searingBlow = new SearingBlow();
+            for (int i = 0; i < card.timesUpgraded; i++) {
+                searingBlow.upgrade();
+            }
+            AbstractDungeon.effectList.add(new ShowCardAndObtainEffect(searingBlow, (float) Settings.WIDTH / 2.0F, (float) Settings.HEIGHT / 2.0F));
+        });
 
         cardsToBeRemoved.group.addAll(cards.group);
         for (AbstractCard c : cards.group) {
@@ -397,7 +406,7 @@ public class Gremlin2048 extends AbstractImageEvent {
 
     private void putNewCard() {
         Random rng = AbstractDungeon.cardRandomRng;
-        AbstractCard card = new SearingBlow();
+        AbstractCard card = new SearingBlowFor2048();
         if (rng.randomBoolean()) {
             card.upgrade();
         }
@@ -457,5 +466,30 @@ public class Gremlin2048 extends AbstractImageEvent {
         RULE_EXPLANATION,
         PLAY,
         COMPLETE
+    }
+
+    private static class SearingBlowFor2048 extends SearingBlow {
+        public SearingBlowFor2048() {
+            super();
+            this.rawDescription = "";
+            this.initializeDescription();
+        }
+
+        @Override
+        public void render(SpriteBatch sb) {
+            super.render(sb);
+            if (!Settings.hideCards) {
+                BitmapFont font = FontHelper.cardDescFont_L;
+                float scale = this.drawScale * 3;
+                font.getData().setScale(scale);
+                GlyphLayout gl = ReflectionHacks.getPrivate(this, AbstractCard.class, "gl");
+                Color textColor = ReflectionHacks.getPrivate(this, AbstractCard.class, "textColor");
+                String tmp = String.valueOf(this.baseDamage);
+                gl.setText(font, tmp);
+                FontHelper.renderRotatedText(sb, font, tmp, this.current_x, this.current_y,
+                        0,
+                        -IMG_HEIGHT * this.drawScale / 4.0F, this.angle, true, textColor);
+            }
+        }
     }
 }
