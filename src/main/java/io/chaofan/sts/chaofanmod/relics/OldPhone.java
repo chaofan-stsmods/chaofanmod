@@ -1,6 +1,7 @@
 package io.chaofan.sts.chaofanmod.relics;
 
 import basemod.abstracts.CustomRelic;
+import basemod.interfaces.ScreenPostProcessor;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
@@ -14,10 +15,8 @@ import com.megacrit.cardcrawl.core.Settings;
 import com.megacrit.cardcrawl.dungeons.AbstractDungeon;
 import com.megacrit.cardcrawl.helpers.ImageMaster;
 import com.megacrit.cardcrawl.helpers.ShaderHelper;
-import io.chaofan.sts.chaofanmod.patches.ScreenFilterPatches;
+import io.chaofan.sts.chaofanmod.ChaofanMod;
 import io.chaofan.sts.chaofanmod.utils.TextureLoader;
-
-import java.util.Iterator;
 
 import static io.chaofan.sts.chaofanmod.ChaofanMod.*;
 
@@ -38,21 +37,15 @@ public class OldPhone extends CustomRelic {
 
     public void onEquip() {
         ++AbstractDungeon.player.energy.energyMaster;
-        ScreenFilterPatches.postProcessors.add(new OldPhonePostProcessor());
+        ChaofanMod.registerPostProcessor(new OldPhonePostProcessor());
     }
 
     public void onUnequip() {
         --AbstractDungeon.player.energy.energyMaster;
-        for (Iterator<ScreenFilterPatches.PostProcessor> iterator = ScreenFilterPatches.postProcessors.iterator(); iterator.hasNext(); ) {
-            ScreenFilterPatches.PostProcessor postProcessor = iterator.next();
-            if (postProcessor instanceof OldPhonePostProcessor) {
-                iterator.remove();
-                break;
-            }
-        }
+        ChaofanMod.removePostProcessor(OldPhonePostProcessor.class);
     }
 
-    public static class OldPhonePostProcessor implements ScreenFilterPatches.PostProcessor {
+    public static class OldPhonePostProcessor implements ScreenPostProcessor {
         private static final Texture screen;
         private static final Texture screenHighlight;
         private static final Matrix4 projMat;
@@ -171,22 +164,27 @@ public class OldPhone extends CustomRelic {
         public void postProcess(SpriteBatch sb, TextureRegion frameTexture, OrthographicCamera camera) {
             sb.end();
 
+            int oldSrcFunc = sb.getBlendSrcFunc();
+            int oldDstFunc = sb.getBlendDstFunc();
+
             sb.setShader(shader);
             sb.begin();
             sb.setColor(Color.WHITE);
 
             sb.setProjectionMatrix(projMat);
+            sb.setBlendFunction(GL20.GL_ONE, GL20.GL_ZERO);
             sb.draw(frameTexture, 0, 0);
 
             ShaderHelper.setShader(sb, ShaderHelper.Shader.DEFAULT);
+            sb.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
             sb.setProjectionMatrix(camera.combined);
             sb.draw(screen, 0, 0, Settings.WIDTH, Settings.HEIGHT);
 
             if (screenHighlight != null) {
                 sb.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE);
                 sb.draw(screenHighlight, 0, 0, Settings.WIDTH, Settings.HEIGHT);
-                sb.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
             }
+            sb.setBlendFunction(oldSrcFunc, oldDstFunc);
         }
     }
 }

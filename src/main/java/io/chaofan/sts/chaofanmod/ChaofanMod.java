@@ -6,10 +6,12 @@ import basemod.ModPanel;
 import basemod.ReflectionHacks;
 import basemod.abstracts.CustomRelic;
 import basemod.helpers.RelicType;
+import basemod.helpers.ScreenPostProcessorManager;
 import basemod.interfaces.*;
 import com.badlogic.gdx.graphics.Texture;
 import com.evacipated.cardcrawl.modthespire.lib.SpireInitializer;
 import com.megacrit.cardcrawl.cards.AbstractCard;
+import com.megacrit.cardcrawl.core.CardCrawlGame;
 import com.megacrit.cardcrawl.daily.mods.AbstractDailyMod;
 import com.megacrit.cardcrawl.dungeons.AbstractDungeon;
 import com.megacrit.cardcrawl.helpers.ImageMaster;
@@ -24,7 +26,6 @@ import io.chaofan.sts.chaofanmod.mods.Lonely;
 import io.chaofan.sts.chaofanmod.monsters.SpiritFireMonster;
 import io.chaofan.sts.chaofanmod.monsters.SpiritFireMonsterAct2;
 import io.chaofan.sts.chaofanmod.monsters.SpiritFireMonsterAct3;
-import io.chaofan.sts.chaofanmod.patches.ScreenFilterPatches;
 import io.chaofan.sts.chaofanmod.patches.ThirdPerspectiveViewPatches;
 import io.chaofan.sts.chaofanmod.powers.AddFuelPower;
 import io.chaofan.sts.chaofanmod.powers.HeavyHandPower;
@@ -39,8 +40,7 @@ import io.chaofan.sts.enhancedsteamstatus.EnhancedSteamStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 @SpireInitializer
 public class ChaofanMod implements
@@ -50,7 +50,8 @@ public class ChaofanMod implements
         EditKeywordsSubscriber,
         PostInitializeSubscriber,
         PostExhaustSubscriber,
-        StartGameSubscriber {
+        StartGameSubscriber,
+        PostUpdateSubscriber {
 
     public static final String MOD_ID = "chaofanmod";
     public static final Logger logger = LogManager.getLogger(ChaofanMod.class.getName());
@@ -71,6 +72,8 @@ public class ChaofanMod implements
     public static String invertId(String id) {
         return id.substring((MOD_ID + ":").length());
     }
+
+    private static final List<ScreenPostProcessor> postProcessors = new ArrayList<>();
 
     @SuppressWarnings("unused")
     public static void initialize() {
@@ -152,15 +155,47 @@ public class ChaofanMod implements
 
     @Override
     public void receiveStartGame() {
+        clearPostProcessors();
+
         for (AbstractRelic relic : AbstractDungeon.player.relics) {
             if (relic.relicId.equals(OldPhone.ID)) {
-                ScreenFilterPatches.postProcessors.add(new OldPhone.OldPhonePostProcessor());
+                registerPostProcessor(new OldPhone.OldPhonePostProcessor());
             }
             if (relic.relicId.equals(SpotLight.ID)) {
-                ScreenFilterPatches.postProcessors.add(new SpotLight.SpotLightPostProcessor());
+                registerPostProcessor(new SpotLight.SpotLightPostProcessor());
             }
         }
 
         ThirdPerspectiveViewPatches.setEnable(false);
+    }
+
+    @Override
+    public void receivePostUpdate() {
+        if (CardCrawlGame.mode != CardCrawlGame.GameMode.GAMEPLAY && !postProcessors.isEmpty()) {
+            clearPostProcessors();
+        }
+    }
+
+    public static void registerPostProcessor(ScreenPostProcessor postProcessor) {
+        postProcessors.add(postProcessor);
+        ScreenPostProcessorManager.addPostProcessor(postProcessor);
+    }
+
+    public static void removePostProcessor(Class<? extends ScreenPostProcessor> processorClass) {
+        for (Iterator<ScreenPostProcessor> iterator = postProcessors.iterator(); iterator.hasNext(); ) {
+            ScreenPostProcessor postProcessor = iterator.next();
+            if (processorClass.isAssignableFrom(postProcessor.getClass())) {
+                ScreenPostProcessorManager.removePostProcessor(postProcessor);
+                iterator.remove();
+                break;
+            }
+        }
+    }
+
+    private void clearPostProcessors() {
+        for (ScreenPostProcessor postProcessor : postProcessors) {
+            ScreenPostProcessorManager.removePostProcessor(postProcessor);
+        }
+        postProcessors.clear();
     }
 }

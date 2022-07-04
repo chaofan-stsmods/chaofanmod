@@ -1,6 +1,7 @@
 package io.chaofan.sts.chaofanmod.relics;
 
 import basemod.abstracts.CustomRelic;
+import basemod.interfaces.ScreenPostProcessor;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
@@ -11,10 +12,8 @@ import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.megacrit.cardcrawl.dungeons.AbstractDungeon;
 import com.megacrit.cardcrawl.helpers.ShaderHelper;
 import com.megacrit.cardcrawl.helpers.input.InputHelper;
-import io.chaofan.sts.chaofanmod.patches.ScreenFilterPatches;
+import io.chaofan.sts.chaofanmod.ChaofanMod;
 import io.chaofan.sts.chaofanmod.utils.TextureLoader;
-
-import java.util.Iterator;
 
 import static io.chaofan.sts.chaofanmod.ChaofanMod.*;
 
@@ -35,21 +34,15 @@ public class SpotLight extends CustomRelic {
 
     public void onEquip() {
         ++AbstractDungeon.player.energy.energyMaster;
-        ScreenFilterPatches.postProcessors.add(new SpotLightPostProcessor());
+        ChaofanMod.registerPostProcessor(new SpotLightPostProcessor());
     }
 
     public void onUnequip() {
         --AbstractDungeon.player.energy.energyMaster;
-        for (Iterator<ScreenFilterPatches.PostProcessor> iterator = ScreenFilterPatches.postProcessors.iterator(); iterator.hasNext(); ) {
-            ScreenFilterPatches.PostProcessor postProcessor = iterator.next();
-            if (postProcessor instanceof SpotLightPostProcessor) {
-                iterator.remove();
-                break;
-            }
-        }
+        ChaofanMod.removePostProcessor(SpotLightPostProcessor.class);
     }
 
-    public static class SpotLightPostProcessor implements ScreenFilterPatches.PostProcessor {
+    public static class SpotLightPostProcessor implements ScreenPostProcessor {
         private static final ShaderProgram shader;
 
         static {
