@@ -175,15 +175,16 @@ public class OldPhone extends CustomRelic {
             sb.setBlendFunction(GL20.GL_ONE, GL20.GL_ZERO);
             sb.draw(frameTexture, 0, 0);
 
+            if (screenHighlight != null) {
+                sb.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+                sb.draw(screenHighlight, 0, 0, Settings.WIDTH, Settings.HEIGHT);
+            }
+
             ShaderHelper.setShader(sb, ShaderHelper.Shader.DEFAULT);
             sb.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
             sb.setProjectionMatrix(camera.combined);
             sb.draw(screen, 0, 0, Settings.WIDTH, Settings.HEIGHT);
 
-            if (screenHighlight != null) {
-                sb.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE);
-                sb.draw(screenHighlight, 0, 0, Settings.WIDTH, Settings.HEIGHT);
-            }
             sb.setBlendFunction(oldSrcFunc, oldDstFunc);
         }
     }
