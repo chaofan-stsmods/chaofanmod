@@ -36,7 +36,9 @@ import io.chaofan.sts.chaofanmod.rewards.HealReward;
 import io.chaofan.sts.chaofanmod.rewards.RubyKeyReward;
 import io.chaofan.sts.chaofanmod.utils.ChaofanModEnums;
 import io.chaofan.sts.chaofanmod.variables.ShootCountVariable;
+import io.chaofan.sts.chaofanmod.vfx.RetroEffect;
 import io.chaofan.sts.enhancedsteamstatus.EnhancedSteamStatus;
+import io.chaofan.sts.ttsgenerator.TtsGenerator;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -82,6 +84,7 @@ public class ChaofanMod implements
         ChaofanMod bladeGunnerMod = new ChaofanMod();
         BaseMod.subscribe(bladeGunnerMod);
         EnhancedSteamStatus.initialize();
+        TtsGenerator.initialize();
     }
 
     @Override
@@ -110,6 +113,8 @@ public class ChaofanMod implements
         BaseMod.addEvent(Gremlin2048.ID, Gremlin2048.class);
 
         BaseMod.addPower(HeavyHandPower.class, HeavyHandPower.POWER_ID);
+
+        // ScreenPostProcessorManager.addPostProcessor(new RetroEffect());
     }
 
     private ModPanel initSettings() {

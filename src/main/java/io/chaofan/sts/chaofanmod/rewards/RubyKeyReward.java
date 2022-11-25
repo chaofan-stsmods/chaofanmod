@@ -3,6 +3,7 @@ package io.chaofan.sts.chaofanmod.rewards;
 import basemod.ReflectionHacks;
 import basemod.abstracts.CustomReward;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.megacrit.cardcrawl.core.CardCrawlGame;
 import com.megacrit.cardcrawl.core.Settings;
@@ -24,7 +25,7 @@ import java.util.ArrayList;
 
 public class RubyKeyReward extends CustomReward {
     public RubyKeyReward(RewardItem link) {
-        super(null, CardCrawlGame.languagePack.getRelicStrings(SpiritFire.ID).DESCRIPTIONS[3], ChaofanModEnums.CHAOFAN_MOD_RUBY_KEY);
+        super((Texture) null, CardCrawlGame.languagePack.getRelicStrings(SpiritFire.ID).DESCRIPTIONS[3], ChaofanModEnums.CHAOFAN_MOD_RUBY_KEY);
 
         this.img = ImageMaster.loadImage("images/relics/ruby_key.png");
         this.outlineImg = ImageMaster.loadImage("images/relics/outline/ruby_key.png");
