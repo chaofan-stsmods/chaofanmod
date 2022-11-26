@@ -12,6 +12,8 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.FrameBuffer;
 import com.badlogic.gdx.utils.ScreenUtils;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import com.megacrit.cardcrawl.cards.AbstractCard;
 import com.megacrit.cardcrawl.cards.red.Strike_Red;
 import com.megacrit.cardcrawl.core.CardCrawlGame;
@@ -21,6 +23,8 @@ import com.megacrit.cardcrawl.screens.SingleCardViewPopup;
 import io.chaofan.sts.ttsgenerator.model.CardSetDef;
 import io.chaofan.sts.ttsgenerator.model.TabletopCardDef;
 
+import java.awt.Point;
+import java.lang.reflect.Type;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -29,6 +33,7 @@ import java.util.Map;
 public class TtsGenerator implements PostRenderSubscriber {
     private boolean saved = false;
     public static boolean isGenerating = false;
+    private static String generatingFileName;
     public static Map<String, TabletopCardDef> cardMap = new HashMap<>();
 
     public static void initialize() {
@@ -43,51 +48,33 @@ public class TtsGenerator implements PostRenderSubscriber {
 
         saved = true;
 
-        CardSetDef csd = new CardSetDef();
-        csd.width = 5;
-        csd.height = 3;
-        csd.list = new ArrayList<>();
-        csd.list.add("bladegunner:card.Strike");
-        csd.list.add("bladegunner:card.Strike");
-        csd.list.add("bladegunner:card.Strike");
-        csd.list.add("bladegunner:card.Strike");
-        csd.list.add("bladegunner:card.Shoot");
-        csd.list.add("bladegunner:card.Shoot");
-        csd.list.add("bladegunner:card.Defend");
-        csd.list.add("bladegunner:card.Defend");
-        csd.list.add("bladegunner:card.Defend");
-        csd.list.add("bladegunner:card.Defend");
-        csd.list.add("bladegunner:card.RevolverCard");
 
-        TabletopCardDef cardDef = new TabletopCardDef();
-        cardDef.description = "1 [Atk]";
-        cardDef.upgradeDescription = "2 [Atk]";
-        cardMap.put("bladegunner:card.Strike", cardDef);
-        cardDef = new TabletopCardDef();
-        cardDef.description = "1 [Def]";
-        cardDef.upgradeDescription = "2 [Def] to any player.";
-        cardMap.put("bladegunner:card.Defend", cardDef);
-        cardDef = new TabletopCardDef();
-        cardDef.description = "*Shoot.";
-        cardDef.upgradeDescription = "*Shoot NL +1 [Atk]";
-        cardMap.put("bladegunner:card.Shoot", cardDef);
-        cardDef = new TabletopCardDef();
-        cardDef.description = "*Shoot = 1 [Atk]";
-        cardDef.upgradeDescription = "*Shoot = 2 [Atk]";
-        cardMap.put("bladegunner:card.RevolverCard", cardDef);
+        Gson gson = new Gson();
+        String cards = Gdx.files.internal("ttsgenerator/cards/bladegunner.json").readString();
+        Type cardDefMapType = (new TypeToken<Map<String, TabletopCardDef>>() {}).getType();
+        cardMap = gson.fromJson(cards, cardDefMapType);
 
-        try {
-            isGenerating = true;
-            generateCards(sb, csd);
-        } finally {
-            isGenerating = false;
-        }
+        generateCardSet(sb, "bladegunnerbasic");
+        generateCardSet(sb, "bladegunnerreward");
+        generateCardSet(sb, "bladegunnergold");
 
         System.exit(0);
     }
 
-    private void generateCards(SpriteBatch sb, CardSetDef csd) {
+    private void generateCardSet(SpriteBatch sb, String name) {
+        try {
+            isGenerating = true;
+            Gson gson = new Gson();
+            String cardSet = Gdx.files.internal("ttsgenerator/cardsets/" + name + ".json").readString();
+            CardSetDef csd = gson.fromJson(cardSet, CardSetDef.class);
+            generateCards(sb, csd, name);
+        } finally {
+            isGenerating = false;
+        }
+    }
 
+    private void generateCards(SpriteBatch sb, CardSetDef csd, String filename) {
+        generatingFileName = filename;
         SingleCardViewPopup scv = new SingleCardViewPopup();
 
         int bw = 2112;
@@ -160,7 +147,7 @@ public class TtsGenerator implements PostRenderSubscriber {
 
         panel.begin();
         Pixmap pixmap = ScreenUtils.getFrameBufferPixmap(0, 0, pw, ph);
-        PixmapIO.writePNG(new FileHandle(!upgraded ? "card.png" : "card_upgraded.png"), pixmap);
+        PixmapIO.writePNG(new FileHandle(!upgraded ? generatingFileName + ".png" : generatingFileName + "_upgraded.png"), pixmap);
     }
 
     private void yFlip(Pixmap pixmap, int w, int h) {

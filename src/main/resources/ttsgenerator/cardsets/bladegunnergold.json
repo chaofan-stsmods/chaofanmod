@@ -1,0 +1,18 @@
+{
+  "width": 10,
+  "height": 2,
+  "list": [
+    "bladegunner:card.MadGun",
+    "bladegunner:card.DimensionalShoot",
+    "bladegunner:card.ExhaustingStrike",
+    "bladegunner:card.Camouflage",
+    "bladegunner:card.InfiniteAmmo",
+    "bladegunner:card.Ricochet",
+    "bladegunner:card.FlashBang",
+    "bladegunner:card.Supplement",
+    "bladegunner:card.Pursue",
+    "bladegunner:card.Sandstorm",
+    "bladegunner:card.BurningLand",
+    "bladegunner:card.RocketLauncherCard"
+  ]
+}

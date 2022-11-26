@@ -3,6 +3,7 @@ package io.chaofan.sts.ttsgenerator.patches;
 import basemod.BaseMod;
 import basemod.ReflectionHacks;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.*;
 import com.evacipated.cardcrawl.modthespire.lib.SpirePatch;
 import com.evacipated.cardcrawl.modthespire.lib.SpirePrefixPatch;
@@ -18,23 +19,48 @@ import com.megacrit.cardcrawl.screens.SingleCardViewPopup;
 import io.chaofan.sts.ttsgenerator.TtsGenerator;
 import io.chaofan.sts.ttsgenerator.model.TabletopCardDef;
 
+import java.awt.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 @SpirePatch(clz = SingleCardViewPopup.class, method = "renderDescription")
 public class ScvRenderDescriptionPatch {
-    private static GlyphLayout gl = new GlyphLayout();
+    private static final GlyphLayout gl = new GlyphLayout();
+    private static final Texture slot = ImageMaster.loadImage("ttsgenerator/images/slot.png");
+    private static final Texture all = ImageMaster.loadImage("ttsgenerator/images/all.png");
 
     @SpirePrefixPatch
     public static SpireReturn<Void> Prefix(SingleCardViewPopup instance, SpriteBatch sb, AbstractCard ___card) {
         if (TtsGenerator.isGenerating) {
+            renderSlots(sb, ___card);
             renderDescriptionNew(instance, sb, ___card);
             return SpireReturn.Return();
         }
 
         return SpireReturn.Continue();
+    }
+
+    private static void renderSlots(SpriteBatch sb, AbstractCard card) {
+        TabletopCardDef cardDef = TtsGenerator.cardMap.get(card.cardID);
+        if (cardDef == null || cardDef.slots == null) {
+            return;
+        }
+
+        float current_x = (float)Settings.WIDTH / 2.0F;
+        float current_y = (float)Settings.HEIGHT / 2.0F - 300.0F * Settings.scale;
+
+        List<Point> slots = cardDef.upgradeSlots != null && card.upgraded ? cardDef.upgradeSlots : cardDef.slots;
+
+        for (Point p : slots) {
+            sb.draw(slot,
+                    current_x + (p.x - slot.getWidth() * 0.909f / 2) * Settings.scale,
+                    current_y + (p.y - slot.getHeight() * 0.909f / 2) * Settings.scale,
+                    slot.getWidth() * 0.909f * Settings.scale,
+                    slot.getHeight() * 0.909f * Settings.scale);
+        }
     }
 
     private static void renderDescriptionNew(SingleCardViewPopup instance, SpriteBatch sb, AbstractCard card) {
@@ -44,6 +70,17 @@ public class ScvRenderDescriptionPatch {
             return;
         }
 
+        if (!card.upgraded) {
+            if (cardDef.cost != Integer.MIN_VALUE) {
+                card.cost = card.costForTurn = cardDef.cost;
+            }
+        } else {
+            if (cardDef.cost != Integer.MIN_VALUE) {
+                card.cost = card.costForTurn = cardDef.upgradeCost;
+            }
+            card.isCostModified = card.isCostModifiedForTurn = false;
+        }
+
         float descriptionWidth = 300.0f * Settings.scale * 0.79f * 2;
         BitmapFont font = FontHelper.SCP_cardDescFont;
         float iconWidth = 24.0f * Settings.scale;
@@ -51,7 +88,7 @@ public class ScvRenderDescriptionPatch {
 
         gl.reset();
 
-        String description = card.upgraded ? cardDef.upgradeDescription : cardDef.description;
+        String description = card.upgraded && cardDef.upgradeDescription != null ? cardDef.upgradeDescription : cardDef.description;
         String[] tokens = description.split("(?=[ .,])");
         List<List<String>> lines = new ArrayList<>();
         List<Float> lineWidths = new ArrayList<>();
@@ -78,6 +115,7 @@ public class ScvRenderDescriptionPatch {
                 tokenWidth = gl.width;
             }
 
+            boolean added = false;
             if (currentWidth + tokenWidth > descriptionWidth || trimmedToken.equals("NL")) {
                 if (currentWidth == 0 || trimmedToken.matches("[.,]")) {
                     if (trimmedToken.equals("NL")) {
@@ -85,6 +123,7 @@ public class ScvRenderDescriptionPatch {
                     }
                     currentWidth += tokenWidth;
                     currentLine.add(trimmedToken);
+                    added = true;
                 }
 
                 lines.add(currentLine);
@@ -92,7 +131,9 @@ public class ScvRenderDescriptionPatch {
 
                 currentWidth = 0;
                 currentLine = new ArrayList<>();
-            } else {
+            }
+
+            if (!trimmedToken.equals("NL") && !added) {
                 currentWidth += tokenWidth;
                 currentLine.add(currentWidth == 0 ? trimmedToken : token);
             }
@@ -103,10 +144,11 @@ public class ScvRenderDescriptionPatch {
             lineWidths.add(currentWidth);
         }
 
-        float current_x = (float)Settings.WIDTH / 2.0F - 10.0F * Settings.scale;
+        float current_x = (float)Settings.WIDTH / 2.0F;
         float current_y = (float)Settings.HEIGHT / 2.0F - 300.0F * Settings.scale;
         float draw_y = current_y + 100.0F * Settings.scale;
         draw_y += (float)lines.size() * font.getCapHeight() * 0.775F - font.getCapHeight() * 0.375F;
+        draw_y += cardDef.descriptionYOffset * Settings.scale;
 
         for (int i = 0; i < lines.size(); i++) {
             currentLine = lines.get(i);
@@ -162,11 +204,21 @@ public class ScvRenderDescriptionPatch {
             case "Slimed":
                 region = new TextureAtlas.AtlasRegion(ImageMaster.INTENT_DEBUFF, 6, 6, 52, 52);
                 break;
+            case "All":
+                region = new TextureAtlas.AtlasRegion(all, 0, 0, all.getWidth(), all.getHeight());
+                break;
             case "Burn":
                 region = new TextureAtlas.AtlasRegion(AbstractPower.atlas.findRegion("128/flameBarrier"));
                 region.offsetX = 0;
                 region.offsetY = 0;
                 break;
+            default:
+                region = AbstractPower.atlas.findRegion("128/" + icon.toLowerCase());
+                if (region != null) {
+                    region = new TextureAtlas.AtlasRegion(region);
+                    region.offsetX = 0;
+                    region.offsetY = 0;
+                }
         }
 
         if (region != null) {

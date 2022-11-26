@@ -1,0 +1,17 @@
+{
+  "width": 5,
+  "height": 3,
+  "list": [
+    "bladegunner:card.Strike",
+    "bladegunner:card.Strike",
+    "bladegunner:card.Strike",
+    "bladegunner:card.Strike",
+    "bladegunner:card.Shoot",
+    "bladegunner:card.Shoot",
+    "bladegunner:card.Defend",
+    "bladegunner:card.Defend",
+    "bladegunner:card.Defend",
+    "bladegunner:card.Defend",
+    "bladegunner:card.RevolverCard"
+  ]
+}

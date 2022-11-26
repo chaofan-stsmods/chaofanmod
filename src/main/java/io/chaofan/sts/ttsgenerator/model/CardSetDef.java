@@ -1,9 +1,9 @@
 package io.chaofan.sts.ttsgenerator.model;
 
-import java.util.ArrayList;
+import java.util.List;
 
 public class CardSetDef {
     public int width;
     public int height;
-    public ArrayList<String> list;
+    public List<String> list;
 }
