@@ -32,6 +32,7 @@ public class ScvRenderDescriptionPatch {
     private static final Texture slot = ImageMaster.loadImage("ttsgenerator/images/slot.png");
     private static final Texture all = ImageMaster.loadImage("ttsgenerator/images/all.png");
     private static final Texture ammo = ImageMaster.loadImage("ttsgenerator/images/ammo.png");
+    private static final Texture dice = ImageMaster.loadImage("ttsgenerator/images/dice.png");
 
     @SpirePrefixPatch
     public static SpireReturn<Void> Prefix(SingleCardViewPopup instance, SpriteBatch sb, AbstractCard ___card) {
@@ -85,9 +86,10 @@ public class ScvRenderDescriptionPatch {
         float descriptionWidth = 300.0f * Settings.scale * 0.79f * 2;
         BitmapFont font = FontHelper.SCP_cardDescFont;
         float iconWidth = 24.0f * Settings.scale;
-        float drawScale = 2.0f;
+        float drawScale = 2.0f * cardDef.descriptionScale;
 
         gl.reset();
+        font.getData().setScale(cardDef.descriptionScale);
 
         String description = card.upgraded && cardDef.upgradeDescription != null ? cardDef.upgradeDescription : cardDef.description;
         String[] tokens = description.split("(?=[ .,])");
@@ -99,7 +101,11 @@ public class ScvRenderDescriptionPatch {
             String trimmedToken = token.startsWith(" ") ? token.substring(1) : token;
             float tokenWidth;
             if (trimmedToken.startsWith("[") && trimmedToken.endsWith("]")) {
-                tokenWidth = iconWidth * drawScale;
+                if (trimmedToken.startsWith("[Dice")) {
+                    tokenWidth = iconWidth * 1.5f * drawScale;
+                } else {
+                    tokenWidth = iconWidth * drawScale;
+                }
             } else if (currentWidth == 0) {
                 if (trimmedToken.startsWith("*")) {
                     gl.setText(font, trimmedToken.substring(1));
@@ -160,7 +166,11 @@ public class ScvRenderDescriptionPatch {
                 String trimmedToken = token.startsWith(" ") ? token.substring(1) : token;
                 if (trimmedToken.startsWith("[") && trimmedToken.endsWith("]")) {
                     renderIcon(sb, card, trimmedToken.substring(1, trimmedToken.length() - 1), start_x, (i + 0.5f) * 1.53F * -font.getCapHeight() + draw_y + -12.0F, iconWidth / Settings.scale, drawScale * Settings.scale);
-                    start_x += iconWidth * drawScale;
+                    if (trimmedToken.startsWith("[Dice")) {
+                        start_x += iconWidth * 1.5f * drawScale;
+                    } else {
+                        start_x += iconWidth * drawScale;
+                    }
                 } else {
                     boolean gold = trimmedToken.startsWith("*");
                     if (gold) {
@@ -183,10 +193,12 @@ public class ScvRenderDescriptionPatch {
                 }
             }
         }
+
+        font.getData().setScale(1);
     }
 
     private static void renderIcon(SpriteBatch sb, AbstractCard card, String icon, float x, float y, float iconSize, float drawScale) {
-        TextureAtlas.AtlasRegion region = null;
+        TextureAtlas.AtlasRegion region;
         sb.setColor(Color.WHITE);
         switch (icon) {
             case "E":
@@ -215,6 +227,17 @@ public class ScvRenderDescriptionPatch {
                 region = new TextureAtlas.AtlasRegion(AbstractPower.atlas.findRegion("128/flameBarrier"));
                 region.offsetX = 0;
                 region.offsetY = 0;
+                break;
+            case "Dice1":
+            case "Dice2":
+            case "Dice3":
+            case "Dice4":
+            case "Dice5":
+            case "Dice6":
+                int index = Integer.parseInt(icon.substring(4)) - 1;
+                region = new TextureAtlas.AtlasRegion(dice, index * 70, 0, 70, 70);
+                iconSize *= 1.5f;
+                region.offsetY = -8;
                 break;
             default:
                 region = AbstractPower.atlas.findRegion("128/" + icon.toLowerCase());

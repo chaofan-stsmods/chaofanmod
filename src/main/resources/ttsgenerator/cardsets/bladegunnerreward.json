@@ -18,8 +18,6 @@
     "bladegunner:card.Gunsmoke",
     "bladegunner:card.EmergencyReload",
     "bladegunner:card.EmergencyReload",
-    "bladegunner:card.SmokeBomb",
-    "bladegunner:card.SmokeBomb",
     "bladegunner:card.PreparingStance",
     "bladegunner:card.PreparingStance",
     "bladegunner:card.Grenade",
@@ -30,6 +28,8 @@
     "bladegunner:card.AmmoBox",
     "bladegunner:card.ReloadingPractice",
     "bladegunner:card.ReloadingPractice",
+    "bladegunner:card.BarrageOfBullets",
+    "bladegunner:card.BarrageOfBullets",
     "bladegunner:card.ThrowSand",
     "bladegunner:card.CrazyShoot",
     "bladegunner:card.Pierce",
@@ -49,11 +49,14 @@
     "bladegunner:card.SpeedShooting",
     "bladegunner:card.SpinningShoot",
     "bladegunner:card.ShotgunCard",
-    "bladegunner:card.BarrageOfBullets",
     "bladegunner:card.SpecialVulnerary",
     "bladegunner:card.BulletsInSand",
     "bladegunner:card.Eject",
     "bladegunner:card.ShellDefense",
-    "bladegunner:card.Thrift"
+    "bladegunner:card.Thrift",
+    "bladegunner:card.OffenseToDefense",
+    "bladegunner:card.SmokeBomb",
+    "bladegunner:card.Airdrop",
+    "bladegunner:card.LaserPistolCard"
   ]
 }

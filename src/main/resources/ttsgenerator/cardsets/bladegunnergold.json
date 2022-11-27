@@ -13,6 +13,8 @@
     "bladegunner:card.Pursue",
     "bladegunner:card.Sandstorm",
     "bladegunner:card.BurningLand",
-    "bladegunner:card.RocketLauncherCard"
+    "bladegunner:card.RocketLauncherCard",
+    "bladegunner:card.HotShells",
+    "bladegunner:card.MechaForm"
   ]
 }

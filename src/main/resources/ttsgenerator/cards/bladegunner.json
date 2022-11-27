@@ -15,6 +15,8 @@
     "description": "*Shoot = 1 [Atk]",
     "upgradeDescription": "*Shoot = 2 [Atk]",
     "descriptionYOffset": 105,
+    "cost": -2,
+    "upgradeCost": -2,
     "slots": [
       { "x": -130, "y": 0 },
       { "x": 0, "y": 0 },
@@ -25,8 +27,8 @@
     ]
   },
   "bladegunner:card.RussianRoulette": {
-    "description": "Can only be played if you equip Revolver with 1 [Ammo]. NL Shoot with 6 [Atk]",
-    "upgradeDescription": "Can only be played if you equip Revolver with 1 [Ammo]. NL Shoot with 8 [Atk]"
+    "description": "Can only be played if you equip Revolver with 1 [Ammo]. NL *Shoot. NL +5 [Atk]",
+    "upgradeDescription": "Can only be played if you equip Revolver with 1 [Ammo]. NL *Shoot. NL +7 [Atk]"
   },
   "bladegunner:card.LowAmmoAnxiety": {
     "description": "2 [Atk] NL If you have less than half of the [Ammo] on your *Gun, 1 [Atk]",
@@ -59,8 +61,9 @@
     "upgradeDescription": "*Reload. NL [E] NL Draw a card. NL [Dazed]"
   },
   "bladegunner:card.SmokeBomb": {
-    "description": "*Reload. NL 2 [Def]",
-    "upgradeDescription": "*Reload. NL 3 [Def]"
+    "description": "*Reload. NL 2 [Def] to all players.",
+    "upgradeDescription": "*Reload. NL 3 [Def] to all players.",
+    "rarity": "UNCOMMON"
   },
   "bladegunner:card.PreparingStance": {
     "description": "2 [Def] NL If no empty slot on your *Gun, [E].",
@@ -103,8 +106,8 @@
   },
   "bladegunner:card.MadBlade": {
     "description": "Gain [Flex]. NL *End *of *this *turn: unless you have played Non-Shoot Attacks, lose [Flex]. NL *Exhaust.",
-    "cost": 1,
-    "upgradeCost": 0
+    "upgradeDescription": "Gain [Flex]. NL *End *of *this *turn: unless you have played Non-Shoot Attacks, lose [Flex].",
+    "descriptionYOffset": -15
   },
   "bladegunner:card.IncreaseCaliber": {
     "description": "Gain [Flex]. NL Remove all [Ammo] on your *Gun. NL *Exhaust.",
@@ -165,8 +168,9 @@
     "upgradeDescription": "8 [Atk] NL Remove all [Ammo] from your *Gun. NL If more than 3, gain [Flex]."
   },
   "bladegunner:card.Camouflage": {
-    "description": "Cannot play Attacks whose damage < 4 [Atk]. NL For 2 turns, you can't lose more than 1 HP per turn.",
-    "upgradeDescription": "Cannot play Attacks whose damage < 4 [Atk]. NL For 3 turns, you can't lose more than 1 HP per turn.",
+    "description": "For 2 turns, you can't lose more than 1 HP per turn, NL nor play Attacks whose NL [Atk] + [Flex] < 4.",
+    "upgradeDescription": "For 2 turns, you can't lose more than 1 HP per turn, NL nor play Attacks whose NL [Atk] + [Flex] < 4.",
+    "descriptionScale": 0.9,
     "descriptionYOffset": 50,
     "slots": [
       { "x": -80, "y": 0 },
@@ -176,7 +180,8 @@
       { "x": -130, "y": 0 },
       { "x": 0, "y": 0 },
       { "x": 130, "y": 0 }
-    ]
+    ],
+    "type": "POWER"
   },
   "bladegunner:card.InfiniteAmmo": {
     "description": "*Shooting doesn't use [Ammo] this turn."
@@ -241,8 +246,8 @@
     ]
   },
   "bladegunner:card.RocketLauncherCard": {
-    "description": "*Shoot = [All] 3 [Atk] NL Cannot use [Ammo] on Magazine Expansion.",
-    "upgradeDescription": "*Shoot = [All] 4 [Atk] NL Cannot use [Ammo] on Magazine Expansion.",
+    "description": "*Shoot = [All] 3 [Atk] NL You can't use [Ammo] on Magazine Expansion.",
+    "upgradeDescription": "*Shoot = [All] 4 [Atk] NL You can't use [Ammo] on Magazine Expansion.",
     "descriptionYOffset": 60,
     "slots": [
       { "x": 0, "y": 10 }
@@ -251,7 +256,8 @@
   },
   "bladegunner:card.BarrageOfBullets": {
     "description": "*Shoot X times. NL X equal to count of [Ammo] on your panel. NL Remove 1 [Ammo] from your panel.",
-    "upgradeDescription": "*Shoot X times. NL X equal to count of [Ammo] on your panel."
+    "upgradeDescription": "*Shoot X times. NL X equal to count of [Ammo] on your panel.",
+    "rarity": "COMMON"
   },
   "bladegunner:card.AmmoBox": {
     "description": "2 [Def] NL Put 2 [Ammo] to your panel.",
@@ -282,5 +288,39 @@
     "description": "When [Dazed] is *Exhausted, put 1 [Ammo] to your panel.",
     "cost": 2,
     "upgradeCost": 1
+  },
+  "bladegunner:card.OffenseToDefense": {
+    "description": "1 [Def] NL You may discard a card. If it's an Attack, gain [Def] equal to its [Atk] + your [Flex].",
+    "upgradeDescription": "2 [Def] NL You may discard a card. If it's an Attack, gain [Def] equal to its [Atk] + your [Flex]."
+  },
+  "bladegunner:card.HotShells": {
+    "description": "Remove all [Ammo] on your *Gun. NL For each removed [Ammo], NL [All] 1 [Atk] to all rows. NL *Exhaust.",
+    "cost": 3,
+    "upgradeCost": 2,
+    "type": "ATTACK"
+  },
+  "bladegunner:card.Airdrop": {
+    "description": "*Start *of *turn: NL Draw a card. NL [Dice4] [Dice5] [Dice6] [E]"
+  },
+  "bladegunner:card.LaserPistolCard": {
+    "description": "*Shoot = 1 [Atk] NL +1 [Atk] for every 4 [Ammo] on this card",
+    "upgradeDescription": "*Shoot = 1 [Atk] NL +1 [Atk] for every 3 [Ammo] on this card",
+    "descriptionScale": 0.77,
+    "descriptionYOffset": 100,
+    "slots": [
+      { "x": -130, "y": -15 },
+      { "x": 0, "y": -15 },
+      { "x": 130, "y": -15 },
+      { "x": -130, "y": 100 },
+      { "x": 0, "y": 100 },
+      { "x": 130, "y": 100 }
+    ]
+  },
+  "bladegunner:card.MechaForm": {
+    "description": "*Start *of *turn: If you have: NL *Revolver: Gain [Flex]. NL *Shotgun: [E], draw 2 cards. NL *Laser *Pistol: Put 2 [Ammo] on it, NL for [Atk] calculation only. NL *Sniper *Rifle: 2 [Def] NL *Rocket *Launcher: You may *Shoot with it or *Reload it.",
+    "descriptionScale": 0.75,
+    "descriptionYOffset": -10,
+    "cost": 3,
+    "upgradeCost": 2
   }
 }

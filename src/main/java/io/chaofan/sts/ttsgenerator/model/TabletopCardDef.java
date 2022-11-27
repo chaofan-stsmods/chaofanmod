@@ -6,6 +6,7 @@ import java.util.List;
 public class TabletopCardDef {
     public String description;
     public String upgradeDescription;
+    public float descriptionScale = 1;
     public float descriptionYOffset;
     public List<Point> slots;
     public List<Point> upgradeSlots;

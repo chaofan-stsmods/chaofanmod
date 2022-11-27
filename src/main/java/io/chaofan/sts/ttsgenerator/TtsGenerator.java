@@ -15,7 +15,6 @@ import com.badlogic.gdx.utils.ScreenUtils;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.megacrit.cardcrawl.cards.AbstractCard;
-import com.megacrit.cardcrawl.cards.red.Strike_Red;
 import com.megacrit.cardcrawl.core.CardCrawlGame;
 import com.megacrit.cardcrawl.core.Settings;
 import com.megacrit.cardcrawl.helpers.CardLibrary;
@@ -23,10 +22,7 @@ import com.megacrit.cardcrawl.screens.SingleCardViewPopup;
 import io.chaofan.sts.ttsgenerator.model.CardSetDef;
 import io.chaofan.sts.ttsgenerator.model.TabletopCardDef;
 
-import java.awt.Point;
 import java.lang.reflect.Type;
-import java.nio.ByteBuffer;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -148,20 +144,5 @@ public class TtsGenerator implements PostRenderSubscriber {
         panel.begin();
         Pixmap pixmap = ScreenUtils.getFrameBufferPixmap(0, 0, pw, ph);
         PixmapIO.writePNG(new FileHandle(!upgraded ? generatingFileName + ".png" : generatingFileName + "_upgraded.png"), pixmap);
-    }
-
-    private void yFlip(Pixmap pixmap, int w, int h) {
-        // Flip the pixmap upside down
-        ByteBuffer pixels = pixmap.getPixels();
-        int numBytes = w * h * 4;
-        byte[] lines = new byte[numBytes];
-        int numBytesPerLine = w * 4;
-        for (int i = 0; i < h; i++) {
-            pixels.position((h - i - 1) * numBytesPerLine);
-            pixels.get(lines, i * numBytesPerLine, numBytesPerLine);
-        }
-        pixels.clear();
-        pixels.put(lines);
-        pixels.clear();
     }
 }
