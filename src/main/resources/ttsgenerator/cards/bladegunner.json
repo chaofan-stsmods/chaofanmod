@@ -25,12 +25,12 @@
     ]
   },
   "bladegunner:card.RussianRoulette": {
-    "description": "Can only be played if you equip Revolver with 1 ammo. NL Shoot with 6 [Atk]",
-    "upgradeDescription": "Can only be played if you equip Revolver with 1 ammo. NL Shoot with 8 [Atk]"
+    "description": "Can only be played if you equip Revolver with 1 [Ammo]. NL Shoot with 6 [Atk]",
+    "upgradeDescription": "Can only be played if you equip Revolver with 1 [Ammo]. NL Shoot with 8 [Atk]"
   },
   "bladegunner:card.LowAmmoAnxiety": {
-    "description": "2 [Atk] NL If you have less than half of the ammo on your *Gun, 1 [Atk]",
-    "upgradeDescription": "3 [Atk] NL If you have less than half of the ammo on your *Gun, 2 [Atk]"
+    "description": "2 [Atk] NL If you have less than half of the [Ammo] on your *Gun, 1 [Atk]",
+    "upgradeDescription": "3 [Atk] NL If you have less than half of the [Ammo] on your *Gun, 2 [Atk]"
   },
   "bladegunner:card.GunstockStrike": {
     "description": "1 [Atk] NL +1 [Atk] for each *Gun you have played.",
@@ -41,16 +41,16 @@
     "upgradeDescription": "*Shoot twice. NL [Dazed]"
   },
   "bladegunner:card.DualShot": {
-    "description": "If you have 2 ammo on your *Gun, [E] [E]. NL *Shoot twice.",
-    "upgradeDescription": "If you have 3 or less ammo on your *Gun, NL [E] [E]. NL *Shoot twice."
+    "description": "If you have 2 [Ammo] on your *Gun, [E] [E]. NL *Shoot twice.",
+    "upgradeDescription": "If you have 3 or less [Ammo] on your *Gun, NL [E] [E]. NL *Shoot twice."
   },
   "bladegunner:card.Headshot": {
     "description": "*Shoot. NL +1 [Atk]",
     "upgradeDescription": "*Shoot. NL +2 [Atk]"
   },
   "bladegunner:card.Gunsmoke": {
-    "description": "Remove all ammo on your *Gun. NL [Vulnerable]",
-    "upgradeDescription": "Choose and remove one or more ammo on your *Gun. NL [Vulnerable]",
+    "description": "Remove all [Ammo] on your *Gun. NL [Vulnerable]",
+    "upgradeDescription": "Choose and remove one or more [Ammo] on your *Gun. NL [Vulnerable]",
     "cost": 0,
     "upgradeCost": 0
   },
@@ -102,14 +102,13 @@
     "upgradeDescription": "Put 2 most recently played *Shooting *cards from discard pile to your hand."
   },
   "bladegunner:card.MadBlade": {
-    "description": "Gain [Flex]. NL *End *of *turn: *Exhaust, and lose [Flex] unless you have played Non-Shoot Attacks this turn.",
+    "description": "Gain [Flex]. NL *End *of *this *turn: unless you have played Non-Shoot Attacks, lose [Flex]. NL *Exhaust.",
     "cost": 1,
-    "upgradeCost": 0,
-    "type": "POWER"
+    "upgradeCost": 0
   },
   "bladegunner:card.IncreaseCaliber": {
-    "description": "Gain [Flex]. NL Remove all ammo on your *Gun. NL *Exhaust.",
-    "upgradeDescription": "Gain [Flex]. NL Remove all ammo on your *Gun."
+    "description": "Gain [Flex]. NL Remove all [Ammo] on your *Gun. NL *Exhaust.",
+    "upgradeDescription": "Gain [Flex]. NL Remove all [Ammo] on your *Gun."
   },
   "bladegunner:card.MasterOfGuns": {
     "description": "Draw 2 cards. NL +1 card for each *Gun you have played.",
@@ -120,7 +119,7 @@
     "upgradeDescription": "2 [Def] NL +1 [Def] for each *Gun you have played."
   },
   "bladegunner:card.MagazineExpansion": {
-    "description": "When *Shoot or *Reload, you may use or put ammo on this card.",
+    "description": "When *Shoot or *Reload, you may use or put [Ammo] on this card.",
     "descriptionYOffset": 60,
     "slots": [
       { "x": -80, "y": 10 },
@@ -153,8 +152,8 @@
     ]
   },
   "bladegunner:card.MadGun": {
-    "description": "*Shoot X times. NL You can shoot even no ammo or limited by Sniper Rifle.",
-    "upgradeDescription": "*Shoot X+1 times. NL You can shoot even no ammo or limited by Sniper Rifle."
+    "description": "*Shoot X times. NL You can shoot even no [Ammo] or limited by Sniper Rifle.",
+    "upgradeDescription": "*Shoot X+1 times. NL You can shoot even no [Ammo] or limited by Sniper Rifle."
   },
   "bladegunner:card.DimensionalShoot": {
     "description": "*Shoot. NL Other players can pay [E] once to +2 *Shoot. NL *Exhaust.",
@@ -162,8 +161,8 @@
     "upgradeCost": 0
   },
   "bladegunner:card.ExhaustingStrike": {
-    "description": "6 [Atk] NL Remove all ammo from your *Gun. NL If more than 3, gain [Flex].",
-    "upgradeDescription": "8 [Atk] NL Remove all ammo from your *Gun. NL If more than 3, gain [Flex]."
+    "description": "6 [Atk] NL Remove all [Ammo] from your *Gun. NL If more than 3, gain [Flex].",
+    "upgradeDescription": "8 [Atk] NL Remove all [Ammo] from your *Gun. NL If more than 3, gain [Flex]."
   },
   "bladegunner:card.Camouflage": {
     "description": "Cannot play Attacks whose damage < 4 [Atk]. NL For 2 turns, you can't lose more than 1 HP per turn.",
@@ -180,7 +179,7 @@
     ]
   },
   "bladegunner:card.InfiniteAmmo": {
-    "description": "*Shooting doesn't use ammo this turn."
+    "description": "*Shooting doesn't use [Ammo] this turn."
   },
   "bladegunner:card.Ricochet": {
     "description": "Double [Atk] from *Shooting this turn."
@@ -202,8 +201,8 @@
     "rarity": "RARE"
   },
   "bladegunner:card.Supplement": {
-    "description": "*Reload. NL If no ammo on your *Gun, draw 2 cards, [E] [E].",
-    "upgradeDescription": "*Reload. NL If no ammo on your *Gun, draw 3 cards, [E] [E] [E]."
+    "description": "*Reload. NL If no [Ammo] on your *Gun, draw 2 cards, [E] [E].",
+    "upgradeDescription": "*Reload. NL If no [Ammo] on your *Gun, draw 3 cards, [E] [E] [E]."
   },
   "bladegunner:card.Pursue": {
     "description": "The first Attack you play each turn costs 1 less [E]."
@@ -242,12 +241,46 @@
     ]
   },
   "bladegunner:card.RocketLauncherCard": {
-    "description": "*Shoot = [All] 3 [Atk] NL Cannot use ammo on Magazine Expansion.",
-    "upgradeDescription": "*Shoot = [All] 4 [Atk] NL Cannot use ammo on Magazine Expansion.",
+    "description": "*Shoot = [All] 3 [Atk] NL Cannot use [Ammo] on Magazine Expansion.",
+    "upgradeDescription": "*Shoot = [All] 4 [Atk] NL Cannot use [Ammo] on Magazine Expansion.",
     "descriptionYOffset": 60,
     "slots": [
       { "x": 0, "y": 10 }
     ],
     "rarity": "RARE"
+  },
+  "bladegunner:card.BarrageOfBullets": {
+    "description": "*Shoot X times. NL X equal to count of [Ammo] on your panel. NL Remove 1 [Ammo] from your panel.",
+    "upgradeDescription": "*Shoot X times. NL X equal to count of [Ammo] on your panel."
+  },
+  "bladegunner:card.AmmoBox": {
+    "description": "2 [Def] NL Put 2 [Ammo] to your panel.",
+    "upgradeDescription": "3 [Def] NL Put 2 [Ammo] to your panel."
+  },
+  "bladegunner:card.ReloadingPractice": {
+    "description": "2 [Def] NL Put 1 [Ammo] to your panel. NL You can't play additional cards this turn.",
+    "upgradeDescription": "3 [Def] NL Put 1 [Ammo] to your panel. NL You can't play additional cards this turn."
+  },
+  "bladegunner:card.SpecialVulnerary": {
+    "description": "Heal X-1 HP. NL X equal to count of [Ammo] on your panel.",
+    "upgradeDescription": "Heal X HP. NL X equal to count of [Ammo] on your panel."
+  },
+  "bladegunner:card.BulletsInSand": {
+    "description": "Put 2X [Ammo] on this card. NL *Start *of *turn: Move 2 [Ammo] to your panel.",
+    "upgradeDescription": "Put 2X+2 [Ammo] on this card. NL *Start *of *turn: Move 2 [Ammo] to your panel.",
+    "type": "POWER"
+  },
+  "bladegunner:card.Eject": {
+    "description": "Remove all [Ammo] on your *Gun. NL Put 2 [Ammo] to your panel.",
+    "upgradeDescription": "Remove all [Ammo] on your *Gun. NL Put 3 [Ammo] to your panel."
+  },
+  "bladegunner:card.ShellDefense": {
+    "description": "When you use [Ammo] on your panel, you may gain 1 [Def] instead of 1 [E].",
+    "upgradeDescription": "When you use [Ammo] on your panel, gain 1 [Def]."
+  },
+  "bladegunner:card.Thrift": {
+    "description": "When [Dazed] is *Exhausted, put 1 [Ammo] to your panel.",
+    "cost": 2,
+    "upgradeCost": 1
   }
 }

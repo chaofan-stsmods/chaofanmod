@@ -31,6 +31,7 @@ public class ScvRenderDescriptionPatch {
     private static final GlyphLayout gl = new GlyphLayout();
     private static final Texture slot = ImageMaster.loadImage("ttsgenerator/images/slot.png");
     private static final Texture all = ImageMaster.loadImage("ttsgenerator/images/all.png");
+    private static final Texture ammo = ImageMaster.loadImage("ttsgenerator/images/ammo.png");
 
     @SpirePrefixPatch
     public static SpireReturn<Void> Prefix(SingleCardViewPopup instance, SpriteBatch sb, AbstractCard ___card) {
@@ -206,6 +207,9 @@ public class ScvRenderDescriptionPatch {
                 break;
             case "All":
                 region = new TextureAtlas.AtlasRegion(all, 0, 0, all.getWidth(), all.getHeight());
+                break;
+            case "Ammo":
+                region = new TextureAtlas.AtlasRegion(ammo, 0, 0, all.getWidth(), all.getHeight());
                 break;
             case "Burn":
                 region = new TextureAtlas.AtlasRegion(AbstractPower.atlas.findRegion("128/flameBarrier"));

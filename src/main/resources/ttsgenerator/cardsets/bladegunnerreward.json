@@ -26,6 +26,10 @@
     "bladegunner:card.Grenade",
     "bladegunner:card.SpinningSlash",
     "bladegunner:card.SpinningSlash",
+    "bladegunner:card.AmmoBox",
+    "bladegunner:card.AmmoBox",
+    "bladegunner:card.ReloadingPractice",
+    "bladegunner:card.ReloadingPractice",
     "bladegunner:card.ThrowSand",
     "bladegunner:card.CrazyShoot",
     "bladegunner:card.Pierce",
@@ -44,6 +48,12 @@
     "bladegunner:card.SniperRifleCard",
     "bladegunner:card.SpeedShooting",
     "bladegunner:card.SpinningShoot",
-    "bladegunner:card.ShotgunCard"
+    "bladegunner:card.ShotgunCard",
+    "bladegunner:card.BarrageOfBullets",
+    "bladegunner:card.SpecialVulnerary",
+    "bladegunner:card.BulletsInSand",
+    "bladegunner:card.Eject",
+    "bladegunner:card.ShellDefense",
+    "bladegunner:card.Thrift"
   ]
 }
