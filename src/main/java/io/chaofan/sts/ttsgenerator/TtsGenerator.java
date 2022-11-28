@@ -19,6 +19,7 @@ import com.megacrit.cardcrawl.core.CardCrawlGame;
 import com.megacrit.cardcrawl.core.Settings;
 import com.megacrit.cardcrawl.helpers.CardLibrary;
 import com.megacrit.cardcrawl.screens.SingleCardViewPopup;
+import io.chaofan.sts.ttsgenerator.cards.GoldenTicket;
 import io.chaofan.sts.ttsgenerator.model.CardSetDef;
 import io.chaofan.sts.ttsgenerator.model.TabletopCardDef;
 
@@ -108,6 +109,8 @@ public class TtsGenerator implements PostRenderSubscriber {
 
         SingleCardViewPopup.enableUpgradeToggle = false;
 
+        AbstractCard.CardColor lastCardColor = null;
+
         outloop:
         for (int y = 0, c = 0; y < csd.height; y++) {
             for (int x = 0; x < csd.width; x++, c++) {
@@ -115,7 +118,14 @@ public class TtsGenerator implements PostRenderSubscriber {
                     break outloop;
                 }
 
-                AbstractCard card = CardLibrary.getCard(csd.list.get(c)).makeCopy();
+                String cardId = csd.list.get(c);
+                AbstractCard card;
+                if (cardId.equals("ttsgen:GoldenTicket")) {
+                    card = new GoldenTicket(lastCardColor);
+                } else {
+                    card = CardLibrary.getCard(cardId).makeCopy();
+                    lastCardColor = card.color;
+                }
                 SingleCardViewPopup.isViewingUpgrade = upgraded;
                 scv.open(card);
                 CardCrawlGame.isPopupOpen = false;

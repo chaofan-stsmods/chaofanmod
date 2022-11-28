@@ -57,6 +57,8 @@
     "bladegunner:card.OffenseToDefense",
     "bladegunner:card.SmokeBomb",
     "bladegunner:card.Airdrop",
-    "bladegunner:card.LaserPistolCard"
+    "bladegunner:card.LaserPistolCard",
+    "ttsgen:GoldenTicket",
+    "ttsgen:GoldenTicket"
   ]
 }

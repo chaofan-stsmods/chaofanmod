@@ -12,18 +12,19 @@
     "upgradeDescription": "*Shoot. NL +1 [Atk]"
   },
   "bladegunner:card.RevolverCard": {
-    "description": "*Shoot = 1 [Atk]",
-    "upgradeDescription": "*Shoot = 2 [Atk]",
-    "descriptionYOffset": 105,
+    "description": "*Shoot = 1 [Atk] NL Play this when combat starts.",
+    "upgradeDescription": "*Shoot = 2 [Atk] NL Play this when combat starts.",
+    "descriptionScale": 0.77,
+    "descriptionYOffset": 100,
     "cost": -2,
     "upgradeCost": -2,
     "slots": [
-      { "x": -130, "y": 0 },
-      { "x": 0, "y": 0 },
-      { "x": 130, "y": 0 },
-      { "x": -130, "y": 120 },
-      { "x": 0, "y": 120 },
-      { "x": 130, "y": 120 }
+      { "x": -130, "y": -15 },
+      { "x": 0, "y": -15 },
+      { "x": 130, "y": -15 },
+      { "x": -130, "y": 100 },
+      { "x": 0, "y": 100 },
+      { "x": 130, "y": 100 }
     ]
   },
   "bladegunner:card.RussianRoulette": {
@@ -246,46 +247,47 @@
     ]
   },
   "bladegunner:card.RocketLauncherCard": {
-    "description": "*Shoot = [All] 3 [Atk] NL You can't use [Ammo] on Magazine Expansion.",
-    "upgradeDescription": "*Shoot = [All] 4 [Atk] NL You can't use [Ammo] on Magazine Expansion.",
-    "descriptionYOffset": 60,
+    "description": "*Shoot = [All] 3 [Atk] NL You can't use [Ammo] on Magazine Expansion. NL You can use [E] to *Reload.",
+    "upgradeDescription": "*Shoot = [All] 4 [Atk] NL You can't use [Ammo] on Magazine Expansion. NL You can use [E] to *Reload.",
+    "descriptionScale": 0.83,
+    "descriptionYOffset": 40,
     "slots": [
-      { "x": 0, "y": 10 }
+      { "x": 0, "y": 0 }
     ],
     "rarity": "RARE"
   },
   "bladegunner:card.BarrageOfBullets": {
-    "description": "*Shoot X times. NL X equal to count of [Ammo] on your panel. NL Remove 1 [Ammo] from your panel.",
-    "upgradeDescription": "*Shoot X times. NL X equal to count of [Ammo] on your panel.",
+    "description": "*Shoot X times. NL X equal to count of [Ammo] on your board. NL Remove 1 [Ammo] from your board.",
+    "upgradeDescription": "*Shoot X times. NL X equal to count of [Ammo] on your board.",
     "rarity": "COMMON"
   },
   "bladegunner:card.AmmoBox": {
-    "description": "2 [Def] NL Put 2 [Ammo] to your panel.",
-    "upgradeDescription": "3 [Def] NL Put 2 [Ammo] to your panel."
+    "description": "2 [Def] NL Put 2 [Ammo] on your board.",
+    "upgradeDescription": "3 [Def] NL Put 2 [Ammo] on your board."
   },
   "bladegunner:card.ReloadingPractice": {
-    "description": "2 [Def] NL Put 1 [Ammo] to your panel. NL You can't play additional cards this turn.",
-    "upgradeDescription": "3 [Def] NL Put 1 [Ammo] to your panel. NL You can't play additional cards this turn."
+    "description": "2 [Def] NL Put 1 [Ammo] on your board. NL You can't play additional cards this turn.",
+    "upgradeDescription": "3 [Def] NL Put 1 [Ammo] on your board. NL You can't play additional cards this turn."
   },
   "bladegunner:card.SpecialVulnerary": {
-    "description": "Heal X-1 HP. NL X equal to count of [Ammo] on your panel.",
-    "upgradeDescription": "Heal X HP. NL X equal to count of [Ammo] on your panel."
+    "description": "Heal X-1 HP. NL X equal to count of [Ammo] on your board.",
+    "upgradeDescription": "Heal X HP. NL X equal to count of [Ammo] on your board."
   },
   "bladegunner:card.BulletsInSand": {
-    "description": "Put 2X [Ammo] on this card. NL *Start *of *turn: Move 2 [Ammo] to your panel.",
-    "upgradeDescription": "Put 2X+2 [Ammo] on this card. NL *Start *of *turn: Move 2 [Ammo] to your panel.",
+    "description": "Put 2X [Ammo] on this card. NL *Start *of *turn: Move 2 [Ammo] to your board.",
+    "upgradeDescription": "Put 2X+2 [Ammo] on this card. NL *Start *of *turn: Move 2 [Ammo] to your board.",
     "type": "POWER"
   },
   "bladegunner:card.Eject": {
-    "description": "Remove all [Ammo] on your *Gun. NL Put 2 [Ammo] to your panel.",
-    "upgradeDescription": "Remove all [Ammo] on your *Gun. NL Put 3 [Ammo] to your panel."
+    "description": "Remove all [Ammo] on your *Gun. NL Put 2 [Ammo] on your board.",
+    "upgradeDescription": "Remove all [Ammo] on your *Gun. NL Put 3 [Ammo] on your board."
   },
   "bladegunner:card.ShellDefense": {
-    "description": "When you use [Ammo] on your panel, you may gain 1 [Def] instead of 1 [E].",
-    "upgradeDescription": "When you use [Ammo] on your panel, gain 1 [Def]."
+    "description": "When you use [Ammo] on your board, you may gain 1 [Def] instead of 1 [E].",
+    "upgradeDescription": "When you use [Ammo] on your board, gain 1 [Def]."
   },
   "bladegunner:card.Thrift": {
-    "description": "When [Dazed] is *Exhausted, put 1 [Ammo] to your panel.",
+    "description": "When [Dazed] is *Exhausted, put 1 [Ammo] on your board.",
     "cost": 2,
     "upgradeCost": 1
   },
@@ -322,5 +324,9 @@
     "descriptionYOffset": -10,
     "cost": 3,
     "upgradeCost": 2
+  },
+  "ttsgen:GoldenTicket": {
+    "description": "Golden Ticket can't be added to your deck. NL When you reveal Golden Ticket, reveal a card from your rare deck.",
+    "descriptionScale": 0.95
   }
 }
