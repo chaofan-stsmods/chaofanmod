@@ -38,7 +38,6 @@ import io.chaofan.sts.chaofanmod.utils.ChaofanModEnums;
 import io.chaofan.sts.chaofanmod.variables.ShootCountVariable;
 import io.chaofan.sts.chaofanmod.vfx.RetroEffect;
 import io.chaofan.sts.enhancedsteamstatus.EnhancedSteamStatus;
-import io.chaofan.sts.ttsgenerator.TtsGenerator;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -84,7 +83,6 @@ public class ChaofanMod implements
         ChaofanMod bladeGunnerMod = new ChaofanMod();
         BaseMod.subscribe(bladeGunnerMod);
         EnhancedSteamStatus.initialize();
-        TtsGenerator.initialize();
     }
 
     @Override
