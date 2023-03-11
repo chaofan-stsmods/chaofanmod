@@ -4,12 +4,15 @@
     "DESCRIPTIONS": [
       "A gremlin is madly shuffling cards on a table. This monster seems to be a harmless one. You approach him out of curiosity.",
       "\" #bCombine two cards and get a more powerful card! NL Are you ready? Let's start!\"",
-      "You complete the gremlin's game and look up. NL He disappeared?"
+      "You complete the gremlin's game and look up. NL He disappeared? NL In front of you is a card same as you just played.",
+      "You take the card and continue the journey.",
+      "You don't trust the gremlin and leave without taking the card."
     ],
     "OPTIONS": [
       "[Continue]",
       "[Leave]",
-      "[Play]"
+      "[Play]",
+      "[Take] #gObtain Searing Blow+%d."
     ]
   }
 }

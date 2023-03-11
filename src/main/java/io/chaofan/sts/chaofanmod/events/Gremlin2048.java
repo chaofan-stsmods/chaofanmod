@@ -26,6 +26,7 @@ import com.megacrit.cardcrawl.helpers.input.InputHelper;
 import com.megacrit.cardcrawl.localization.EventStrings;
 import com.megacrit.cardcrawl.random.Random;
 import com.megacrit.cardcrawl.vfx.cardManip.ShowCardAndObtainEffect;
+import io.chaofan.sts.chaofanmod.cards.SearingBlowFor2048;
 
 import java.util.Optional;
 
@@ -46,6 +47,7 @@ public class Gremlin2048 extends AbstractImageEvent {
     private final CardGroup cardsToBeRemoved;
     private AbstractCard hoverCard;
     private float timer = 0;
+    private AbstractCard selectedCard;
 
     private final Hitbox left;
     private final Hitbox right;
@@ -342,13 +344,33 @@ public class Gremlin2048 extends AbstractImageEvent {
             case INTRO:
                 this.imageEventText.updateBodyText(DESCRIPTIONS[1]);
                 this.imageEventText.updateDialogOption(0, OPTIONS[2]);
+                this.imageEventText.setDialogOption(OPTIONS[1]);
                 this.screen = Screen.RULE_EXPLANATION;
                 return;
             case RULE_EXPLANATION:
+                this.imageEventText.removeDialogOption(1);
                 this.imageEventText.removeDialogOption(0);
-                GenericEventDialog.hide();
-                this.screen = Screen.PLAY;
-                this.initializeCards();
+                if (buttonPressed == 1) {
+                    this.imageEventText.updateBodyText(DESCRIPTIONS[4]);
+                    this.imageEventText.setDialogOption(OPTIONS[1]);
+                    this.screen = Screen.COMPLETE;
+                } else {
+                    GenericEventDialog.hide();
+                    this.screen = Screen.PLAY;
+                    this.initializeCards();
+                }
+                return;
+            case GET_CARD:
+                if (buttonPressed == 0 && this.selectedCard != null) {
+                    AbstractDungeon.effectList.add(new ShowCardAndObtainEffect(this.selectedCard, (float) Settings.WIDTH / 2.0F, (float) Settings.HEIGHT / 2.0F));
+                    this.imageEventText.updateBodyText(DESCRIPTIONS[3]);
+                } else {
+                    this.imageEventText.updateBodyText(DESCRIPTIONS[4]);
+                }
+                this.imageEventText.removeDialogOption(1);
+                this.imageEventText.removeDialogOption(0);
+                this.imageEventText.setDialogOption(OPTIONS[1]);
+                this.screen = Screen.COMPLETE;
                 return;
             case COMPLETE:
                 this.openMap();
@@ -372,20 +394,16 @@ public class Gremlin2048 extends AbstractImageEvent {
     }
 
     private void complete() {
-        screen = Screen.COMPLETE;
+        screen = Screen.GET_CARD;
         GenericEventDialog.show();
         this.imageEventText.updateBodyText(DESCRIPTIONS[2]);
-        this.imageEventText.clearRemainingOptions();
-        this.imageEventText.setDialogOption(OPTIONS[1]);
 
         Optional<AbstractCard> optionalCard = cards.group.stream().reduce((c1, c2) -> c1.timesUpgraded >= c2.timesUpgraded ? c1 : c2);
         optionalCard.ifPresent(card -> {
-            AbstractCard searingBlow = new SearingBlow();
-            for (int i = 0; i < card.timesUpgraded; i++) {
-                searingBlow.upgrade();
-            }
-            AbstractDungeon.effectList.add(new ShowCardAndObtainEffect(searingBlow, (float) Settings.WIDTH / 2.0F, (float) Settings.HEIGHT / 2.0F));
+            this.selectedCard = new SearingBlowFor2048(card.timesUpgraded);
+            this.imageEventText.setDialogOption(String.format(OPTIONS[3], card.timesUpgraded), this.selectedCard);
         });
+        this.imageEventText.setDialogOption(OPTIONS[1]);
 
         cardsToBeRemoved.group.addAll(cards.group);
         for (AbstractCard c : cards.group) {
@@ -406,7 +424,7 @@ public class Gremlin2048 extends AbstractImageEvent {
 
     private void putNewCard() {
         Random rng = AbstractDungeon.cardRandomRng;
-        AbstractCard card = new SearingBlowFor2048();
+        AbstractCard card = new SearingBlowFor2048Rendering();
         if (rng.randomBoolean()) {
             card.upgrade();
         }
@@ -465,11 +483,12 @@ public class Gremlin2048 extends AbstractImageEvent {
         INTRO,
         RULE_EXPLANATION,
         PLAY,
-        COMPLETE
+        GET_CARD,
+        COMPLETE,
     }
 
-    private static class SearingBlowFor2048 extends SearingBlow {
-        public SearingBlowFor2048() {
+    private static class SearingBlowFor2048Rendering extends SearingBlow {
+        public SearingBlowFor2048Rendering() {
             super();
             this.rawDescription = "";
             this.initializeDescription();
@@ -477,10 +496,19 @@ public class Gremlin2048 extends AbstractImageEvent {
 
         @Override
         public void render(SpriteBatch sb) {
+            CardRarity oldRarity = this.rarity;
+            if (baseDamage < 35) {
+                this.rarity = CardRarity.COMMON;
+            } else if (baseDamage < 70) {
+                this.rarity = CardRarity.UNCOMMON;
+            } else {
+                this.rarity = CardRarity.RARE;
+            }
             super.render(sb);
+            this.rarity = oldRarity;
             if (!Settings.hideCards) {
                 BitmapFont font = FontHelper.cardDescFont_L;
-                float scale = this.drawScale * 3;
+                float scale = this.drawScale * Math.min(3, 1.5f + (this.baseDamage - 12) / 88f * 1.5f);
                 font.getData().setScale(scale);
                 GlyphLayout gl = ReflectionHacks.getPrivate(this, AbstractCard.class, "gl");
                 Color textColor = ReflectionHacks.getPrivate(this, AbstractCard.class, "textColor");

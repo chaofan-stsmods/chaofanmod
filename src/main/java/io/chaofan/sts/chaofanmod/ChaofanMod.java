@@ -11,6 +11,7 @@ import basemod.interfaces.*;
 import com.badlogic.gdx.graphics.Texture;
 import com.evacipated.cardcrawl.modthespire.lib.SpireInitializer;
 import com.megacrit.cardcrawl.cards.AbstractCard;
+import com.megacrit.cardcrawl.characters.AbstractPlayer;
 import com.megacrit.cardcrawl.core.CardCrawlGame;
 import com.megacrit.cardcrawl.daily.mods.AbstractDailyMod;
 import com.megacrit.cardcrawl.dungeons.AbstractDungeon;
@@ -21,6 +22,7 @@ import com.megacrit.cardcrawl.monsters.MonsterGroup;
 import com.megacrit.cardcrawl.relics.AbstractRelic;
 import io.chaofan.sts.CommonModUtils;
 import io.chaofan.sts.chaofanmod.cards.AhhMyEyes;
+import io.chaofan.sts.chaofanmod.cards.SearingBlowFor2048;
 import io.chaofan.sts.chaofanmod.events.Gremlin2048;
 import io.chaofan.sts.chaofanmod.mods.Lonely;
 import io.chaofan.sts.chaofanmod.monsters.SpiritFireMonster;
@@ -36,8 +38,6 @@ import io.chaofan.sts.chaofanmod.rewards.HealReward;
 import io.chaofan.sts.chaofanmod.rewards.RubyKeyReward;
 import io.chaofan.sts.chaofanmod.utils.ChaofanModEnums;
 import io.chaofan.sts.chaofanmod.variables.ShootCountVariable;
-import io.chaofan.sts.chaofanmod.vfx.RetroEffect;
-import io.chaofan.sts.enhancedsteamstatus.EnhancedSteamStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -80,9 +80,9 @@ public class ChaofanMod implements
     public static void initialize() {
         logger.info("Initializing ChaofanMod");
 
-        ChaofanMod bladeGunnerMod = new ChaofanMod();
-        BaseMod.subscribe(bladeGunnerMod);
-        EnhancedSteamStatus.initialize();
+        ChaofanMod chaofanMod = new ChaofanMod();
+        BaseMod.subscribe(chaofanMod);
+        // EnhancedSteamStatus.initialize();
     }
 
     @Override
@@ -160,7 +160,8 @@ public class ChaofanMod implements
     public void receiveStartGame() {
         clearPostProcessors();
 
-        for (AbstractRelic relic : AbstractDungeon.player.relics) {
+        AbstractPlayer player = AbstractDungeon.player;
+        for (AbstractRelic relic : player.relics) {
             if (relic.relicId.equals(OldPhone.ID)) {
                 registerPostProcessor(new OldPhone.OldPhonePostProcessor());
             }
@@ -170,6 +171,13 @@ public class ChaofanMod implements
         }
 
         ThirdPerspectiveViewPatches.setEnable(false);
+
+        for (AbstractCard card : player.masterDeck.group) {
+            if (card instanceof SearingBlowFor2048) {
+                SearingBlowFor2048 searingBlowFor2048 = (SearingBlowFor2048) card;
+                searingBlowFor2048.setUpgrades(card.misc);
+            }
+        }
     }
 
     @Override

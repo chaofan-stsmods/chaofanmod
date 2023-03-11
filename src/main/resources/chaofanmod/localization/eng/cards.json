@@ -19,5 +19,9 @@
     "EXTENDED_DESCRIPTION": [
       "Deal damage to ALL enemies equal to your mod count. NL (Deal !D! damage.)"
     ]
+  },
+  "chaofanmod:card.SearingBlowFor2048": {
+    "NAME": "Searing Blow",
+    "DESCRIPTION": "Deal !D! damage. NL Cannot be Upgraded."
   }
 }

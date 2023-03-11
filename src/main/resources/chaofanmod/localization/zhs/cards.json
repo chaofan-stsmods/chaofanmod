@@ -19,5 +19,9 @@
     "EXTENDED_DESCRIPTION": [
       "对所有敌人造成已启用Ｍｏｄ数的伤害。 NL （ !D! 点伤害 ）"
     ]
+  },
+  "chaofanmod:card.SearingBlowFor2048": {
+    "NAME": "灼热攻击",
+    "DESCRIPTION": "造成 !D! 点伤害。 NL 不能被 升级 。"
   }
 }
