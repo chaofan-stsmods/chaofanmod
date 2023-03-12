@@ -17,6 +17,7 @@ import com.megacrit.cardcrawl.helpers.ImageMaster;
 import com.megacrit.cardcrawl.helpers.ShaderHelper;
 import io.chaofan.sts.chaofanmod.ChaofanMod;
 import io.chaofan.sts.chaofanmod.utils.TextureLoader;
+import io.chaofan.sts.chaofanmod.vfx.OldPhoneEffectV2;
 
 import static io.chaofan.sts.chaofanmod.ChaofanMod.*;
 
@@ -37,12 +38,12 @@ public class OldPhone extends CustomRelic {
 
     public void onEquip() {
         ++AbstractDungeon.player.energy.energyMaster;
-        ChaofanMod.registerPostProcessor(new OldPhonePostProcessor());
+        ChaofanMod.registerPostProcessor(new OldPhoneEffectV2());
     }
 
     public void onUnequip() {
         --AbstractDungeon.player.energy.energyMaster;
-        ChaofanMod.removePostProcessor(OldPhonePostProcessor.class);
+        ChaofanMod.removePostProcessor(OldPhoneEffectV2.class);
     }
 
     public static class OldPhonePostProcessor implements ScreenPostProcessor {

@@ -38,6 +38,7 @@ import io.chaofan.sts.chaofanmod.rewards.HealReward;
 import io.chaofan.sts.chaofanmod.rewards.RubyKeyReward;
 import io.chaofan.sts.chaofanmod.utils.ChaofanModEnums;
 import io.chaofan.sts.chaofanmod.variables.ShootCountVariable;
+import io.chaofan.sts.chaofanmod.vfx.OldPhoneEffectV2;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -112,7 +113,7 @@ public class ChaofanMod implements
 
         BaseMod.addPower(HeavyHandPower.class, HeavyHandPower.POWER_ID);
 
-        // ScreenPostProcessorManager.addPostProcessor(new RetroEffect());
+        ScreenPostProcessorManager.addPostProcessor(new OldPhoneEffectV2());
     }
 
     private ModPanel initSettings() {
@@ -163,7 +164,7 @@ public class ChaofanMod implements
         AbstractPlayer player = AbstractDungeon.player;
         for (AbstractRelic relic : player.relics) {
             if (relic.relicId.equals(OldPhone.ID)) {
-                registerPostProcessor(new OldPhone.OldPhonePostProcessor());
+                registerPostProcessor(new OldPhoneEffectV2(false));
             }
             if (relic.relicId.equals(SpotLight.ID)) {
                 registerPostProcessor(new SpotLight.SpotLightPostProcessor());
