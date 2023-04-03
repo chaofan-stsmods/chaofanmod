@@ -112,8 +112,6 @@ public class ChaofanMod implements
         BaseMod.addEvent(Gremlin2048.ID, Gremlin2048.class);
 
         BaseMod.addPower(HeavyHandPower.class, HeavyHandPower.POWER_ID);
-
-        ScreenPostProcessorManager.addPostProcessor(new OldPhoneEffectV2());
     }
 
     private ModPanel initSettings() {
