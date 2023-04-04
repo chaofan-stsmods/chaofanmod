@@ -31,7 +31,7 @@ public class SearingBlowFor2048 extends CustomCard {
         this.name = getCardStrings(ID).NAME + "+" + upgrades;
         this.initializeTitle();
         if (baseDamage < 35) {
-            this.rarity = CardRarity.COMMON;
+            this.rarity = CardRarity.SPECIAL;
         } else if (baseDamage < 70) {
             this.rarity = CardRarity.UNCOMMON;
         } else {
