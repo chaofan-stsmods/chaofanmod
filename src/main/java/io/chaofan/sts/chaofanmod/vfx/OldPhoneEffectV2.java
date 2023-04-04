@@ -197,9 +197,18 @@ public class OldPhoneEffectV2 implements ScreenPostProcessor {
 
     static class MyShaderProvider extends DefaultShaderProvider {
         private final OldPhoneEffectV2 monitorRenderer;
+        private final ShaderProgram shaderProgram;
+        private MyShader shader;
 
         public MyShaderProvider(OldPhoneEffectV2 monitorRenderer) {
             this.monitorRenderer = monitorRenderer;
+
+            shaderProgram = new ShaderProgram(
+                    Gdx.files.internal(getShaderPath("screen-3d.vs")).readString(),
+                    Gdx.files.internal(getShaderPath("screen-3d.fs")).readString());
+            if (!shaderProgram.isCompiled()) {
+                throw new RuntimeException(shaderProgram.getLog());
+            }
         }
 
         @Override
@@ -209,15 +218,12 @@ public class OldPhoneEffectV2 implements ScreenPostProcessor {
                     return renderable.shader;
                 }
 
-                ShaderProgram shaderProgram = new ShaderProgram(
-                        Gdx.files.internal(getShaderPath("screen-3d.vs")).readString(),
-                        Gdx.files.internal(getShaderPath("screen-3d.fs")).readString());
-                if (!shaderProgram.isCompiled()) {
-                    throw new RuntimeException(shaderProgram.getLog());
+                if (shader == null) {
+                    shader = new MyShader(renderable, this.config, shaderProgram, monitorRenderer);
+                    shader.init();
                 }
 
-                renderable.shader = new MyShader(renderable, this.config, shaderProgram, monitorRenderer);
-                renderable.shader.init();
+                renderable.shader = shader;
                 return renderable.shader;
             }
 
