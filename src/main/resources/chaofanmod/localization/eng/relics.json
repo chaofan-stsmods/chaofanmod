@@ -30,5 +30,13 @@
     "DESCRIPTIONS": [
       "Gain [E] at the start of your turn. You can only see UI near your mouse."
     ]
+  },
+  "chaofanmod:relic.MarkOfChaos": {
+    "NAME": "Mark of Chaos",
+    "FLAVOR": "Hmm... It makes me confusing.",
+    "DESCRIPTIONS": [
+      "Gain [E] at the start of your turn. Events have one available option only.",
+      "[Locked by Mark of Chaos] "
+    ]
   }
 }

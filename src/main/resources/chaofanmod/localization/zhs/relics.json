@@ -30,5 +30,13 @@
     "DESCRIPTIONS": [
       "每回合开始获得 [E] 。 你只能看到鼠标附近的界面。"
     ]
+  },
+  "chaofanmod:relic.MarkOfChaos": {
+    "NAME": "混沌印记",
+    "FLAVOR": "嗯…… 它让我很混乱。",
+    "DESCRIPTIONS": [
+      "每回合开始获得 [E] 。 事件只有一个选项可选。",
+      "[锁定：混沌印记] "
+    ]
   }
 }
