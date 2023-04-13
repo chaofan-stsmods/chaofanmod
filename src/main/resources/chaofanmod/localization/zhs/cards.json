@@ -23,5 +23,9 @@
   "chaofanmod:card.SearingBlowFor2048": {
     "NAME": "灼热攻击",
     "DESCRIPTION": "造成 !D! 点伤害。 NL 不能被 升级 。"
+  },
+  "chaofanmod:card.ManualOfMerchantCard": {
+    "NAME": "支付",
+    "DESCRIPTION": "失去 !M! 金币。 NL 每回合开始获得 [E] 。"
   }
 }

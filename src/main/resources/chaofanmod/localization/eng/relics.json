@@ -38,5 +38,14 @@
       "Gain [E] at the start of your turn. Events have one available option only.",
       "[Locked by Mark of Chaos] "
     ]
+  },
+  "chaofanmod:relic.ManualOfMerchant": {
+    "NAME": "Manual of Merchant",
+    "FLAVOR": "Maybe I can sell something in the Spire, too.",
+    "DESCRIPTIONS": [
+      "If you pay #b%d #yGold at the start of combat, gain [E] at the start of your turn in this combat.",
+      "Pay or skip",
+      "I don't have %s #rGold!"
+    ]
   }
 }

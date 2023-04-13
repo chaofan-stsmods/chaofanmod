@@ -23,5 +23,9 @@
   "chaofanmod:card.SearingBlowFor2048": {
     "NAME": "Searing Blow",
     "DESCRIPTION": "Deal !D! damage. NL Cannot be Upgraded."
+  },
+  "chaofanmod:card.ManualOfMerchantCard": {
+    "NAME": "Pay",
+    "DESCRIPTION": "Lose !M! Gold. NL Gain [E] at the start of your turn."
   }
 }
