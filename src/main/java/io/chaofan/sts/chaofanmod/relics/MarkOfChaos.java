@@ -1,14 +1,9 @@
 package io.chaofan.sts.chaofanmod.relics;
 
 import basemod.abstracts.CustomRelic;
-import basemod.helpers.CardModifierManager;
 import com.badlogic.gdx.graphics.Texture;
-import com.megacrit.cardcrawl.cards.AbstractCard;
 import com.megacrit.cardcrawl.dungeons.AbstractDungeon;
-import io.chaofan.sts.chaofanmod.ChaofanMod;
-import io.chaofan.sts.chaofanmod.cards.modifiers.StrikeMod;
 import io.chaofan.sts.chaofanmod.utils.TextureLoader;
-import io.chaofan.sts.chaofanmod.vfx.OldPhoneEffectV2;
 
 import static io.chaofan.sts.chaofanmod.ChaofanMod.getImagePath;
 import static io.chaofan.sts.chaofanmod.ChaofanMod.makeId;

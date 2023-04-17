@@ -40,10 +40,6 @@ public class OldPhoneEffectV2 implements ScreenPostProcessor {
     private float currentX = 0;
     private float currentY = 0;
 
-    public OldPhoneEffectV2() {
-        this(true);
-    }
-
     public OldPhoneEffectV2(boolean waitForLoading) {
         create();
         this.waitForLoading = waitForLoading;

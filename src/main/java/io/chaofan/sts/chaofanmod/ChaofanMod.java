@@ -1,20 +1,23 @@
 package io.chaofan.sts.chaofanmod;
 
-import basemod.AutoAdd;
-import basemod.BaseMod;
-import basemod.ModPanel;
-import basemod.ReflectionHacks;
+import basemod.*;
 import basemod.abstracts.CustomRelic;
 import basemod.helpers.RelicType;
 import basemod.helpers.ScreenPostProcessorManager;
 import basemod.interfaces.*;
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
+import com.evacipated.cardcrawl.modthespire.lib.SpireConfig;
 import com.evacipated.cardcrawl.modthespire.lib.SpireInitializer;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import com.megacrit.cardcrawl.cards.AbstractCard;
 import com.megacrit.cardcrawl.characters.AbstractPlayer;
 import com.megacrit.cardcrawl.core.CardCrawlGame;
+import com.megacrit.cardcrawl.core.Settings;
 import com.megacrit.cardcrawl.daily.mods.AbstractDailyMod;
 import com.megacrit.cardcrawl.dungeons.AbstractDungeon;
+import com.megacrit.cardcrawl.helpers.FontHelper;
 import com.megacrit.cardcrawl.helpers.ImageMaster;
 import com.megacrit.cardcrawl.helpers.ModHelper;
 import com.megacrit.cardcrawl.localization.*;
@@ -38,11 +41,15 @@ import io.chaofan.sts.chaofanmod.rewards.HealReward;
 import io.chaofan.sts.chaofanmod.rewards.RubyKeyReward;
 import io.chaofan.sts.chaofanmod.utils.ChaofanModEnums;
 import io.chaofan.sts.chaofanmod.variables.ShootCountVariable;
-import io.chaofan.sts.chaofanmod.vfx.OldPhoneEffectV2;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.io.IOException;
+import java.lang.reflect.Type;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
+
+import static io.chaofan.sts.CommonModUtils.getLocalizationFilePath;
 
 @SpireInitializer
 public class ChaofanMod implements
@@ -58,6 +65,10 @@ public class ChaofanMod implements
     public static final String MOD_ID = "chaofanmod";
     public static final Logger logger = LogManager.getLogger(ChaofanMod.class.getName());
     public static Map<String, CommonModUtils.Keyword> keywords;
+    private static SpireConfig config;
+
+    public static final String USE_OLD_PHONE_V2 = "UseOldPhoneV2";
+    public static boolean useOldPhoneV2;
 
     public static String getImagePath(String file) {
         return MOD_ID + "/images/" + file;
@@ -115,7 +126,43 @@ public class ChaofanMod implements
     }
 
     private ModPanel initSettings() {
-        return new ModPanel();
+        if (config == null) {
+            config = tryCreateConfig();
+        }
+
+        if (config != null) {
+            useOldPhoneV2 = !config.has(USE_OLD_PHONE_V2) || config.getBool(USE_OLD_PHONE_V2);
+        }
+
+        ModPanel modPanel = new ModPanel();
+
+        Gson gson = new Gson();
+        String json = Gdx.files.internal(getLocalizationFilePath(MOD_ID, "config.json")).readString(String.valueOf(StandardCharsets.UTF_8));
+        Type configType = (new TypeToken<Map<String, String>>() {}).getType();
+        Map<String, String> configStrings = gson.fromJson(json, configType);
+
+        float yPos = 750f;
+
+        ModLabeledToggleButton useOldPhoneV2Button = new ModLabeledToggleButton(
+                configStrings.get(USE_OLD_PHONE_V2),
+                350.0f,
+                yPos,
+                Settings.CREAM_COLOR,
+                FontHelper.charDescFont,
+                useOldPhoneV2,
+                modPanel,
+                (label) -> {},
+                (button) -> {
+                    useOldPhoneV2 = button.enabled;
+                    if (config != null) {
+                        config.setBool(USE_OLD_PHONE_V2, useOldPhoneV2);
+                        trySaveConfig(config);
+                    }
+                });
+
+        modPanel.addUIElement(useOldPhoneV2Button);
+
+        return modPanel;
     }
 
     @Override
@@ -162,7 +209,7 @@ public class ChaofanMod implements
         AbstractPlayer player = AbstractDungeon.player;
         for (AbstractRelic relic : player.relics) {
             if (relic.relicId.equals(OldPhone.ID)) {
-                registerPostProcessor(new OldPhoneEffectV2(false));
+                registerPostProcessor(OldPhone.createEffect(false));
             }
             if (relic.relicId.equals(SpotLight.ID)) {
                 registerPostProcessor(new SpotLight.SpotLightPostProcessor());
@@ -207,5 +254,23 @@ public class ChaofanMod implements
             ScreenPostProcessorManager.removePostProcessor(postProcessor);
         }
         postProcessors.clear();
+    }
+
+    private static SpireConfig tryCreateConfig() {
+        String configFileName = MOD_ID + "config";
+        try {
+            return new SpireConfig(MOD_ID, configFileName);
+        } catch (IOException e) {
+            logger.warn(e);
+            return null;
+        }
+    }
+
+    private static void trySaveConfig(SpireConfig config) {
+        try {
+            config.save();
+        } catch (IOException e) {
+            logger.warn(e);
+        }
     }
 }

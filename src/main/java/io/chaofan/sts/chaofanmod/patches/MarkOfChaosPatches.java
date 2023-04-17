@@ -10,7 +10,6 @@ import com.megacrit.cardcrawl.events.RoomEventDialog;
 import com.megacrit.cardcrawl.relics.AbstractRelic;
 import com.megacrit.cardcrawl.rooms.EventRoom;
 import com.megacrit.cardcrawl.ui.buttons.LargeDialogOptionButton;
-import io.chaofan.sts.chaofanmod.ChaofanMod;
 import io.chaofan.sts.chaofanmod.relics.MarkOfChaos;
 import javassist.CannotCompileException;
 import javassist.expr.ExprEditor;
@@ -29,7 +28,6 @@ public class MarkOfChaosPatches {
 
     public static boolean justUpdatedEventDialog = false;
 
-
     @SpirePatch(clz = EventRoom.class, method = "update")
     public static class EventRoomUpdatePatch {
         @SpirePostfixPatch
@@ -38,6 +36,22 @@ public class MarkOfChaosPatches {
                 justUpdatedEventDialog = false;
                 MarkOfChaosPatches.onEventButtonChanged(instance.event);
             }
+        }
+    }
+
+    @SpirePatch(clz = AbstractEvent.class, method = "update")
+    @SpirePatch(clz = AbstractImageEvent.class, method = "update")
+    public static class AfterClickButtonPatch {
+        @SpireInstrumentPatch
+        public static ExprEditor Instrument() {
+            return new ExprEditor() {
+                @Override
+                public void edit(MethodCall m) throws CannotCompileException {
+                    if (m.getMethodName().equals("buttonEffect")) {
+                        m.replace(String.format("$_ = $proceed($$); %s.justUpdatedEventDialog = true;", MarkOfChaosPatches.class.getName()));
+                    }
+                }
+            };
         }
     }
 

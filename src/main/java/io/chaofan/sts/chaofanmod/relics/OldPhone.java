@@ -38,12 +38,28 @@ public class OldPhone extends CustomRelic {
 
     public void onEquip() {
         ++AbstractDungeon.player.energy.energyMaster;
-        ChaofanMod.registerPostProcessor(new OldPhoneEffectV2());
+        ChaofanMod.registerPostProcessor(createEffect(true));
     }
 
     public void onUnequip() {
         --AbstractDungeon.player.energy.energyMaster;
-        ChaofanMod.removePostProcessor(OldPhoneEffectV2.class);
+        ChaofanMod.removePostProcessor(getEffectClass());
+    }
+
+    public static ScreenPostProcessor createEffect(boolean waitForLoading) {
+        if (useOldPhoneV2) {
+            return new OldPhoneEffectV2(waitForLoading);
+        } else {
+            return new OldPhonePostProcessor();
+        }
+    }
+
+    public static Class<? extends ScreenPostProcessor> getEffectClass() {
+        if (useOldPhoneV2) {
+            return OldPhoneEffectV2.class;
+        } else {
+            return OldPhonePostProcessor.class;
+        }
     }
 
     public static class OldPhonePostProcessor implements ScreenPostProcessor {
