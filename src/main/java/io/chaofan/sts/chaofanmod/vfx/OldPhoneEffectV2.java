@@ -40,6 +40,11 @@ public class OldPhoneEffectV2 implements ScreenPostProcessor {
     private float currentX = 0;
     private float currentY = 0;
 
+    private float positionX = 0;
+    private float positionY = 0;
+    private float lookAtX = 0;
+    private float lookAtY = 0;
+
     public OldPhoneEffectV2(boolean waitForLoading) {
         create();
         this.waitForLoading = waitForLoading;
@@ -79,16 +84,30 @@ public class OldPhoneEffectV2 implements ScreenPostProcessor {
         float x = (float)InputHelper.mX / Gdx.graphics.getWidth() * 2 - 1;
         float y = (float)InputHelper.mY / Gdx.graphics.getHeight() * 2 - 1;
 
+        float positionXTarget = 0.7f - 0.1f * x;
+        float positionYTarget = 5.7f - 0.07f * y;
+        float lookAtXTarget = 0.3f + 0.1f * x;
+        float lookAtYTarget = 5.0f + 0.07f * y;
+
         currentX = lerp(currentX, x);
         currentY = lerp(currentY, y);
+        positionX = lerp(positionX, positionXTarget);
+        positionY = lerp(positionY, positionYTarget);
+        lookAtX = lerp(lookAtX, lookAtXTarget);
+        lookAtY = lerp(lookAtY, lookAtYTarget);
 
-        cam.position.set(0.7f - 0.1f * currentX, 5.7f - 0.07f * currentY, 3.3f);
-        cam.lookAt(0.3f + 0.1f * currentX,5.0f + 0.07f * currentY, 0);
-        cam.update();
-
-        if (ep.update()) {
+        if (ep.update() && waitForLoading) {
             waitForLoading = false;
+
+            currentX = 2;
+            currentY = 5;
+            positionX = lookAtX = 0;
+            positionY = lookAtY = 5;
         }
+
+        cam.position.set(positionX, positionY, 3.3f);
+        cam.lookAt(lookAtX, lookAtY, 0);
+        cam.update();
 
         if (waitForLoading) {
             sb.begin();
