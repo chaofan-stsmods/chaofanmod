@@ -24,8 +24,7 @@ import com.megacrit.cardcrawl.localization.*;
 import com.megacrit.cardcrawl.monsters.MonsterGroup;
 import com.megacrit.cardcrawl.relics.AbstractRelic;
 import io.chaofan.sts.CommonModUtils;
-import io.chaofan.sts.chaofanmod.cards.AhhMyEyes;
-import io.chaofan.sts.chaofanmod.cards.SearingBlowFor2048;
+import io.chaofan.sts.chaofanmod.cards.*;
 import io.chaofan.sts.chaofanmod.events.Gremlin2048;
 import io.chaofan.sts.chaofanmod.mods.Lonely;
 import io.chaofan.sts.chaofanmod.monsters.SpiritFireMonster;
@@ -34,6 +33,7 @@ import io.chaofan.sts.chaofanmod.monsters.SpiritFireMonsterAct3;
 import io.chaofan.sts.chaofanmod.patches.ThirdPerspectiveViewPatches;
 import io.chaofan.sts.chaofanmod.powers.AddFuelPower;
 import io.chaofan.sts.chaofanmod.powers.HeavyHandPower;
+import io.chaofan.sts.chaofanmod.relics.ManholeCover;
 import io.chaofan.sts.chaofanmod.relics.OldPhone;
 import io.chaofan.sts.chaofanmod.relics.SpotLight;
 import io.chaofan.sts.chaofanmod.relics.Stool;
@@ -167,16 +167,23 @@ public class ChaofanMod implements
 
     @Override
     public void receiveEditCards() {
-        BaseMod.addDynamicVariable(new ShootCountVariable());
+        Set<String> excludeCards = new HashSet<>();
+        excludeCards.add(AhhMyEyes.class.getName());
+        excludeCards.add(SampleEffectCard.class.getName());
+        excludeCards.add(ProgressCard.class.getName());
         new AutoAdd(MOD_ID)
-                .packageFilter(AhhMyEyes.class)
+                .packageFilter(AlphaBlue.class)
+                .filter((classInfo, classFinder) -> !excludeCards.contains(classInfo.getClassName()))
                 .cards();
     }
 
     @Override
     public void receiveEditRelics() {
+        Set<String> excludeRelics = new HashSet<>();
+        excludeRelics.add(ManholeCover.class.getName());
         new AutoAdd(MOD_ID)
                 .packageFilter(Stool.class)
+                .filter((classInfo, classFinder) -> !excludeRelics.contains(classInfo.getClassName()))
                 .any(CustomRelic.class, (info, relic) -> BaseMod.addRelic(relic, RelicType.SHARED));
     }
 

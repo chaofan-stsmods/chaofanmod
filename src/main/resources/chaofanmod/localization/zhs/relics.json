@@ -47,5 +47,19 @@
       "支付或者跳过",
       "我没有 %s #r金币 ！"
     ]
+  },
+  "chaofanmod:relic.ManholeCover": {
+    "NAME": "井盖",
+    "FLAVOR": "谁他妈偷了它？",
+    "DESCRIPTIONS": [
+      "每回合开始获得 [E] 。 你每打出一张牌，所有敌人获得 #b1 点 #y格挡 。"
+    ]
+  },
+  "chaofanmod:relic.TauntMask": {
+    "NAME": "嘲讽面具",
+    "FLAVOR": "谁想来战？",
+    "DESCRIPTIONS": [
+      "每回合开始获得 [E] 。 第一回合敌人会尽可能使用伤害最高的攻击意图。"
+    ]
   }
 }

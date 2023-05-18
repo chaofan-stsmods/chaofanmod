@@ -47,5 +47,19 @@
       "Pay or skip",
       "I don't have %s #rGold!"
     ]
+  },
+  "chaofanmod:relic.ManholeCover": {
+    "NAME": "Manhole Cover",
+    "FLAVOR": "Who the hell stole it?",
+    "DESCRIPTIONS": [
+      "Gain [E] at the start of your turn. Whenever you play a card, all enemies gain #y1 #yBlock."
+    ]
+  },
+  "chaofanmod:relic.TauntMask": {
+    "NAME": "Taunt Mask",
+    "FLAVOR": "Who wanna fight?",
+    "DESCRIPTIONS": [
+      "Gain [E] at the start of your turn. Enemies start combat with available attack intent with highest damage."
+    ]
   }
 }
