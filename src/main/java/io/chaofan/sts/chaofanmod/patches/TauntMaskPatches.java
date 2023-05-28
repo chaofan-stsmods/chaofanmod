@@ -3,6 +3,7 @@ package io.chaofan.sts.chaofanmod.patches;
 import com.evacipated.cardcrawl.modthespire.Loader;
 import com.evacipated.cardcrawl.modthespire.lib.SpirePatch;
 import com.evacipated.cardcrawl.modthespire.lib.SpireRawPatch;
+import com.google.gson.Gson;
 import com.megacrit.cardcrawl.actions.GameActionManager;
 import com.megacrit.cardcrawl.core.CardCrawlGame;
 import com.megacrit.cardcrawl.dungeons.AbstractDungeon;
@@ -28,11 +29,19 @@ public class TauntMaskPatches {
     private static final String AbstractDungeonClassName = AbstractDungeon.class.getName();
     private static final String TauntMaskPatchesClassName = TauntMaskPatches.class.getName();
 
-    private static final List<Boolean> canAccesses = new ArrayList<>();
+    private static final Gson gson = new Gson();
+    private static CodeNodeBundle bundle;
+    private static final List<Boolean> predictableConditionValues = new ArrayList<>();
     private static final List<Integer> damages = new ArrayList<>();
 
+    private static final boolean enableDebug = false;
+
     @SuppressWarnings("unused")
-    public static boolean initSetMove(AbstractMonster monster) {
+    public static boolean initSetMove(AbstractMonster monster, String bundleString) {
+        damages.clear();
+        predictableConditionValues.clear();
+        bundle = null;
+
         if (AbstractDungeon.player == null || !AbstractDungeon.player.hasRelic(TauntMask.ID)) {
             return false;
         }
@@ -42,17 +51,20 @@ public class TauntMaskPatches {
             return false;
         }
 
-        debug("initSetMove");
+        debug("initSetMove " + monster.getClass().getName());
+
+        bundle = gson.fromJson(bundleString, CodeNodeBundle.class);
         damages.clear();
-        canAccesses.clear();
+        predictableConditionValues.clear();
         return true;
     }
 
     @SuppressWarnings("unused")
-    public static void addSetMoveItem(boolean canAccess, AbstractMonster monster, int baseDamage, int multiplier, boolean isMultiDamage) {
+    public static void addSetMoveItem(AbstractMonster monster, int baseDamage, int multiplier, boolean isMultiDamage) {
         // Special case that can't be handled by code analysis.
-        if (monster.getClass().getName().equals("com.megacrit.cardcrawl.monsters.city.Centurion") && damages.size() != 1) {
-            canAccess = canAccess && AbstractDungeon.getMonsters().monsters.stream().filter(m -> !m.isDying && !m.isEscaping).count() <= 1;
+        if (monster.getClass().getName().equals("com.megacrit.cardcrawl.monsters.city.Centurion") && multiplier > 1 &&
+                AbstractDungeon.getMonsters().monsters.stream().filter(m -> !m.isDying && !m.isEscaping).count() > 1) {
+            baseDamage = 0;
         }
 
         AbstractPower power = monster.getPower(StrengthPower.POWER_ID);
@@ -61,26 +73,30 @@ public class TauntMaskPatches {
             damage += power.amount;
         }
 
-        debug("addSetMoveItem " + baseDamage + " " + multiplier + " " + (damage * multiplier) + " " + canAccess);
+        debug("addSetMoveItem " + baseDamage + " " + multiplier + " " + (damage * multiplier));
         damages.add(damage * multiplier);
-        canAccesses.add(canAccess);
     }
 
     @SuppressWarnings("unused")
-    public static void addSetMoveItem(boolean canAccess, AbstractMonster monster, int baseDamage) {
+    public static void addSetMoveItem(AbstractMonster monster, int baseDamage) {
         AbstractPower power = monster.getPower(StrengthPower.POWER_ID);
         int damage = baseDamage;
         if (power != null) {
             damage += power.amount;
         }
 
-        debug("addSetMoveItem " + baseDamage + " " + damage + " " + canAccess);
+        debug("addSetMoveItem " + baseDamage + " " + damage);
         damages.add(baseDamage);
-        canAccesses.add(canAccess);
     }
 
     @SuppressWarnings("unused")
-    public static boolean modifyRandomResult(boolean originalResult, int[] trueDamages /* IFEQ next */, int[] falseDamages /* IFEQ branch */) {
+    public static void addPredictableConditionValue(boolean value, AbstractMonster monster) {
+        debug("addPredictableConditionValue " + value);
+        predictableConditionValues.add(value);
+    }
+
+    @SuppressWarnings("unused")
+    public static boolean /* true == next, false == branch */ modifyRandomResult(boolean originalResult, int randomConditionId) {
         if (AbstractDungeon.player == null || !AbstractDungeon.player.hasRelic(TauntMask.ID)) {
             return originalResult;
         }
@@ -90,8 +106,16 @@ public class TauntMaskPatches {
             return originalResult;
         }
 
-        int maxTrueDamage = Arrays.stream(trueDamages).filter(canAccesses::get).map(damages::get).max().orElse(0);
-        int maxFalseDamage = Arrays.stream(falseDamages).filter(canAccesses::get).map(damages::get).max().orElse(0);
+        if (bundle == null) {
+            return originalResult;
+        }
+
+        int randomConditionPos = bundle.r.get(randomConditionId);
+        CodeNode node = bundle.n.floorEntry(randomConditionPos).getValue();
+        Map<CodeNode, Integer> maxDamages = new HashMap<>();
+
+        int maxTrueDamage = findMaxDamage(bundle.n, node.n, maxDamages);
+        int maxFalseDamage = node.b != null && node.b.size() > 0 ? findMaxDamage(bundle.n, node.b.get(0), maxDamages) : 0;
         if (maxTrueDamage > maxFalseDamage) {
             return true;
         } else if (maxTrueDamage < maxFalseDamage) {
@@ -101,6 +125,48 @@ public class TauntMaskPatches {
         }
     }
 
+    private static int findMaxDamage(TreeMap<Integer, CodeNode> codes, int nodePos, Map<CodeNode, Integer> maxDamages) {
+        if (nodePos == -1) {
+            return -1;
+        }
+
+        Map.Entry<Integer, CodeNode> nodeEntry = codes.floorEntry(nodePos);
+        if (nodeEntry == null) {
+            return -1;
+        }
+
+        CodeNode node = nodeEntry.getValue();
+        Integer savedDamage = maxDamages.get(node);
+        if (savedDamage != null) {
+            return savedDamage;
+        }
+
+        // Init value to avoid infinite loop
+        maxDamages.put(node, -1);
+
+        List<Integer> possibleDamages = new ArrayList<>();
+        if (!node.r && node.c != -1) {
+            possibleDamages.add(predictableConditionValues.get(node.c) ?
+                    findMaxDamage(codes, node.n, maxDamages) :
+                    (node.b != null && node.b.size() > 0 ? findMaxDamage(codes, node.b.get(0), maxDamages) : 0));
+        } else {
+            possibleDamages.add(findMaxDamage(codes, node.n, maxDamages));
+            if (node.b != null) {
+                for (int branch : node.b) {
+                    possibleDamages.add(findMaxDamage(codes, branch, maxDamages));
+                }
+            }
+        }
+
+        if (node.sm != -1 && possibleDamages.stream().allMatch(d -> d == -1)) {
+            possibleDamages.add(damages.get(node.sm));
+        }
+
+        int maxDamage = possibleDamages.stream().max(Comparator.comparingInt(d -> d)).orElse(-1);
+        maxDamages.put(node, maxDamage);
+        return maxDamage;
+    }
+
     @SpirePatch(clz = CardCrawlGame.class, method = "render")
     public static class MonsterIntentPatch {
         @SpireRawPatch
@@ -108,11 +174,15 @@ public class TauntMaskPatches {
             ClassPool pool = method.getDeclaringClass().getClassPool();
             List<CtClass> monsters = listAllMonsterClasses(pool);
 
+            System.out.println();
             for (CtClass monster : monsters) {
                 try {
-                    patchGetMove(monster, null); // "Champ");
+                    patchGetMove(monster, null);
                 } catch (Exception ex) {
-                    debug("TauntMaskPatches.MonsterIntentPatch.Raw: Failed to patch monster: " + monster.getName() + ". " + ex);
+                    if (!enableDebug) {
+                        System.out.println(" [Fail]");
+                    }
+                    System.out.println("TauntMaskPatches.MonsterIntentPatch.Raw: Failed to patch monster: " + monster.getName() + ". " + ex);
                 }
             }
 
@@ -178,7 +248,10 @@ public class TauntMaskPatches {
             return;
         }
 
-        debug("TauntMaskPatches.patchGetMove: processing " + monster.getName());
+        System.out.print("TauntMaskPatches.patchGetMove: processing " + monster.getName());
+        if (enableDebug) {
+            System.out.println();
+        }
 
         CtMethod getMove = monster.getDeclaredMethod("getMove");
 
@@ -201,32 +274,43 @@ public class TauntMaskPatches {
 
         List<Integer> randomConditions = findRandomConditions(byteCodes, byteCodeIndices, ca.iterator(), cp);
         if (randomConditions.isEmpty()) {
+            if (!enableDebug) {
+                System.out.println(" [Skip]");
+            }
             return;
         }
+
+        randomConditions.sort(Comparator.comparingInt(a -> a));
 
         List<AttackIntentInfo> attackIntents = findAllAttackIndents(byteCodes, byteCodeIndices, ca.iterator(), cp);
         List<Integer> predictableConditions = findPredictableConditions(byteCodes, byteCodeIndices, ca.iterator(), cp);
 
         TreeMap<Integer, CodePiece> codeGraph = splitCodeStructure(byteCodes, byteCodeIndices, ca.iterator());
-        TreeMap<CodePiece, CodePieceExtension> codeExtensions = fillPossibleSetMoves(codeGraph, attackIntents, randomConditions, predictableConditions);
+        TreeMap<CodePiece, CodePieceExtension> codeExtensions = fillCodePieceExtension(codeGraph, attackIntents, randomConditions, predictableConditions);
 
-        populateAttackIntentOtherConditions(attackIntents, byteCodes, byteCodeIndices, codeGraph, codeExtensions);
+        CodeNodeBundle codeNodeBundle = makeCodeNodes(randomConditions, codeGraph, codeExtensions);
 
         List<Integer> sameFrames = new ArrayList<>();
         List<Integer> sameLocals = new ArrayList<>();
-        Bytecode attackInitCode = generateAttackIntentInitialize(attackIntents, ca.iterator(), cp, sameFrames, sameLocals);
 
         int[] offset = { 0 };
-        randomConditions.sort(Comparator.comparingInt(a -> a));
+        Bytecode attackInitCode = generateAttackIntentInitialize(attackIntents, ca.iterator(), cp, offset);
+        Bytecode predictableConditionInitCode = generatePredictableConditionInitialize(predictableConditions, byteCodes, byteCodeIndices, ca.iterator(), cp, sameFrames, sameLocals, offset);
+
+        offset[0] = 0;
         for (int randomCondition : randomConditions) {
             if (updateConditionToBoolean(ca.iterator(), smt, randomCondition, cp, offset)) {
                 insertModifyRandomResult(randomCondition, codeGraph, codeExtensions, ca.iterator(), cp, offset);
             }
         }
 
-        insertAttackInitCode(attackInitCode, ca.iterator(), smt, sameFrames, sameLocals);
+        insertInitCodes(codeNodeBundle, attackInitCode, predictableConditionInitCode, ca.iterator(), smt, sameFrames, sameLocals);
         if (ca.getMaxStack() < 6) {
             ca.setMaxStack(6);
+        }
+
+        if (!enableDebug) {
+            System.out.println(" [Done]");
         }
 
         debug("TauntMaskPatches.patchGetMove: done processing " + monster.getName() +
@@ -234,23 +318,33 @@ public class TauntMaskPatches {
 
         if (showDecompile) {
             smt.println(System.out);
-            //printCode(ca);
-            System.exit(0);
+            printCode(ca);
         }
     }
 
     private static void printCode(CodeAttribute ca) throws BadBytecode {
         int lastIndex = 0;
+        int lastOp = -1;
         CodeIterator ci2 = ca.iterator();
+        ConstPool cp = ca.getConstPool();
         while (ci2.hasNext()) {
             int index = ci2.next();
             int op = ci2.byteAt(index);
-            for (int i = lastIndex; i < index; i++) {
-                System.out.printf(" %02X", ci2.byteAt(i));
+            if (lastOp == Opcode.INVOKESTATIC || lastOp == Opcode.INVOKEVIRTUAL || lastOp == Opcode.INVOKESPECIAL || lastOp == Opcode.INVOKEINTERFACE) {
+                int argument = ci2.u16bitAt(lastIndex);
+                System.out.printf(" %s.%s %s", cp.getMethodrefClassName(argument), cp.getMethodrefName(argument), cp.getMethodrefType(argument));
+            } else if (lastOp == Opcode.GETSTATIC || lastOp == Opcode.GETFIELD) {
+                int argument = ci2.u16bitAt(lastIndex);
+                System.out.printf(" %s.%s", cp.getFieldrefClassName(argument), cp.getFieldrefName(argument));
+            } else {
+                for (int i = lastIndex; i < index; i++) {
+                    System.out.printf(" %02X", ci2.byteAt(i));
+                }
             }
             System.out.println();
             System.out.printf("%04X: %20s", index, Mnemonic.OPCODE[op]);
             lastIndex = index + 1;
+            lastOp = op;
         }
         System.out.println();
     }
@@ -357,6 +451,8 @@ public class TauntMaskPatches {
         results.addAll(findLastMoveConditions(byteCodes, byteCodeIndices, iterator, constPool));
         results.addAll(findSingleFieldConditions(byteCodes, byteCodeIndices, iterator, constPool));
         results.addAll(findAscensionLevelConditions(byteCodes, byteCodeIndices, iterator, constPool));
+        results.addAll(findHasPowerConditions(byteCodes, byteCodeIndices, iterator, constPool));
+        results.sort(Comparator.comparingInt(a -> a));
         return results;
     }
 
@@ -385,7 +481,7 @@ public class TauntMaskPatches {
         List<Integer> result = new ArrayList<>();
         int size = byteCodes.size();
         for (int i = 0; i < size; i++) {
-            if (byteCodes.get(i) == Opcode.GETFIELD) {
+            if (byteCodes.get(i) == Opcode.GETFIELD && i > 0 && byteCodes.get(i - 1) == Opcode.ALOAD_0) {
                 int index = byteCodeIndices.get(i);
                 int argument = iterator.s16bitAt(index + 1);
                 String fieldType = constPool.getFieldrefType(argument);
@@ -437,6 +533,33 @@ public class TauntMaskPatches {
         }
 
         debug("TauntMaskPatches.findAscensionLevelConditions: result:" + result.stream().map(i -> String.format("%X", i)).collect(Collectors.toList()));
+        return result;
+    }
+
+    private static Collection<Integer> findHasPowerConditions(List<Integer> byteCodes, List<Integer> byteCodeIndices, CodeIterator iterator, ConstPool constPool) {
+        List<Integer> result = new ArrayList<>();
+        int size = byteCodes.size();
+        for (int i = 0; i < size; i++) {
+            // Load first method argument
+            if (byteCodes.get(i) == Opcode.INVOKEVIRTUAL) {
+                int index = byteCodeIndices.get(i);
+                int argument = iterator.s16bitAt(index + 1);
+                String methodName = constPool.getMethodrefName(argument);
+                if (methodName.equals("hasPower") && i > 2 &&
+                    byteCodes.get(i - 1) == Opcode.LDC &&
+                    byteCodes.get(i - 2) == Opcode.GETSTATIC) {
+                    int argument2 = iterator.s16bitAt(byteCodeIndices.get(i - 2) + 1);
+                    if (constPool.getFieldrefName(argument2).equals("player") && constPool.getFieldrefClassName(argument2).equals(AbstractDungeonClassName)) {
+                        int nextOp = byteCodes.get(i + 1);
+                        if (nextOp == Opcode.IFNE || nextOp == Opcode.IFEQ) {
+                            result.add(byteCodeIndices.get(i + 1));
+                        }
+                    }
+                }
+            }
+        }
+
+        debug("TauntMaskPatches.findHasPowerConditions: result:" + result.stream().map(i -> String.format("%X", i)).collect(Collectors.toList()));
         return result;
     }
 
@@ -566,20 +689,9 @@ public class TauntMaskPatches {
         return result;
     }
 
-    private static Bytecode generateAttackIntentInitialize(List<AttackIntentInfo> attackIntents, CodeIterator iterator, ConstPool constPool, List<Integer> sameFrames, List<Integer> sameLocals) {
+    private static Bytecode generateAttackIntentInitialize(List<AttackIntentInfo> attackIntents, CodeIterator iterator, ConstPool constPool, int[] offset) {
         Bytecode bytecode = new Bytecode(constPool);
-        if (attackIntents.size() == 0) {
-            return bytecode;
-        }
-
-        bytecode.addAload(0);
-        bytecode.addInvokestatic(TauntMaskPatchesClassName, "initSetMove", "(L" + AbstractMonsterClassName.replace('.', '/') + ";)Z");
-        int afterInitSetMove = bytecode.length();
-        bytecode.addOpcode(Opcode.IFEQ);
-        bytecode.add(0, 0); // Update later
-
         for (AttackIntentInfo attackIntent : attackIntents) {
-            generateAttackIntentPredictableCondition(attackIntent.predictableConditions, bytecode, iterator, sameFrames, sameLocals);
             bytecode.addAload(0);
             int startIndex = attackIntent.getIntentFieldPos + 3;
             int endIndex = attackIntent.setMovePos;
@@ -589,62 +701,87 @@ public class TauntMaskPatches {
             int lastSemicolon = attackIntent.type.lastIndexOf(';');
             bytecode.addInvokestatic(TauntMaskPatchesClassName,
                     "addSetMoveItem",
-                    "(ZL" + AbstractMonsterClassName.replace('.', '/') + attackIntent.type.substring(lastSemicolon));
+                    "(L" + AbstractMonsterClassName.replace('.', '/') + attackIntent.type.substring(lastSemicolon));
         }
 
-        int afterSetMoveItems = bytecode.length();
-        bytecode.write16bit(afterInitSetMove + 1, afterSetMoveItems - afterInitSetMove);
-
+        offset[0] += bytecode.length();
         return bytecode;
     }
 
-    private static void generateAttackIntentPredictableCondition(List<AttackIntentInfoConditions> predictableConditions, Bytecode bytecode, CodeIterator iterator, List<Integer> sameFrames, List<Integer> sameLocals) {
-        List<Integer> successBranchLocations = new ArrayList<>();
-        for (AttackIntentInfoConditions predictableCondition : predictableConditions) {
-            int size = predictableCondition.starts.size();
-            List<Integer> failBranchLocations = new ArrayList<>();
-            for (int i = 0; i < size; i++) {
-                int start = predictableCondition.starts.get(i);
-                int end = predictableCondition.ends.get(i);
-                boolean isBranch = predictableCondition.isBranch.get(i);
-                for (int j = start; j < end; j++) {
-                    bytecode.add(iterator.byteAt(j));
+    private static Bytecode generatePredictableConditionInitialize(List<Integer> predictableConditions, List<Integer> byteCodes, List<Integer> byteCodeIndices, CodeIterator iterator, ConstPool constPool, List<Integer> sameFrames, List<Integer> sameLocals, int[] offset) {
+        Bytecode bytecode = new Bytecode(constPool);
+        for (int predictableCondition : predictableConditions) {
+            int index = byteCodeIndices.indexOf(predictableCondition);
+            int start;
+            if (byteCodes.get(index - 1) == Opcode.GETFIELD) {
+                start = byteCodeIndices.get(index - 2);
+            } else if (byteCodes.get(index - 1) == Opcode.INVOKEVIRTUAL) {
+                int index2 = previousMatchIntConstOrField(byteCodes, index - 1);
+                if (index > 3 && byteCodes.get(index - 2) == Opcode.LDC && byteCodes.get(index - 3) == Opcode.GETSTATIC) {
+                    start = byteCodeIndices.get(index - 3);
+                } else if (index2 - 1 >= 0 && byteCodes.get(index2 - 1) == Opcode.ALOAD_0) {
+                    start = byteCodeIndices.get(index2 - 1);
+                } else {
+                    throw new RuntimeException("Unknown INVOKEVIRTUAL");
                 }
-                int branchOp = iterator.byteAt(end);
-                failBranchLocations.add(bytecode.length());
-                bytecode.add(isBranch ? revertBranchOp(branchOp) : branchOp);
-                bytecode.add(0, 0); // Update later
+            } else if (byteCodes.get(index - 1) == Opcode.GETSTATIC ||
+                    (index - 2 >= 0 && byteCodes.get(index - 2) == Opcode.GETSTATIC)) {
+                start = byteCodeIndices.get(index - 2);
+            } else {
+                throw new RuntimeException("Unknown");
             }
-            successBranchLocations.add(bytecode.length());
+
+            for (int i = start; i <= predictableCondition; i++) {
+                bytecode.add(iterator.byteAt(i));
+            }
+            bytecode.add(0, 7);
+            bytecode.addOpcode(Opcode.ICONST_1);
             bytecode.addOpcode(Opcode.GOTO);
-            bytecode.add(0, 0);
-            int currentPos = bytecode.length();
-            sameFrames.add(currentPos);
-            for (int failedBranchLocation : failBranchLocations) {
-                bytecode.write16bit(failedBranchLocation + 1, currentPos - failedBranchLocation);
-            }
+            bytecode.add(0, 4);
+            sameFrames.add(offset[0] + bytecode.length());
+            bytecode.addOpcode(Opcode.ICONST_0);
+            sameLocals.add(offset[0] + bytecode.length());
+            bytecode.addAload(0);
+            bytecode.addInvokestatic(TauntMaskPatchesClassName,
+                    "addPredictableConditionValue",
+                    "(ZL" + AbstractMonsterClassName.replace('.', '/') + ";)V");
         }
-        bytecode.addIconst(0);
-        bytecode.addOpcode(Opcode.GOTO);
-        bytecode.add(0, 4);
-        int currentPos = bytecode.length();
-        sameFrames.add(currentPos);
-        for (int successBranchLocation : successBranchLocations) {
-            bytecode.write16bit(successBranchLocation + 1, currentPos - successBranchLocation);
-        }
-        bytecode.addIconst(1);
-        sameLocals.add(bytecode.length());
+
+        offset[0] += bytecode.length();
+        return bytecode;
     }
 
-    private static void insertAttackInitCode(Bytecode attackInitCode, CodeIterator iterator, StackMapTable smt, List<Integer> sameFrames, List<Integer> sameLocals) throws BadBytecode {
-        iterator.insert(0, attackInitCode.get());
+    private static void insertInitCodes(CodeNodeBundle codeNodeBundle, Bytecode attackInitCode, Bytecode predictableConditionInitCode, CodeIterator iterator, StackMapTable smt, List<Integer> sameFrames, List<Integer> sameLocals) throws BadBytecode {
+        Bytecode initSetMove = new Bytecode(iterator.get().getConstPool());
+
+        initSetMove.addAload(0);
+        String bundleString = gson.toJson(codeNodeBundle);
+        debug("insertInitCodes: bundleString.length = " + bundleString.length());
+        initSetMove.addLdc(bundleString);
+        initSetMove.addInvokestatic(TauntMaskPatchesClassName,
+                "initSetMove",
+                "(L" + AbstractMonsterClassName.replace('.', '/') + ";Ljava/lang/String;)Z");
+        initSetMove.addOpcode(Opcode.IFEQ);
+        int firstBranch = initSetMove.length();
+        initSetMove.add(0, 0); // Update later
+        iterator.insert(0, initSetMove.get());
+
+        int offset = initSetMove.length();
+        int length = offset;
+        iterator.insert(length, attackInitCode.get());
+        length += attackInitCode.length();
+        iterator.insert(length, predictableConditionInitCode.get());
+        length += predictableConditionInitCode.length();
+
+        iterator.write16bit(length - offset + 3, firstBranch); // Update first branch
+
         StackMapTableUpdater smtUpdater = new StackMapTableUpdater(smt.get());
-        smtUpdater.addFrame(attackInitCode.length(), StackMapTable.Writer::sameFrame);
+        smtUpdater.addFrame(length, StackMapTable.Writer::sameFrame);
         for (int sameFrame : sameFrames) {
-            smtUpdater.addFrame(sameFrame, StackMapTable.Writer::sameFrame);
+            smtUpdater.addFrame(offset + sameFrame, StackMapTable.Writer::sameFrame);
         }
         for (int sameLocal : sameLocals) {
-            smtUpdater.addFrame(sameLocal, (w, od) -> w.sameLocals(od, StackMapTable.INTEGER, 0));
+            smtUpdater.addFrame(offset + sameLocal, (w, od) -> w.sameLocals(od, StackMapTable.INTEGER, 0));
         }
         smt.set(smtUpdater.doIt());
     }
@@ -747,25 +884,27 @@ public class TauntMaskPatches {
         return codes;
     }
 
-    private static TreeMap<CodePiece, CodePieceExtension> fillPossibleSetMoves(TreeMap<Integer, CodePiece> codes, List<AttackIntentInfo> attackIntents, List<Integer> randomConditions, List<Integer> predictableConditions) {
+    private static TreeMap<CodePiece, CodePieceExtension> fillCodePieceExtension(TreeMap<Integer, CodePiece> codes, List<AttackIntentInfo> attackIntents, List<Integer> randomConditions, List<Integer> predictableConditions) {
         TreeMap<CodePiece, CodePieceExtension> result = new TreeMap<>(Comparator.comparingInt(a -> a.start));
         for (Map.Entry<Integer, CodePiece> entry : codes.entrySet()) {
             result.put(entry.getValue(), new CodePieceExtension(entry.getKey()));
         }
 
-        for (int randomCondition : randomConditions) {
+        for (int i = 0, randomConditionsSize = randomConditions.size(); i < randomConditionsSize; i++) {
+            int randomCondition = randomConditions.get(i);
             result.get(codes.floorEntry(randomCondition).getValue()).randomCondition = randomCondition;
+            result.get(codes.floorEntry(randomCondition).getValue()).randomConditionId = i;
         }
 
-        for (int predictableCondition : predictableConditions) {
+        for (int i = 0, predictableConditionsSize = predictableConditions.size(); i < predictableConditionsSize; i++) {
+            int predictableCondition = predictableConditions.get(i);
             result.get(codes.floorEntry(predictableCondition).getValue()).predictableCondition = predictableCondition;
+            result.get(codes.floorEntry(predictableCondition).getValue()).predictableConditionId = i;
         }
 
         for (int i = 0, attackIntentsSize = attackIntents.size(); i < attackIntentsSize; i++) {
-            AttackIntentInfo attackIntent = attackIntents.get(i);
-            int codePos = attackIntent.setMovePos;
-            CodePiece startCode = codes.floorEntry(codePos).getValue();
-            traverseToFillSetMoves(startCode, i, result);
+            AttackIntentInfo attackIntentInfo = attackIntents.get(i);
+            result.get(codes.floorEntry(attackIntentInfo.setMovePos).getValue()).setMoveId = i;
         }
 
         debug("TauntMaskPatches.fillPossibleSetMoves: result:" +
@@ -774,163 +913,42 @@ public class TauntMaskPatches {
         return result;
     }
 
-    private static void traverseToFillSetMoves(CodePiece startCode, int setMoveId, TreeMap<CodePiece, CodePieceExtension> codeExtensions) {
-        Stack<CodePiece> codePieceStack = new Stack<>();
-        Set<CodePiece> accessedCode = new HashSet<>();
-        codePieceStack.push(startCode);
-        while (!codePieceStack.empty()) {
-            CodePiece code = codePieceStack.pop();
-            if (accessedCode.contains(code)) {
-                continue;
-            }
-            accessedCode.add(code);
-            for (CodePiece previous : code.previous) {
-                CodePieceExtension previousExt = codeExtensions.get(previous);
-                if (previous.next == code) {
-                    previousExt.nextSetMoveIds.add(setMoveId);
-                }
-                if (previous.branches != null && previous.branches.contains(code)) {
-                    previousExt.branchSetMoveIds.add(setMoveId);
-                }
-                codePieceStack.push(previous);
-            }
+    private static CodeNodeBundle makeCodeNodes(List<Integer> randomConditions, TreeMap<Integer, CodePiece> codes, TreeMap<CodePiece, CodePieceExtension> codeExtensions) {
+        TreeMap<Integer, CodeNode> codeNodes = new TreeMap<>();
+        for (Map.Entry<Integer, CodePiece> entry : codes.entrySet()) {
+            toNode(entry.getValue(), codeExtensions, codeNodes);
         }
+
+        CodeNodeBundle bundle = new CodeNodeBundle();
+        bundle.n = codeNodes;
+        bundle.r = randomConditions;
+
+        debug("TauntMaskPatches.makeCodeNodes: result:" + bundle);
+
+        return bundle;
+    }
+
+    private static void toNode(CodePiece code, TreeMap<CodePiece, CodePieceExtension> codeExtensions, TreeMap<Integer, CodeNode> codeNodes) {
+        CodePieceExtension codeExtension = codeExtensions.get(code);
+        CodeNode node = new CodeNode();
+        codeNodes.put(code.start, node);
+
+        node.s = code.start;
+        node.r = codeExtension.randomConditionId != -1;
+        node.c = node.r ? codeExtension.randomConditionId : codeExtension.predictableConditionId;
+        node.sm = codeExtension.setMoveId;
+        node.n = code.next != null ? code.next.start : -1;
+        node.b = code.branches != null ? code.branches.stream().map(n -> n.start).collect(Collectors.toList()) : null;
     }
 
     private static void insertModifyRandomResult(int conditionPos, TreeMap<Integer, CodePiece> codes, TreeMap<CodePiece, CodePieceExtension> codeExtensions, CodeIterator iterator, ConstPool constPool, int[] offset) throws BadBytecode {
         CodePiece code = codes.floorEntry(conditionPos).getValue();
         CodePieceExtension codeExt = codeExtensions.get(code);
         Bytecode bytecode = new Bytecode(constPool);
-        pushArrayToByteCode(bytecode, codeExt.nextSetMoveIds);
-        pushArrayToByteCode(bytecode, codeExt.branchSetMoveIds);
-        bytecode.addInvokestatic(TauntMaskPatchesClassName, "modifyRandomResult", "(Z[I[I)Z");
+        bytecode.addIconst(codeExt.randomConditionId);
+        bytecode.addInvokestatic(TauntMaskPatchesClassName, "modifyRandomResult", "(ZI)Z");
         iterator.insert(conditionPos + offset[0], bytecode.get());
         offset[0] += bytecode.length();
-    }
-
-    private static void populateAttackIntentOtherConditions(
-            List<AttackIntentInfo> attackIntents,
-            List<Integer> byteCodes,
-            List<Integer> byteCodeIndices,
-            TreeMap<Integer, CodePiece> codes,
-            TreeMap<CodePiece, CodePieceExtension> codeExtensions) {
-
-        for (AttackIntentInfo attackIntent : attackIntents) {
-            int codePos = attackIntent.setMovePos;
-            CodePiece startCode = codes.floorEntry(codePos).getValue();
-            traverseToFillAttackIntentOtherConditions(attackIntent, startCode, byteCodes, byteCodeIndices, codes, codeExtensions);
-        }
-
-        debug("TauntMaskPatches.populateAttackIntentOtherConditions: result:" +
-                attackIntents.stream().map(i -> i.predictableConditions).collect(Collectors.toList()));
-    }
-
-    private static void traverseToFillAttackIntentOtherConditions(
-            AttackIntentInfo attackIntent,
-            CodePiece startCode,
-            List<Integer> byteCodes,
-            List<Integer> byteCodeIndices,
-            TreeMap<Integer, CodePiece> codes,
-            TreeMap<CodePiece, CodePieceExtension> codeExtensions) {
-        Set<AttackIntentInfoConditions> results = new HashSet<>();
-        Set<CodePiece> accessed = new HashSet<>();
-        findAttackIntentOtherConditionsRecursively(startCode, new AttackIntentInfoConditions(), codes.get(0), byteCodes, byteCodeIndices, codeExtensions, accessed, results);
-        attackIntent.predictableConditions.addAll(results);
-    }
-
-    private static void findAttackIntentOtherConditionsRecursively(
-            CodePiece currentCode,
-            AttackIntentInfoConditions currentConditions,
-            CodePiece targetCode,
-            List<Integer> byteCodes,
-            List<Integer> byteCodeIndices,
-            TreeMap<CodePiece, CodePieceExtension> codeExtensions,
-            Set<CodePiece> accessed,
-            Set<AttackIntentInfoConditions> results) {
-        if (currentCode == targetCode) {
-            addConditionToResults(currentConditions, results);
-            return;
-        }
-
-        if (accessed.contains(currentCode) || currentCode.previous.size() == 0) {
-            return;
-        }
-
-        accessed.add(currentCode);
-        for (CodePiece previousCode : currentCode.previous) {
-            if (previousCode.branches == null || previousCode.branches.size() == 0) {
-                findAttackIntentOtherConditionsRecursively(previousCode, currentConditions, targetCode, byteCodes, byteCodeIndices, codeExtensions, accessed, results);
-                continue;
-            }
-
-            CodePieceExtension previousCodeExt = codeExtensions.get(previousCode);
-            if (previousCodeExt.predictableCondition != -1) {
-                int index = byteCodeIndices.indexOf(previousCodeExt.predictableCondition);
-                if (byteCodes.get(index - 1) == Opcode.GETFIELD) {
-                    int start = byteCodeIndices.get(index - 2);
-                    AttackIntentInfoConditions previousConditions = currentConditions.clone();
-                    previousConditions.starts.add(start);
-                    previousConditions.ends.add(previousCodeExt.predictableCondition);
-                    previousConditions.isBranch.add(previousCode.next != currentCode);
-                    findAttackIntentOtherConditionsRecursively(previousCode, previousConditions, targetCode, byteCodes, byteCodeIndices, codeExtensions, accessed, results);
-                    continue;
-                } else if (byteCodes.get(index - 1) == Opcode.INVOKEVIRTUAL) {
-                    int index2 = previousMatchIntConstOrField(byteCodes, index - 1);
-                    if (index2 - 1 >= 0 && byteCodes.get(index2 - 1) == Opcode.ALOAD_0) {
-                        AttackIntentInfoConditions previousConditions = currentConditions.clone();
-                        previousConditions.starts.add(byteCodeIndices.get(index2 - 1));
-                        previousConditions.ends.add(previousCodeExt.predictableCondition);
-                        previousConditions.isBranch.add(previousCode.next != currentCode);
-                        findAttackIntentOtherConditionsRecursively(previousCode, previousConditions, targetCode, byteCodes, byteCodeIndices, codeExtensions, accessed, results);
-                        continue;
-                    }
-                } else if (byteCodes.get(index - 1) == Opcode.GETSTATIC ||
-                        (index - 2 >= 0 && byteCodes.get(index - 2) == Opcode.GETSTATIC)) {
-                    AttackIntentInfoConditions previousConditions = currentConditions.clone();
-                    previousConditions.starts.add(byteCodeIndices.get(index - 2));
-                    previousConditions.ends.add(previousCodeExt.predictableCondition);
-                    previousConditions.isBranch.add(previousCode.next != currentCode);
-                    findAttackIntentOtherConditionsRecursively(previousCode, previousConditions, targetCode, byteCodes, byteCodeIndices, codeExtensions, accessed, results);
-                    continue;
-                }
-            }
-
-            if (previousCodeExt.randomCondition != -1) {
-                findAttackIntentOtherConditionsRecursively(previousCode, currentConditions, targetCode, byteCodes, byteCodeIndices, codeExtensions, accessed, results);
-                continue;
-            }
-
-            AttackIntentInfoConditions previousConditions = currentConditions.clone();
-            previousConditions.hasUnknown = true;
-            findAttackIntentOtherConditionsRecursively(previousCode, previousConditions, targetCode, byteCodes, byteCodeIndices, codeExtensions, accessed, results);
-        }
-
-        accessed.remove(currentCode);
-    }
-
-    private static void addConditionToResults(AttackIntentInfoConditions currentConditions, Set<AttackIntentInfoConditions> results) {
-        List<AttackIntentInfoConditions> additionalToBeAdded = new ArrayList<>();
-        boolean addCurrent = true;
-        for (Iterator<AttackIntentInfoConditions> iterator = results.iterator(); iterator.hasNext(); ) {
-            AttackIntentInfoConditions existingCondition = iterator.next();
-            if (existingCondition.isSubsetOf(currentConditions)) {
-                iterator.remove();
-            }
-            if (currentConditions.isSubsetOf(existingCondition)) {
-                addCurrent = false;
-            }
-            AttackIntentInfoConditions newCondition = existingCondition.singleDifference(currentConditions);
-            if (newCondition != null) {
-                iterator.remove();
-                additionalToBeAdded.add(newCondition);
-            }
-        }
-        if (addCurrent) {
-            results.add(currentConditions);
-        }
-        for (AttackIntentInfoConditions toBeAdded : additionalToBeAdded) {
-            addConditionToResults(toBeAdded, results);
-        }
     }
 
     private static int previousMatchIntConstOrField(List<Integer> byteCodes, int pos) {
@@ -976,32 +994,10 @@ public class TauntMaskPatches {
         return (indexOp >= Opcode.ICONST_0 && indexOp <= Opcode.ICONST_5) || indexOp == Opcode.BIPUSH;
     }
 
-    private static void pushArrayToByteCode(Bytecode bytecode, List<Integer> array) {
-        int size = array.size();
-        bytecode.addNewarray(Bytecode.T_INT, size);
-        for (int i = 0; i < size; i++) {
-            bytecode.addOpcode(Opcode.DUP);
-            bytecode.addIconst(i);
-            bytecode.addIconst(array.get(i));
-            bytecode.addOpcode(Opcode.IASTORE);
+    private static void debug(String message) {
+        if (enableDebug) {
+            System.out.println(message);
         }
-    }
-
-    private static int revertBranchOp(int branchOp) {
-        switch (branchOp) {
-            case Opcode.IFNE:       return Opcode.IFEQ;
-            case Opcode.IFEQ:       return Opcode.IFNE;
-            case Opcode.IF_ICMPGE:  return Opcode.IF_ICMPLT;
-            case Opcode.IF_ICMPGT:  return Opcode.IF_ICMPLE;
-            case Opcode.IF_ICMPLE:  return Opcode.IF_ICMPGT;
-            case Opcode.IF_ICMPLT:  return Opcode.IF_ICMPGE;
-            case Opcode.IF_ICMPEQ:  return Opcode.IF_ICMPNE;
-            default: return Opcode.POP;
-        }
-    }
-
-    private static void debug(String messge) {
-        System.out.println(messge);
     }
 
     static class StackMapTableUpdater extends StackMapTable.Walker {
@@ -1136,7 +1132,6 @@ public class TauntMaskPatches {
         public final String type;
         public final int setMovePos;
         public final int getIntentFieldPos;
-        public final List<AttackIntentInfoConditions> predictableConditions = new ArrayList<>();
         public AttackIntentInfo(int setMovePos, int getIntentFieldPos, String type) {
             this.setMovePos = setMovePos;
             this.getIntentFieldPos = getIntentFieldPos;
@@ -1146,89 +1141,6 @@ public class TauntMaskPatches {
         @Override
         public String toString() {
             return String.format("AttackIntentInfo(%X, %X, %s)", setMovePos, getIntentFieldPos, type);
-        }
-    }
-
-    static class AttackIntentInfoConditions {
-        List<Integer> starts = new ArrayList<>();
-        List<Integer> ends = new ArrayList<>();
-        List<Boolean> isBranch = new ArrayList<>();
-        boolean hasUnknown;
-
-        @Override
-        public String toString() {
-            return "AttackIntentInfoConditions{" +
-                    "starts=" + starts.stream().map(Integer::toHexString).collect(Collectors.toList()) +
-                    ", ends=" + ends.stream().map(Integer::toHexString).collect(Collectors.toList()) +
-                    ", isBranch=" + isBranch +
-                    ", hasUnknown=" + hasUnknown +
-                    '}';
-        }
-
-        @SuppressWarnings("MethodDoesntCallSuperMethod")
-        @Override
-        public AttackIntentInfoConditions clone() {
-            AttackIntentInfoConditions result = new AttackIntentInfoConditions();
-            result.starts = new ArrayList<>(starts);
-            result.ends = new ArrayList<>(ends);
-            result.isBranch = new ArrayList<>(isBranch);
-            result.hasUnknown = hasUnknown;
-            return result;
-        }
-
-        public boolean isSubsetOf(AttackIntentInfoConditions other) {
-            int thisSize = this.starts.size();
-            int otherSize = other.starts.size();
-            if (otherSize >= thisSize) {
-                return false;
-            }
-            for (int i = 0, j = 0; i < thisSize && j < otherSize; i++, j++) {
-                int thisStart = this.starts.get(i);
-                int otherStart = other.starts.get(j);
-                if (otherStart < thisStart) {
-                    j--;
-                    continue;
-                }
-                if (otherStart > thisStart) {
-                    return false;
-                }
-                if (this.isBranch.get(i) != other.isBranch.get(j)) {
-                    return false;
-                }
-            }
-            return true;
-        }
-
-        public AttackIntentInfoConditions singleDifference(AttackIntentInfoConditions other) {
-            int thisSize = this.starts.size();
-            int otherSize = other.starts.size();
-            if (otherSize != thisSize) {
-                return null;
-            }
-
-            int differenceCount = 0;
-            int differenceIndex = 0;
-            for (int i = 0; i < thisSize; i++) {
-                int thisStart = this.starts.get(i);
-                int otherStart = other.starts.get(i);
-                if (otherStart != thisStart) {
-                    return null;
-                }
-                if (this.isBranch.get(i) != other.isBranch.get(i)) {
-                    differenceCount += 1;
-                    differenceIndex = i;
-                }
-                if (differenceCount > 1) {
-                    return null;
-                }
-            }
-
-            AttackIntentInfoConditions result = this.clone();
-            result.starts.remove(differenceIndex);
-            result.ends.remove(differenceIndex);
-            result.isBranch.remove(differenceIndex);
-            result.hasUnknown = this.hasUnknown || other.hasUnknown;
-            return result;
         }
     }
 
@@ -1291,22 +1203,58 @@ public class TauntMaskPatches {
 
     static class CodePieceExtension {
         private final int start;
-        public List<Integer> nextSetMoveIds = new ArrayList<>();
-        public List<Integer> branchSetMoveIds = new ArrayList<>();
         public int randomCondition = -1;
         public int predictableCondition = -1;
+        public int randomConditionId = -1;
+        public int predictableConditionId = -1;
+        public int setMoveId = -1;
+
         public CodePieceExtension(int start) {
             this.start = start;
         }
 
         @Override
         public String toString() {
-            return String.format("CodePieceExtension(%X, %S, %S, %X, %X)",
+            return String.format("CodePieceExtension(%X, %X, %X, %d, %d, %d)",
                     start,
-                    branchSetMoveIds.stream().map(Integer::toHexString).collect(Collectors.toList()),
-                    nextSetMoveIds.stream().map(Integer::toHexString).collect(Collectors.toList()),
                     randomCondition,
-                    predictableCondition);
+                    predictableCondition,
+                    randomConditionId,
+                    predictableConditionId,
+                    setMoveId);
+        }
+    }
+
+    static class CodeNode {
+        int s; // start
+        List<Integer> b; // branches
+        int n; // next
+        boolean r; // isRandom
+        int c; // conditionId
+        int sm; // setMoveId
+
+        @Override
+        public String toString() {
+            return String.format("CodeNode(%X, %S, %S, %s, %d, %d)",
+                    s,
+                    b != null ? b.stream().map(Integer::toHexString).collect(Collectors.toList()) : "null",
+                    n != -1 ? Integer.toHexString(n) : "null",
+                    r,
+                    c,
+                    sm);
+        }
+    }
+
+    static class CodeNodeBundle {
+        TreeMap<Integer, CodeNode> n;
+        List<Integer> r;
+
+        @Override
+        public String toString() {
+            return "CodeNodeBundle{" +
+                    "nodes=" + n +
+                    ", randomConditions=" + r +
+                    '}';
         }
     }
 }

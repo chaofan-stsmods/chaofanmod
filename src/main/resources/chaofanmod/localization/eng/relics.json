@@ -59,7 +59,7 @@
     "NAME": "Taunt Mask",
     "FLAVOR": "Who wanna fight?",
     "DESCRIPTIONS": [
-      "Gain [E] at the start of your turn. Enemies start combat with available attack intent with highest damage."
+      "Gain [E] at the start of your turn. Enemies start combat with available attack intent with highest damage. This doesn't affect enemies who don't attack first turn."
     ]
   }
 }
