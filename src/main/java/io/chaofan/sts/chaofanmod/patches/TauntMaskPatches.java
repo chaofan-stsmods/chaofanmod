@@ -1,6 +1,7 @@
 package io.chaofan.sts.chaofanmod.patches;
 
 import com.evacipated.cardcrawl.modthespire.Loader;
+import com.evacipated.cardcrawl.modthespire.ModInfo;
 import com.evacipated.cardcrawl.modthespire.lib.SpirePatch;
 import com.evacipated.cardcrawl.modthespire.lib.SpireRawPatch;
 import com.google.gson.Gson;
@@ -20,6 +21,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.*;
 import java.util.function.BiConsumer;
+import java.util.function.BiPredicate;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.stream.Collectors;
@@ -193,14 +195,10 @@ public class TauntMaskPatches {
     private static List<CtClass> listAllMonsterClasses(ClassPool pool) throws NotFoundException {
         CtClass abstractMonsterClass = pool.get(AbstractMonsterClassName);
 
-        List<URI> jars = Arrays.stream(Loader.MODINFOS).map(mi -> {
-            try {
-                return mi.jarURL.toURI();
-            } catch (URISyntaxException e) {
-                e.printStackTrace();
-                return null;
-            }
-        }).filter(Objects::nonNull).collect(Collectors.toList());
+        List<URI> jars = Arrays.stream(Loader.MODINFOS)
+                .map(TauntMaskPatches::modInfoToUri)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
         jars.add(new File(Loader.STS_JAR).getAbsoluteFile().toURI());
 
         List<String> classes = new ArrayList<>();
@@ -220,6 +218,15 @@ public class TauntMaskPatches {
             }
         }
         return monsters;
+    }
+
+    private static URI modInfoToUri(ModInfo modInfo) {
+        try {
+            return modInfo.jarURL.toURI();
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     private static void getClassesFromJar(URI jar, List<String> results) {
@@ -272,7 +279,7 @@ public class TauntMaskPatches {
             printCode(ca);
         }
 
-        List<Integer> randomConditions = findRandomConditions(byteCodes, byteCodeIndices, ca.iterator(), cp);
+        List<Range> randomConditions = findRandomConditions(byteCodes, byteCodeIndices, ca.iterator(), cp);
         if (randomConditions.isEmpty()) {
             if (!enableDebug) {
                 System.out.println(" [Skip]");
@@ -280,10 +287,10 @@ public class TauntMaskPatches {
             return;
         }
 
-        randomConditions.sort(Comparator.comparingInt(a -> a));
+        randomConditions.sort(Comparator.comparingInt(a -> a.start));
 
         List<AttackIntentInfo> attackIntents = findAllAttackIndents(byteCodes, byteCodeIndices, ca.iterator(), cp);
-        List<Integer> predictableConditions = findPredictableConditions(byteCodes, byteCodeIndices, ca.iterator(), cp);
+        List<Range> predictableConditions = findPredictableConditions(byteCodes, byteCodeIndices, ca.iterator(), cp);
 
         TreeMap<Integer, CodePiece> codeGraph = splitCodeStructure(byteCodes, byteCodeIndices, ca.iterator());
         TreeMap<CodePiece, CodePieceExtension> codeExtensions = fillCodePieceExtension(codeGraph, attackIntents, randomConditions, predictableConditions);
@@ -295,12 +302,12 @@ public class TauntMaskPatches {
 
         int[] offset = { 0 };
         Bytecode attackInitCode = generateAttackIntentInitialize(attackIntents, ca.iterator(), cp, offset);
-        Bytecode predictableConditionInitCode = generatePredictableConditionInitialize(predictableConditions, byteCodes, byteCodeIndices, ca.iterator(), cp, sameFrames, sameLocals, offset);
+        Bytecode predictableConditionInitCode = generatePredictableConditionInitialize(predictableConditions, ca.iterator(), cp, sameFrames, sameLocals, offset);
 
         offset[0] = 0;
-        for (int randomCondition : randomConditions) {
-            if (updateConditionToBoolean(ca.iterator(), smt, randomCondition, cp, offset)) {
-                insertModifyRandomResult(randomCondition, codeGraph, codeExtensions, ca.iterator(), cp, offset);
+        for (Range randomCondition : randomConditions) {
+            if (updateConditionToBoolean(ca.iterator(), smt, randomCondition.end, cp, offset)) {
+                insertModifyRandomResult(randomCondition.end, codeGraph, codeExtensions, ca.iterator(), cp, offset);
             }
         }
 
@@ -360,20 +367,21 @@ public class TauntMaskPatches {
         }
     }
 
-    private static List<Integer> findRandomConditions(List<Integer> byteCodes, List<Integer> byteCodeIndices, CodeIterator iterator, ConstPool constPool) {
-        List<Integer> results = new ArrayList<>();
+    private static List<Range> findRandomConditions(List<Integer> byteCodes, List<Integer> byteCodeIndices, CodeIterator iterator, ConstPool constPool) {
+        List<Range> results = new ArrayList<>();
         results.addAll(findArgumentConditions(byteCodes, byteCodeIndices, iterator));
         results.addAll(findAiRandomConditions(byteCodes, byteCodeIndices, iterator, constPool));
         return results;
     }
 
-    private static List<Integer> findArgumentConditions(List<Integer> byteCodes, List<Integer> byteCodeIndices, CodeIterator iterator) {
-        List<Integer> result = new ArrayList<>();
+    private static List<Range> findArgumentConditions(List<Integer> byteCodes, List<Integer> byteCodeIndices, CodeIterator iterator) {
+        List<Range> result = new ArrayList<>();
         int size = byteCodes.size();
         for (int i = 0; i < size; i++) {
             // Load first method argument
             if (byteCodes.get(i) == Opcode.ILOAD_1 ||
                     (byteCodes.get(i) == Opcode.ILOAD && iterator.byteAt(byteCodeIndices.get(i) + 1) == 1)) {
+                int conditionStart = i;
                 int conditionEnd = i;
                 boolean foundBiPush = false;
                 if (i + 1 < size && isIconstOrBipush(byteCodes.get(i + 1))) {
@@ -381,6 +389,7 @@ public class TauntMaskPatches {
                     foundBiPush = true;
                 }
                 if (!foundBiPush && i - 1 > 0 && isIconstOrBipush(byteCodes.get(i - 1))) {
+                    conditionStart = i - 1;
                     foundBiPush = true;
                 }
                 if (foundBiPush) {
@@ -389,7 +398,7 @@ public class TauntMaskPatches {
                         if (conditionCandidateOp == Opcode.IF_ICMPGE || conditionCandidateOp == Opcode.IF_ICMPGT ||
                                 conditionCandidateOp == Opcode.IF_ICMPLE || conditionCandidateOp == Opcode.IF_ICMPLT) {
                             conditionEnd += 1;
-                            result.add(byteCodeIndices.get(conditionEnd));
+                            result.add(new Range(byteCodeIndices.get(conditionStart), byteCodeIndices.get(conditionEnd)));
                             continue;
                         }
                     }
@@ -398,12 +407,12 @@ public class TauntMaskPatches {
             }
         }
 
-        debug("TauntMaskPatches.findArgumentConditions: result:" + result.stream().map(i -> String.format("%X", i)).collect(Collectors.toList()));
+        debug("TauntMaskPatches.findArgumentConditions: result:" + result);
         return result;
     }
 
-    private static List<Integer> findAiRandomConditions(List<Integer> byteCodes, List<Integer> byteCodeIndices, CodeIterator iterator, ConstPool constPool) {
-        List<Integer> result = new ArrayList<>();
+    private static List<Range> findAiRandomConditions(List<Integer> byteCodes, List<Integer> byteCodeIndices, CodeIterator iterator, ConstPool constPool) {
+        List<Range> result = new ArrayList<>();
         int size = byteCodes.size();
         rootLoop: for (int i = 0; i < size; i++) {
             if (byteCodes.get(i) == Opcode.GETSTATIC) {
@@ -429,7 +438,7 @@ public class TauntMaskPatches {
                                             conditionCandidateOp == Opcode.IFEQ || conditionCandidateOp == Opcode.IFNE ||
                                             conditionCandidateOp == Opcode.IFGE || conditionCandidateOp == Opcode.IFGT ||
                                             conditionCandidateOp == Opcode.IFLE || conditionCandidateOp == Opcode.IFLT) {
-                                        result.add(byteCodeIndices.get(k));
+                                        result.add(new Range(byteCodeIndices.get(i), byteCodeIndices.get(k)));
                                         continue rootLoop;
                                     }
                                 }
@@ -442,22 +451,22 @@ public class TauntMaskPatches {
             }
         }
 
-        debug("TauntMaskPatches.findAiRandomConditions: result:" + result.stream().map(i -> String.format("%X", i)).collect(Collectors.toList()));
+        debug("TauntMaskPatches.findAiRandomConditions: result:" + result);
         return result;
     }
 
-    private static List<Integer> findPredictableConditions(List<Integer> byteCodes, List<Integer> byteCodeIndices, CodeIterator iterator, ConstPool constPool) {
-        List<Integer> results = new ArrayList<>();
+    private static List<Range> findPredictableConditions(List<Integer> byteCodes, List<Integer> byteCodeIndices, CodeIterator iterator, ConstPool constPool) {
+        List<Range> results = new ArrayList<>();
         results.addAll(findLastMoveConditions(byteCodes, byteCodeIndices, iterator, constPool));
         results.addAll(findSingleFieldConditions(byteCodes, byteCodeIndices, iterator, constPool));
         results.addAll(findAscensionLevelConditions(byteCodes, byteCodeIndices, iterator, constPool));
         results.addAll(findHasPowerConditions(byteCodes, byteCodeIndices, iterator, constPool));
-        results.sort(Comparator.comparingInt(a -> a));
+        results.sort(Comparator.comparingInt(a -> a.start));
         return results;
     }
 
-    private static List<Integer> findLastMoveConditions(List<Integer> byteCodes, List<Integer> byteCodeIndices, CodeIterator iterator, ConstPool constPool) {
-        List<Integer> result = new ArrayList<>();
+    private static List<Range> findLastMoveConditions(List<Integer> byteCodes, List<Integer> byteCodeIndices, CodeIterator iterator, ConstPool constPool) {
+        List<Range> result = new ArrayList<>();
         int size = byteCodes.size();
         for (int i = 0; i < size; i++) {
             if (byteCodes.get(i) == Opcode.INVOKEVIRTUAL) {
@@ -465,20 +474,23 @@ public class TauntMaskPatches {
                 int argument = iterator.s16bitAt(index + 1);
                 String methodName = constPool.getMethodrefName(argument);
                 if (methodName.equals("lastMove") || methodName.equals("lastMoveBefore") || methodName.equals("lastTwoMoves")) {
-                    int nextOp = byteCodes.get(i + 1);
-                    if (nextOp == Opcode.IFNE || nextOp == Opcode.IFEQ) {
-                        result.add(byteCodeIndices.get(i + 1));
+                    int pos2 = previousMatchIntConstOrField(byteCodes, i);
+                    if (pos2 > 0 && byteCodes.get(pos2 - 1) == Opcode.ALOAD_0) {
+                        int nextOp = byteCodes.get(i + 1);
+                        if (nextOp == Opcode.IFNE || nextOp == Opcode.IFEQ) {
+                            result.add(new Range(byteCodeIndices.get(pos2 - 1), byteCodeIndices.get(i + 1)));
+                        }
                     }
                 }
             }
         }
 
-        debug("TauntMaskPatches.findLastMoveConditions: result:" + result.stream().map(i -> String.format("%X", i)).collect(Collectors.toList()));
+        debug("TauntMaskPatches.findLastMoveConditions: result:" + result);
         return result;
     }
 
-    private static List<Integer> findSingleFieldConditions(List<Integer> byteCodes, List<Integer> byteCodeIndices, CodeIterator iterator, ConstPool constPool) {
-        List<Integer> result = new ArrayList<>();
+    private static List<Range> findSingleFieldConditions(List<Integer> byteCodes, List<Integer> byteCodeIndices, CodeIterator iterator, ConstPool constPool) {
+        List<Range> result = new ArrayList<>();
         int size = byteCodes.size();
         for (int i = 0; i < size; i++) {
             if (byteCodes.get(i) == Opcode.GETFIELD && i > 0 && byteCodes.get(i - 1) == Opcode.ALOAD_0) {
@@ -488,31 +500,33 @@ public class TauntMaskPatches {
                 if (fieldType.equals("Z")) {
                     int nextOp = byteCodes.get(i + 1);
                     if (nextOp == Opcode.IFNE || nextOp == Opcode.IFEQ) {
-                        result.add(byteCodeIndices.get(i + 1));
+                        result.add(new Range(byteCodeIndices.get(i - 1), byteCodeIndices.get(i + 1)));
                     }
                 }
             }
         }
 
-        debug("TauntMaskPatches.findSingleFieldConditions: result:" + result.stream().map(i -> String.format("%X", i)).collect(Collectors.toList()));
+        debug("TauntMaskPatches.findSingleFieldConditions: result:" + result);
         return result;
     }
 
-    private static List<Integer> findAscensionLevelConditions(List<Integer> byteCodes, List<Integer> byteCodeIndices, CodeIterator iterator, ConstPool constPool) {
-        List<Integer> result = new ArrayList<>();
+    private static List<Range> findAscensionLevelConditions(List<Integer> byteCodes, List<Integer> byteCodeIndices, CodeIterator iterator, ConstPool constPool) {
+        List<Range> result = new ArrayList<>();
         int size = byteCodes.size();
         for (int i = 0; i < size; i++) {
             // Load first method argument
             if (byteCodes.get(i) == Opcode.GETSTATIC) {
                 int argument = iterator.s16bitAt(byteCodeIndices.get(i) + 1);
                 if (constPool.getFieldrefName(argument).equals("ascensionLevel") && constPool.getFieldrefType(argument).equals("I")) {
+                    int conditionStart = i;
                     int conditionEnd = i;
                     boolean foundBiPush = false;
                     if (i + 1 < size && isIconstOrBipush(byteCodes.get(i + 1))) {
                         conditionEnd = i + 1;
                         foundBiPush = true;
                     }
-                    if (!foundBiPush && i - 1 > 0 && isIconstOrBipush(byteCodes.get(i - 1))) {
+                    if (!foundBiPush && i - 1 >= 0 && isIconstOrBipush(byteCodes.get(i - 1))) {
+                        conditionStart = i - 1;
                         foundBiPush = true;
                     }
                     if (foundBiPush) {
@@ -521,7 +535,7 @@ public class TauntMaskPatches {
                             if (conditionCandidateOp == Opcode.IF_ICMPGE || conditionCandidateOp == Opcode.IF_ICMPGT ||
                                     conditionCandidateOp == Opcode.IF_ICMPLE || conditionCandidateOp == Opcode.IF_ICMPLT) {
                                 conditionEnd += 1;
-                                result.add(byteCodeIndices.get(conditionEnd));
+                                result.add(new Range(byteCodeIndices.get(conditionStart), byteCodeIndices.get(conditionEnd)));
                                 continue;
                             }
                         }
@@ -532,12 +546,12 @@ public class TauntMaskPatches {
             }
         }
 
-        debug("TauntMaskPatches.findAscensionLevelConditions: result:" + result.stream().map(i -> String.format("%X", i)).collect(Collectors.toList()));
+        debug("TauntMaskPatches.findAscensionLevelConditions: result:" + result);
         return result;
     }
 
-    private static Collection<Integer> findHasPowerConditions(List<Integer> byteCodes, List<Integer> byteCodeIndices, CodeIterator iterator, ConstPool constPool) {
-        List<Integer> result = new ArrayList<>();
+    private static List<Range> findHasPowerConditions(List<Integer> byteCodes, List<Integer> byteCodeIndices, CodeIterator iterator, ConstPool constPool) {
+        List<Range> result = new ArrayList<>();
         int size = byteCodes.size();
         for (int i = 0; i < size; i++) {
             // Load first method argument
@@ -545,21 +559,21 @@ public class TauntMaskPatches {
                 int index = byteCodeIndices.get(i);
                 int argument = iterator.s16bitAt(index + 1);
                 String methodName = constPool.getMethodrefName(argument);
-                if (methodName.equals("hasPower") && i > 2 &&
+                if (methodName.equals("hasPower") && i >= 2 &&
                     byteCodes.get(i - 1) == Opcode.LDC &&
                     byteCodes.get(i - 2) == Opcode.GETSTATIC) {
                     int argument2 = iterator.s16bitAt(byteCodeIndices.get(i - 2) + 1);
                     if (constPool.getFieldrefName(argument2).equals("player") && constPool.getFieldrefClassName(argument2).equals(AbstractDungeonClassName)) {
                         int nextOp = byteCodes.get(i + 1);
                         if (nextOp == Opcode.IFNE || nextOp == Opcode.IFEQ) {
-                            result.add(byteCodeIndices.get(i + 1));
+                            result.add(new Range(byteCodeIndices.get(i - 2), byteCodeIndices.get(i + 1)));
                         }
                     }
                 }
             }
         }
 
-        debug("TauntMaskPatches.findHasPowerConditions: result:" + result.stream().map(i -> String.format("%X", i)).collect(Collectors.toList()));
+        debug("TauntMaskPatches.findHasPowerConditions: result:" + result);
         return result;
     }
 
@@ -708,30 +722,10 @@ public class TauntMaskPatches {
         return bytecode;
     }
 
-    private static Bytecode generatePredictableConditionInitialize(List<Integer> predictableConditions, List<Integer> byteCodes, List<Integer> byteCodeIndices, CodeIterator iterator, ConstPool constPool, List<Integer> sameFrames, List<Integer> sameLocals, int[] offset) {
+    private static Bytecode generatePredictableConditionInitialize(List<Range> predictableConditions, CodeIterator iterator, ConstPool constPool, List<Integer> sameFrames, List<Integer> sameLocals, int[] offset) {
         Bytecode bytecode = new Bytecode(constPool);
-        for (int predictableCondition : predictableConditions) {
-            int index = byteCodeIndices.indexOf(predictableCondition);
-            int start;
-            if (byteCodes.get(index - 1) == Opcode.GETFIELD) {
-                start = byteCodeIndices.get(index - 2);
-            } else if (byteCodes.get(index - 1) == Opcode.INVOKEVIRTUAL) {
-                int index2 = previousMatchIntConstOrField(byteCodes, index - 1);
-                if (index > 3 && byteCodes.get(index - 2) == Opcode.LDC && byteCodes.get(index - 3) == Opcode.GETSTATIC) {
-                    start = byteCodeIndices.get(index - 3);
-                } else if (index2 - 1 >= 0 && byteCodes.get(index2 - 1) == Opcode.ALOAD_0) {
-                    start = byteCodeIndices.get(index2 - 1);
-                } else {
-                    throw new RuntimeException("Unknown INVOKEVIRTUAL");
-                }
-            } else if (byteCodes.get(index - 1) == Opcode.GETSTATIC ||
-                    (index - 2 >= 0 && byteCodes.get(index - 2) == Opcode.GETSTATIC)) {
-                start = byteCodeIndices.get(index - 2);
-            } else {
-                throw new RuntimeException("Unknown");
-            }
-
-            for (int i = start; i <= predictableCondition; i++) {
+        for (Range predictableCondition : predictableConditions) {
+            for (int i = predictableCondition.start; i <= predictableCondition.end; i++) {
                 bytecode.add(iterator.byteAt(i));
             }
             bytecode.add(0, 7);
@@ -884,20 +878,20 @@ public class TauntMaskPatches {
         return codes;
     }
 
-    private static TreeMap<CodePiece, CodePieceExtension> fillCodePieceExtension(TreeMap<Integer, CodePiece> codes, List<AttackIntentInfo> attackIntents, List<Integer> randomConditions, List<Integer> predictableConditions) {
+    private static TreeMap<CodePiece, CodePieceExtension> fillCodePieceExtension(TreeMap<Integer, CodePiece> codes, List<AttackIntentInfo> attackIntents, List<Range> randomConditions, List<Range> predictableConditions) {
         TreeMap<CodePiece, CodePieceExtension> result = new TreeMap<>(Comparator.comparingInt(a -> a.start));
         for (Map.Entry<Integer, CodePiece> entry : codes.entrySet()) {
             result.put(entry.getValue(), new CodePieceExtension(entry.getKey()));
         }
 
         for (int i = 0, randomConditionsSize = randomConditions.size(); i < randomConditionsSize; i++) {
-            int randomCondition = randomConditions.get(i);
+            int randomCondition = randomConditions.get(i).end;
             result.get(codes.floorEntry(randomCondition).getValue()).randomCondition = randomCondition;
             result.get(codes.floorEntry(randomCondition).getValue()).randomConditionId = i;
         }
 
         for (int i = 0, predictableConditionsSize = predictableConditions.size(); i < predictableConditionsSize; i++) {
-            int predictableCondition = predictableConditions.get(i);
+            int predictableCondition = predictableConditions.get(i).end;
             result.get(codes.floorEntry(predictableCondition).getValue()).predictableCondition = predictableCondition;
             result.get(codes.floorEntry(predictableCondition).getValue()).predictableConditionId = i;
         }
@@ -913,7 +907,7 @@ public class TauntMaskPatches {
         return result;
     }
 
-    private static CodeNodeBundle makeCodeNodes(List<Integer> randomConditions, TreeMap<Integer, CodePiece> codes, TreeMap<CodePiece, CodePieceExtension> codeExtensions) {
+    private static CodeNodeBundle makeCodeNodes(List<Range> randomConditions, TreeMap<Integer, CodePiece> codes, TreeMap<CodePiece, CodePieceExtension> codeExtensions) {
         TreeMap<Integer, CodeNode> codeNodes = new TreeMap<>();
         for (Map.Entry<Integer, CodePiece> entry : codes.entrySet()) {
             toNode(entry.getValue(), codeExtensions, codeNodes);
@@ -921,7 +915,7 @@ public class TauntMaskPatches {
 
         CodeNodeBundle bundle = new CodeNodeBundle();
         bundle.n = codeNodes;
-        bundle.r = randomConditions;
+        bundle.r = randomConditions.stream().map(rc -> rc.end).collect(Collectors.toList());
 
         debug("TauntMaskPatches.makeCodeNodes: result:" + bundle);
 
@@ -1255,6 +1249,98 @@ public class TauntMaskPatches {
                     "nodes=" + n +
                     ", randomConditions=" + r +
                     '}';
+        }
+    }
+
+    static class Range {
+        private final int start;
+        private final int end;
+
+        public Range(int start, int end) {
+            this.start = start;
+            this.end = end;
+        }
+
+        @Override
+        public String toString() {
+            return String.format("Range(%X, %X)", start, end);
+        }
+    }
+
+    static class MatchCode {
+        private final int op;
+        private final BiPredicate<CodeIterator, Integer> condition;
+        private final MatchCode[] matches;
+        private final MatchType matchType;
+
+        public MatchCode(int op) {
+            this(op, null);
+        }
+
+        public MatchCode(int op, BiPredicate<CodeIterator, Integer> condition) {
+            this.op = op;
+            this.condition = condition;
+            this.matches = null;
+            this.matchType = null;
+        }
+
+        public MatchCode(MatchCode[] matches, MatchType matchType) {
+            this.matchType = matchType;
+            this.op = -1;
+            this.condition = null;
+            this.matches = matches;
+        }
+
+        public int test(CodeIterator ci, int location) {
+            if (matches != null) {
+                if (matchType == MatchType.ANY) {
+                    return Arrays.stream(matches).map(m -> m.test(ci, location)).filter(r -> r >= 0).findAny().orElse(-1);
+                } else if (matchType == MatchType.SEQUENCE) {
+                    int localLocation = location;
+                    for (MatchCode match : matches) {
+                        localLocation = match.test(ci, localLocation);
+                        if (localLocation == -1) {
+                            return -1;
+                        }
+                    }
+                    return localLocation;
+                } else {
+                    return -1;
+                }
+            }
+
+            int ciOldPos = ci.lookAhead();
+            ci.move(location);
+            if (!ci.hasNext()) {
+                ci.move(ciOldPos);
+                return -1;
+            }
+
+            if (ci.byteAt(location) != op) {
+                ci.move(ciOldPos);
+                return -1;
+            }
+
+            if (condition != null && !condition.test(ci, location)) {
+                ci.move(ciOldPos);
+                return -1;
+            }
+
+            try {
+                ci.next();
+            } catch (BadBytecode e) {
+                ci.move(ciOldPos);
+                return -1;
+            }
+
+            int result = ci.lookAhead();
+            ci.move(ciOldPos);
+            return result;
+        }
+
+        enum MatchType {
+            SEQUENCE,
+            ANY;
         }
     }
 }
