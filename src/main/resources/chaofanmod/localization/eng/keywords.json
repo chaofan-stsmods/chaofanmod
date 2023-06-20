@@ -2,7 +2,8 @@
   {
     "KEY": "alpha",
     "NAMES": [
-      "Alpha"
+      "Alpha",
+      "alpha"
     ],
     "DESCRIPTION": "Orb: When #yEvoked, #yChannel a #yBeta."
   }

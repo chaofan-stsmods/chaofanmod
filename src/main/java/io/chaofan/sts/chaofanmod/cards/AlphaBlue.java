@@ -29,6 +29,8 @@ public class AlphaBlue extends CustomCard {
 
     @Override
     public void use(AbstractPlayer abstractPlayer, AbstractMonster abstractMonster) {
-        addToBot(new ChannelAction(new Alpha()));
+        for (int i = 0; i < magicNumber; i++) {
+            addToBot(new ChannelAction(new Alpha()));
+        }
     }
 }
