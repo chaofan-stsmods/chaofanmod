@@ -27,5 +27,12 @@
   "chaofanmod:card.ManualOfMerchantCard": {
     "NAME": "Pay",
     "DESCRIPTION": "Lose !M! Gold. NL Gain [E] at the start of your turn."
+  },
+  "chaofanmod:card.FriendCard": {
+    "NAME": "Friend Card",
+    "DESCRIPTION": "A card from your friend.",
+    "EXTENDED_DESCRIPTION": [
+      "%s's Card"
+    ]
   }
 }

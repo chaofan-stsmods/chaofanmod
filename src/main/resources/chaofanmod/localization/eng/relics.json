@@ -61,5 +61,13 @@
     "DESCRIPTIONS": [
       "Gain [E] at the start of your turn. Enemies start combat with available attack intent with highest damage. This doesn't affect enemies who don't attack first turn."
     ]
+  },
+  "chaofanmod:relic.BlessOfNetwork": {
+    "NAME": "Bless of Network",
+    "FLAVOR": "Can you connect me to the internet, please?",
+    "DESCRIPTIONS": [
+      "At the start of each combat, add a card from a random friend to your hand.",
+      "Ahh, I don't have a #rfriend."
+    ]
   }
 }

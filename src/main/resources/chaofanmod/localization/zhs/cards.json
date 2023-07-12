@@ -27,5 +27,12 @@
   "chaofanmod:card.ManualOfMerchantCard": {
     "NAME": "支付",
     "DESCRIPTION": "失去 !M! 金币。 NL 每回合开始获得 [E] 。"
+  },
+  "chaofanmod:card.FriendCard": {
+    "NAME": "好友卡",
+    "DESCRIPTION": "一张来自你朋友的卡。",
+    "EXTENDED_DESCRIPTION": [
+      "%s的卡牌"
+    ]
   }
 }

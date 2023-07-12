@@ -7,6 +7,9 @@ import basemod.helpers.ScreenPostProcessorManager;
 import basemod.interfaces.*;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
+import com.codedisaster.steamworks.SteamFriends;
+import com.codedisaster.steamworks.SteamID;
+import com.codedisaster.steamworks.SteamUtils;
 import com.evacipated.cardcrawl.modthespire.lib.SpireConfig;
 import com.evacipated.cardcrawl.modthespire.lib.SpireInitializer;
 import com.google.gson.Gson;
@@ -40,6 +43,7 @@ import io.chaofan.sts.chaofanmod.relics.Stool;
 import io.chaofan.sts.chaofanmod.rewards.HealReward;
 import io.chaofan.sts.chaofanmod.rewards.RubyKeyReward;
 import io.chaofan.sts.chaofanmod.utils.ChaofanModEnums;
+import io.chaofan.sts.chaofanmod.utils.SteamworksHelper;
 import io.chaofan.sts.chaofanmod.variables.ShootCountVariable;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -69,6 +73,8 @@ public class ChaofanMod implements
 
     public static final String USE_OLD_PHONE_V2 = "UseOldPhoneV2";
     public static boolean useOldPhoneV2;
+
+    public static SteamworksHelper steamworksHelper;
 
     public static String getImagePath(String file) {
         return MOD_ID + "/images/" + file;
@@ -123,6 +129,9 @@ public class ChaofanMod implements
         BaseMod.addEvent(Gremlin2048.ID, Gremlin2048.class);
 
         BaseMod.addPower(HeavyHandPower.class, HeavyHandPower.POWER_ID);
+
+        steamworksHelper = new SteamworksHelper();
+        BaseMod.subscribe(steamworksHelper);
     }
 
     private ModPanel initSettings() {
