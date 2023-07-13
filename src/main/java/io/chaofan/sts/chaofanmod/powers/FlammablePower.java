@@ -7,7 +7,7 @@ import com.megacrit.cardcrawl.core.AbstractCreature;
 import com.megacrit.cardcrawl.core.CardCrawlGame;
 import com.megacrit.cardcrawl.powers.AbstractPower;
 import com.megacrit.cardcrawl.powers.VulnerablePower;
-import io.chaofan.sts.chaofanmod.actions.AnonymousAction;
+import io.chaofan.sts.chaofanmod.actions.common.AnonymousAction;
 
 import static io.chaofan.sts.chaofanmod.ChaofanMod.makeId;
 

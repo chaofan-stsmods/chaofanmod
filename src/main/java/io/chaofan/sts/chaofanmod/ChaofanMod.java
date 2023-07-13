@@ -2,14 +2,12 @@ package io.chaofan.sts.chaofanmod;
 
 import basemod.*;
 import basemod.abstracts.CustomRelic;
+import basemod.devcommands.ConsoleCommand;
 import basemod.helpers.RelicType;
 import basemod.helpers.ScreenPostProcessorManager;
 import basemod.interfaces.*;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
-import com.codedisaster.steamworks.SteamFriends;
-import com.codedisaster.steamworks.SteamID;
-import com.codedisaster.steamworks.SteamUtils;
 import com.evacipated.cardcrawl.modthespire.lib.SpireConfig;
 import com.evacipated.cardcrawl.modthespire.lib.SpireInitializer;
 import com.google.gson.Gson;
@@ -28,6 +26,7 @@ import com.megacrit.cardcrawl.monsters.MonsterGroup;
 import com.megacrit.cardcrawl.relics.AbstractRelic;
 import io.chaofan.sts.CommonModUtils;
 import io.chaofan.sts.chaofanmod.cards.*;
+import io.chaofan.sts.chaofanmod.commands.FriendCardCommand;
 import io.chaofan.sts.chaofanmod.events.Gremlin2048;
 import io.chaofan.sts.chaofanmod.mods.Lonely;
 import io.chaofan.sts.chaofanmod.monsters.SpiritFireMonster;
@@ -44,7 +43,8 @@ import io.chaofan.sts.chaofanmod.rewards.HealReward;
 import io.chaofan.sts.chaofanmod.rewards.RubyKeyReward;
 import io.chaofan.sts.chaofanmod.utils.ChaofanModEnums;
 import io.chaofan.sts.chaofanmod.utils.SteamworksHelper;
-import io.chaofan.sts.chaofanmod.variables.ShootCountVariable;
+import io.chaofan.sts.chaofanmod.variables.SecondaryBlock;
+import io.chaofan.sts.chaofanmod.variables.SecondaryDamage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -132,6 +132,7 @@ public class ChaofanMod implements
 
         steamworksHelper = new SteamworksHelper();
         BaseMod.subscribe(steamworksHelper);
+        ConsoleCommand.addCommand("addfriendcard", FriendCardCommand.class);
     }
 
     private ModPanel initSettings() {
@@ -184,6 +185,8 @@ public class ChaofanMod implements
                 .packageFilter(AlphaBlue.class)
                 .filter((classInfo, classFinder) -> !excludeCards.contains(classInfo.getClassName()))
                 .cards();
+        BaseMod.addDynamicVariable(new SecondaryBlock());
+        BaseMod.addDynamicVariable(new SecondaryDamage());
     }
 
     @Override

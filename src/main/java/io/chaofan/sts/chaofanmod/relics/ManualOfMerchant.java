@@ -6,7 +6,7 @@ import com.megacrit.cardcrawl.actions.common.GainEnergyAction;
 import com.megacrit.cardcrawl.actions.common.RelicAboveCreatureAction;
 import com.megacrit.cardcrawl.dungeons.AbstractDungeon;
 import com.megacrit.cardcrawl.vfx.ThoughtBubble;
-import io.chaofan.sts.chaofanmod.actions.AnonymousAction;
+import io.chaofan.sts.chaofanmod.actions.common.AnonymousAction;
 import io.chaofan.sts.chaofanmod.actions.ManualOfMerchantAction;
 import io.chaofan.sts.chaofanmod.utils.TextureLoader;
 

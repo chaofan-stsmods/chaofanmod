@@ -1,4 +1,4 @@
-package io.chaofan.sts.chaofanmod.actions;
+package io.chaofan.sts.chaofanmod.actions.common;
 
 import com.megacrit.cardcrawl.actions.AbstractGameAction;
 

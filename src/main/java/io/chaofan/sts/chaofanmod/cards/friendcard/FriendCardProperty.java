@@ -47,6 +47,9 @@ public abstract class FriendCardProperty {
         registerProperty(GainArtifact.class, 50);
         registerProperty(Heal.class, 50);
         registerProperty(LoseStrength.class, 50);
+        registerProperty(Condition.class, 100);
+        registerProperty(GainBlockNextTurn.class, 100);
+        registerProperty(EachEnemy.class, 100);
     }
 
     protected boolean shouldUpgrade;
@@ -59,6 +62,10 @@ public abstract class FriendCardProperty {
     protected boolean toAllEnemies;
     protected boolean gainScores;
     protected Class<? extends FriendCardProperty> alternateOf;
+    protected boolean isActionableEffect = true;
+    protected boolean isAttack;
+    protected boolean useSecondaryDamage;
+    protected boolean useSecondaryBlock;
 
     public FriendCardProperty(FriendCard card) {
         this.card = card;
@@ -115,6 +122,10 @@ public abstract class FriendCardProperty {
 
     public int descriptionPriority() {
         return applyPriority();
+    }
+
+    public boolean glowCheck() {
+        return false;
     }
 
     protected void addToBot(AbstractGameAction action) {
@@ -257,7 +268,9 @@ public abstract class FriendCardProperty {
                 properties.add(damage);
                 hasBlockOrDamage = true;
             }
-        } else if (friendCard.type == AbstractCard.CardType.ATTACK) {
+        }
+
+        if (friendCard.type == AbstractCard.CardType.ATTACK && properties.stream().noneMatch(p -> p.isAttack)) {
             friendCard.type = AbstractCard.CardType.SKILL;
         }
 
@@ -270,7 +283,7 @@ public abstract class FriendCardProperty {
         boolean upgradeBlockOrDamage = hasBlockOrDamage && random.nextInt(5) < 2; // 60%
         List<FriendCardProperty> pendingUpgrade = new ArrayList<>(properties);
         pendingUpgrade.removeIf(p -> !p.canUpgrade());
-        int upgradeCount = random.nextInt(Math.min(3, pendingUpgrade.size())) + 1;
+        int upgradeCount = pendingUpgrade.size() == 0 ? 1 : random.nextInt(Math.min(3, pendingUpgrade.size())) + 1;
 
         if (hasBlockOrDamage) {
             pendingUpgrade.remove(pendingUpgrade.size() - 1);
@@ -322,7 +335,17 @@ public abstract class FriendCardProperty {
         }
 
         if (!hasUpgrade && !hasBlockOrDamage) {
-            friendCard.reduceCostOnUpgrade = true;
+            if (friendCard.cost == 0) {
+                DrawCard drawCard = new DrawCard(friendCard);
+                drawCard.tryApplyScore(2, random);
+                drawCard.upgradeOnly = true;
+                drawCard.shouldUpgrade = true;
+                drawCard.shouldUse = false;
+                drawCard.shouldShowDescription = false;
+                properties.add(drawCard);
+            } else {
+                friendCard.reduceCostOnUpgrade = true;
+            }
         }
 
         if (random.nextInt(5) == 0) {
@@ -347,13 +370,6 @@ public abstract class FriendCardProperty {
         properties.stream().filter(p -> p.shouldUse).forEach(p -> p.use(abstractPlayer, abstractMonster));
     }
 
-    private static void applyDescriptions(FriendCard friendCard, List<FriendCardProperty> properties) {
-        properties.sort(Comparator.comparing(FriendCardProperty::descriptionPriority));
-        friendCard.rawDescription = properties.stream().filter(p -> p.shouldShowDescription)
-                .map(FriendCardProperty::getDescription).collect(Collectors.joining(" NL "));
-        friendCard.initializeDescription();
-    }
-
     public static void displayUpgrades(FriendCard friendCard, List<FriendCardProperty> properties) {
         if (Loader.isModLoaded("mintyspire")) {
             return;
@@ -370,5 +386,20 @@ public abstract class FriendCardProperty {
 
     protected static float multiplyValue(float originalValue, float scale) {
         return originalValue == 0 ? 0 : Math.max(1f, originalValue * scale);
+    }
+
+    protected static String toLowerPrefix(String s) {
+        if (s.length() == 0) {
+            return s;
+        }
+
+        return s.substring(0, 1).toLowerCase() + s.substring(1);
+    }
+
+    private static void applyDescriptions(FriendCard friendCard, List<FriendCardProperty> properties) {
+        properties.sort(Comparator.comparing(FriendCardProperty::descriptionPriority));
+        friendCard.rawDescription = properties.stream().filter(p -> p.shouldShowDescription)
+                .map(FriendCardProperty::getDescription).collect(Collectors.joining(" NL "));
+        friendCard.initializeDescription();
     }
 }

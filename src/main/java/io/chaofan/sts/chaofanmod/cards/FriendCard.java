@@ -10,7 +10,6 @@ import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.codedisaster.steamworks.SteamID;
 import com.evacipated.cardcrawl.modthespire.lib.SpireOverride;
-import com.megacrit.cardcrawl.actions.common.MakeTempCardInHandAction;
 import com.megacrit.cardcrawl.cards.AbstractCard;
 import com.megacrit.cardcrawl.characters.AbstractPlayer;
 import com.megacrit.cardcrawl.core.Settings;
@@ -53,6 +52,17 @@ public class FriendCard extends CustomCard {
     private boolean noFriend = false;
     private SteamID friend;
     private long seed = 0;
+
+    public int baseSecondaryDamage;
+    public int secondaryDamage;
+    public boolean upgradedSecondaryDamage;
+    public boolean isSecondaryDamageModified;
+    public int[] secondaryMultiDamage;
+
+    public int baseSecondaryBlock;
+    public int secondaryBlock;
+    public boolean upgradedSecondaryBlock;
+    public boolean isSecondaryBlockModified;
 
     public final List<FriendCardProperty> properties = new ArrayList<>();
 
@@ -118,17 +128,105 @@ public class FriendCard extends CustomCard {
     }
 
     @Override
+    public void applyPowers() {
+        super.applyPowers();
+        int oldDamage = damage;
+        int oldBaseDamage = baseDamage;
+        boolean oldIsDamageModified = isDamageModified;
+        int[] oldMultiDamage = multiDamage;
+        int oldBlock = block;
+        int oldBaseBlock = baseBlock;
+        boolean oldIsBlockModified = isBlockModified;
+
+        baseDamage = damage = baseSecondaryDamage;
+        baseBlock = block = baseSecondaryBlock;
+        super.applyPowers();
+        secondaryDamage = damage;
+        isSecondaryDamageModified = isDamageModified;
+        secondaryMultiDamage = multiDamage;
+        secondaryBlock = block;
+        isSecondaryBlockModified = isBlockModified;
+
+        damage = oldDamage;
+        baseDamage = oldBaseDamage;
+        isDamageModified = oldIsDamageModified;
+        multiDamage = oldMultiDamage;
+        block = oldBlock;
+        baseBlock = oldBaseBlock;
+        isBlockModified = oldIsBlockModified;
+    }
+
+    @Override
+    public void calculateCardDamage(AbstractMonster mo) {
+        super.calculateCardDamage(mo);
+        int oldDamage = damage;
+        int oldBaseDamage = baseDamage;
+        boolean oldIsDamageModified = isDamageModified;
+        int[] oldMultiDamage = multiDamage;
+        int oldBlock = block;
+        int oldBaseBlock = baseBlock;
+        boolean oldIsBlockModified = isBlockModified;
+
+        baseDamage = damage = baseSecondaryDamage;
+        baseBlock = block = baseSecondaryBlock;
+        super.calculateCardDamage(mo);
+        secondaryDamage = damage;
+        isSecondaryDamageModified = isDamageModified;
+        secondaryMultiDamage = multiDamage;
+        secondaryBlock = block;
+        isSecondaryBlockModified = isBlockModified;
+
+        damage = oldDamage;
+        baseDamage = oldBaseDamage;
+        isDamageModified = oldIsDamageModified;
+        multiDamage = oldMultiDamage;
+        block = oldBlock;
+        baseBlock = oldBaseBlock;
+        isBlockModified = oldIsBlockModified;
+    }
+
+    @Override
     public void displayUpgrades() {
         super.displayUpgrades();
+
+        if (this.upgradedSecondaryDamage) {
+            this.secondaryDamage = this.baseSecondaryDamage;
+            this.isSecondaryDamageModified = true;
+        }
+
+        if (this.upgradedSecondaryBlock) {
+            this.secondaryBlock = this.baseSecondaryBlock;
+            this.isSecondaryBlockModified = true;
+        }
+
         FriendCardProperty.displayUpgrades(this, properties);
+    }
+
+    @Override
+    public void resetAttributes() {
+        super.resetAttributes();
+        this.secondaryDamage = this.baseSecondaryDamage;
+        this.isSecondaryDamageModified = false;
+        this.secondaryBlock = this.baseSecondaryBlock;
+        this.isSecondaryBlockModified = false;
+    }
+
+    @Override
+    public void onMoveToDiscard() {
+        super.onMoveToDiscard();
     }
 
     @Override
     public void use(AbstractPlayer abstractPlayer, AbstractMonster abstractMonster) {
         FriendCardProperty.use(properties, abstractPlayer, abstractMonster);
+    }
 
-        // TODO remove me
-        this.addToBot(new MakeTempCardInHandAction(makeFriendCard()));
+    @Override
+    public void triggerOnGlowCheck() {
+        this.glowColor = AbstractCard.BLUE_BORDER_GLOW_COLOR.cpy();
+        if (properties.stream().anyMatch(FriendCardProperty::glowCheck)) {
+            this.glowColor = AbstractCard.GOLD_BORDER_GLOW_COLOR.cpy();
+        }
     }
 
     @Override
@@ -194,6 +292,16 @@ public class FriendCard extends CustomCard {
     @Override
     public void upgradeMagicNumber(int amount) {
         super.upgradeMagicNumber(amount);
+    }
+
+    public void upgradeSecondaryDamage(int amount) {
+        this.baseSecondaryDamage += amount;
+        this.upgradedSecondaryDamage = true;
+    }
+
+    public void upgradeSecondaryBlock(int amount) {
+        this.baseSecondaryBlock += amount;
+        this.upgradedSecondaryBlock = true;
     }
 
     public void setMultiDamage(boolean value) {

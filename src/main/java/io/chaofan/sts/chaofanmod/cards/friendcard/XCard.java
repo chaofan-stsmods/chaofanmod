@@ -3,7 +3,7 @@ package io.chaofan.sts.chaofanmod.cards.friendcard;
 import com.megacrit.cardcrawl.actions.AbstractGameAction;
 import com.megacrit.cardcrawl.characters.AbstractPlayer;
 import com.megacrit.cardcrawl.monsters.AbstractMonster;
-import io.chaofan.sts.chaofanmod.actions.XCardAction;
+import io.chaofan.sts.chaofanmod.actions.common.XCardAction;
 import io.chaofan.sts.chaofanmod.cards.FriendCard;
 
 import java.util.ArrayList;
@@ -15,6 +15,7 @@ public class XCard extends FriendCardProperty {
 
     public XCard(FriendCard card) {
         super(card);
+        isActionableEffect = false;
     }
 
     @Override

@@ -10,7 +10,12 @@ import java.util.Random;
 
 public class GainBlock extends FriendCardProperty {
     public GainBlock(FriendCard card) {
+        this(card, false);
+    }
+
+    public GainBlock(FriendCard card, boolean secondary) {
         super(card);
+        useSecondaryBlock = secondary;
     }
 
     @Override
@@ -44,18 +49,30 @@ public class GainBlock extends FriendCardProperty {
     @Override
     public void multiplyValues(float scale) {
         super.multiplyValues(scale);
-        card.baseBlock = card.block = (int) value;
+        if (useSecondaryBlock) {
+            card.baseSecondaryBlock = card.secondaryBlock = (int) value;
+        } else {
+            card.baseBlock = card.block = (int) value;
+        }
     }
 
     @Override
     public void modifyCard() {
-        card.baseBlock = card.block = (int) value;
+        if (useSecondaryBlock) {
+            card.baseSecondaryBlock = card.secondaryBlock = (int) value;
+        } else {
+            card.baseBlock = card.block = (int) value;
+        }
         addSelfTarget();
     }
 
     @Override
     public String getDescription() {
-        return localize("GainBlock");
+        if (useSecondaryBlock) {
+            return localize("GainBlock").replace("!B!", "!chaofanmod:var.SecondaryBlock!");
+        } else {
+            return localize("GainBlock");
+        }
     }
 
     @Override
@@ -65,11 +82,15 @@ public class GainBlock extends FriendCardProperty {
 
     @Override
     public void use(AbstractPlayer p, AbstractMonster m) {
-        this.addToBot(new GainBlockAction(p, card.block));
+        this.addToBot(new GainBlockAction(p, useSecondaryBlock ? card.secondaryBlock : card.block));
     }
 
     @Override
     public void upgrade() {
-        card.upgradeBlock((int) upgradeValue);
+        if (useSecondaryBlock) {
+            card.upgradeSecondaryBlock((int) upgradeValue);
+        } else {
+            card.upgradeBlock((int) upgradeValue);
+        }
     }
 }

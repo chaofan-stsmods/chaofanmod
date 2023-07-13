@@ -5,6 +5,7 @@
   "DealDamageMultipleTimes": "造成 !D! 点伤害 {} 次。",
   "DealDamageRandomMultipleTimes": "随机对敌人造成 !D! 点伤害 {} 次。",
   "GainBlock": "获得 !B! 点 格挡 。",
+  "GainBlockNextTurn": "下回合获得 !chaofanmod:var.SecondaryBlock! 点 格挡 。",
   "Exhaust": "消耗 。",
   "Retain": "保留 。",
   "Ethereal": "虚无 。",
@@ -42,5 +43,11 @@
   "EnemyLoseStrength {}": "使敌人失去 {} 点 力量 。",
   "EnemyLoseStrengthAll {}": "所有敌人失去 {} 点 力量 。",
   "EnemyLoseTempStrength {}": "使敌人失去 {} 点 力量 1回合。",
-  "EnemyLoseTempStrengthAll {}": "所有敌人失去 {} 点 力量 1回合。"
+  "EnemyLoseTempStrengthAll {}": "所有敌人失去 {} 点 力量 1回合。",
+  "Condition PLAYED_ATTACK {}": "如果本场战斗中打出的上一张牌是攻击牌， {}",
+  "Condition PLAYED_SKILL {}": "如果本场战斗中打出的上一张牌是技能牌， {}",
+  "Condition FIRST_CARD {}": "如果本回合第一张打出的是这张牌， {}",
+  "Condition ATTACK_ONLY {}": "如果所有手牌都是攻击牌， {}",
+  "Condition SINGLE_ATTACK {}": "如果这张牌是手中唯一的攻击牌， {}",
+  "EachEnemy {}": "当前每有一名敌人， {}"
 }

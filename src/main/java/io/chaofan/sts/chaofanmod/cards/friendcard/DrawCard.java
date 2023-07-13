@@ -9,6 +9,7 @@ import java.util.Random;
 
 public class DrawCard extends ScoreNeededListProperty {
     private static final int[] scoreNeeded = { 0, 2, 5, 9, 12, 16, 20, 24, 28, 32, 36 };
+    public boolean upgradeOnly;
 
     public DrawCard(FriendCard card) {
         super(card, scoreNeeded);
@@ -36,6 +37,14 @@ public class DrawCard extends ScoreNeededListProperty {
     @Override
     public void use(AbstractPlayer p, AbstractMonster m) {
         addToBot(new DrawCardAction(getValueMayUpgrade()));
+    }
+
+    @Override
+    public void upgrade() {
+        if (upgradeOnly) {
+            shouldShowDescription = true;
+            shouldUse = true;
+        }
     }
 
     @Override

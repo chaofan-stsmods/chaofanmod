@@ -17,10 +17,17 @@ public class DealDamage extends FriendCardProperty {
     // randomEnemy take effects only toAllEnemy is enabled.
     private boolean randomEnemy;
     private int attackCount = 1;
+    private int upgradeAttackCount = 0;
     private AbstractGameAction.AttackEffect attackEffect = AbstractGameAction.AttackEffect.FIRE;
 
     public DealDamage(FriendCard card) {
+        this(card, false);
+    }
+
+    public DealDamage(FriendCard card, boolean secondary) {
         super(card);
+        isAttack = true;
+        useSecondaryDamage = secondary;
     }
 
     @Override
@@ -56,7 +63,7 @@ public class DealDamage extends FriendCardProperty {
                 attackCount = 2;
             } else if (random.nextInt(3) != 0) {
                 attackCount = 3;
-            } else if (card.cost > 1) {
+            } else if (score >= 14) {
                 attackCount = random.nextBoolean() ? 4 : 5;
             }
         }
@@ -69,18 +76,30 @@ public class DealDamage extends FriendCardProperty {
     @Override
     public int tryApplyUpgradeScore(int additionalScore, Random random) {
         upgradeValue = additionalScore;
+        if (attackCount > 1 && random.nextBoolean() && additionalScore < value / additionalScore * 2) {
+            upgradeValue = 0;
+            upgradeAttackCount = 1;
+        }
         return 0;
     }
 
     @Override
     public void multiplyValues(float scale) {
         super.multiplyValues(scale);
-        card.baseDamage = card.damage = getBaseDamage();
+        if (useSecondaryDamage) {
+            card.baseSecondaryDamage = card.secondaryDamage = getBaseDamage();
+        } else {
+            card.baseDamage = card.damage = getBaseDamage();
+        }
     }
 
     @Override
     public void modifyCard() {
-        card.baseDamage = card.damage = getBaseDamage();
+        if (useSecondaryDamage) {
+            card.baseSecondaryDamage = card.secondaryDamage = getBaseDamage();
+        } else {
+            card.baseDamage = card.damage = getBaseDamage();
+        }
         if (toAllEnemies) {
             card.setMultiDamage(true);
         }
@@ -89,14 +108,22 @@ public class DealDamage extends FriendCardProperty {
 
     @Override
     public String getDescription() {
+        String result;
         if (attackCount > 1) {
             if (toAllEnemies) {
-                return randomEnemy ? localize("DealDamageRandomMultipleTimes", attackCount) : localize("DealDamageAllMultipleTimes", attackCount);
+                result = randomEnemy ? localize("DealDamageRandomMultipleTimes", getAttackCountMayUpgrade()) :
+                        localize("DealDamageAllMultipleTimes", getAttackCountMayUpgrade());
             } else {
-                return localize("DealDamageMultipleTimes", attackCount);
+                result = localize("DealDamageMultipleTimes", getAttackCountMayUpgrade());
             }
+        } else {
+            result = localize("DealDamage", "DealDamageAll");
         }
-        return localize("DealDamage", "DealDamageAll");
+        if (useSecondaryDamage) {
+            return result.replace("!D!", "!chaofanmod:var.SecondaryDamage!");
+        } else {
+            return result;
+        }
     }
 
     @Override
@@ -106,26 +133,37 @@ public class DealDamage extends FriendCardProperty {
 
     @Override
     public void use(AbstractPlayer p, AbstractMonster m) {
+        int attackCount = getAttackCountMayUpgrade();
         for (int i = 0; i < attackCount; i++) {
             if (randomEnemy && toAllEnemies) {
-                this.addToBot(new DamageRandomEnemyAction(new DamageInfo(p, card.damage), attackEffect));
+                this.addToBot(new DamageRandomEnemyAction(new DamageInfo(p, useSecondaryDamage ? card.secondaryDamage : card.damage), attackEffect));
             } else if (toAllEnemies) {
-                this.addToBot(new DamageAllEnemiesAction(p, card.multiDamage, DamageInfo.DamageType.NORMAL, attackEffect));
+                this.addToBot(new DamageAllEnemiesAction(p, useSecondaryDamage ? card.secondaryMultiDamage : card.multiDamage, DamageInfo.DamageType.NORMAL, attackEffect));
             } else {
-                this.addToBot(new DamageAction(m, new DamageInfo(p, card.damage), attackEffect));
+                this.addToBot(new DamageAction(m, new DamageInfo(p, useSecondaryDamage ? card.secondaryDamage : card.damage), attackEffect));
             }
         }
     }
 
     @Override
     public void upgrade() {
-        card.upgradeDamage(getUpgradeDamage());
+        if (useSecondaryDamage) {
+            card.upgradeSecondaryDamage(getUpgradeDamage());
+        } else {
+            card.upgradeDamage(getUpgradeDamage());
+        }
+    }
+
+    private int getAttackCountMayUpgrade() {
+        return attackCount + (card.upgraded ? upgradeAttackCount : 0);
     }
 
     private int getBaseDamage() {
         float value = this.value;
-        if (attackCount > 3) {
-            value *= 0.85;
+        if (attackCount == 4) {
+            value *= 0.7;
+        } else if (attackCount == 5) {
+            value *= 0.6;
         }
         value /= attackCount;
         if (value < 1) {
@@ -136,8 +174,10 @@ public class DealDamage extends FriendCardProperty {
 
     private int getUpgradeDamage() {
         float value = this.upgradeValue;
-        if (attackCount > 3) {
-            value *= 0.85;
+        if (attackCount == 4) {
+            value *= 0.7;
+        } else if (attackCount == 5) {
+            value *= 0.6;
         }
         value /= attackCount;
         if (this.upgradeValue != 0 && value < 1) {

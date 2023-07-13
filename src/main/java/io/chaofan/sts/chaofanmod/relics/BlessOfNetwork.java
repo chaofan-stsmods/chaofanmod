@@ -38,19 +38,11 @@ public class BlessOfNetwork extends CustomRelic {
     public void atBattleStart() {
         this.addToBot(new RelicAboveCreatureAction(AbstractDungeon.player, this));
         this.addToBot(new MakeTempCardInHandAction(makeFriendCard()));
-
-        // TODO remove me
-        //*
-        for (AbstractMonster monster : AbstractDungeon.getMonsters().monsters) {
-            if (!monster.isDeadOrEscaped()) {
-                addToBot(new GainBlockAction(monster, 999));
-            }
-        } //*/
     }
 
     private FriendCard makeFriendCard() {
         List<SteamID> friends = ChaofanMod.steamworksHelper.getFriends();
-        if (friends.size() == 0) {
+        if (friends.isEmpty()) {
             AbstractDungeon.effectList.add(new ThoughtBubble(AbstractDungeon.player.dialogX, AbstractDungeon.player.dialogY, 3.0F, DESCRIPTIONS[1], true));
             return new FriendCard(true);
         }
