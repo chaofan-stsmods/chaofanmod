@@ -13,7 +13,7 @@ public class GainStrength extends ScoreNeededListProperty {
     private static final int[] scoreNeeded = { 0, 4, 8, 12, 20 };
     private static final int[] scoreGain = { 0, 7, 10, 14 };
 
-    private boolean temp = false;
+    protected boolean temp = false;
 
     public GainStrength(FriendCard card) {
         super(card, scoreNeeded);

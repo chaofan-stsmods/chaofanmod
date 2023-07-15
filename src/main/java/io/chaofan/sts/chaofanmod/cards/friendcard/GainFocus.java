@@ -3,20 +3,25 @@ package io.chaofan.sts.chaofanmod.cards.friendcard;
 import com.megacrit.cardcrawl.actions.common.ApplyPowerAction;
 import com.megacrit.cardcrawl.characters.AbstractPlayer;
 import com.megacrit.cardcrawl.monsters.AbstractMonster;
-import com.megacrit.cardcrawl.powers.DexterityPower;
-import com.megacrit.cardcrawl.powers.LoseDexterityPower;
+import com.megacrit.cardcrawl.powers.FocusPower;
+import com.megacrit.cardcrawl.powers.LoseStrengthPower;
+import com.megacrit.cardcrawl.powers.StrengthPower;
 import io.chaofan.sts.chaofanmod.cards.FriendCard;
+import io.chaofan.sts.chaofanmod.utils.CharacterAnalyzer;
 
 import java.util.Random;
 
-public class GainDexterity extends ScoreNeededListProperty {
-    private static final int[] scoreNeeded = { 0, 6, 12, 18, 30 };
-    private static final int[] scoreGain = { 0, 10, 20, 30 };
+public class GainFocus extends ScoreNeededListProperty {
+    private static final int[] scoreNeeded = { 0, 10, 20, 30 };
+    private static final int[] scoreGain = { 0, 6, 12, 18 };
 
-    protected boolean temp = false;
-
-    public GainDexterity(FriendCard card) {
+    public GainFocus(FriendCard card) {
         super(card, scoreNeeded);
+    }
+
+    @Override
+    public boolean canUse(Random random) {
+        return super.canUse(random) && CharacterAnalyzer.affectedByFocus;
     }
 
     @Override
@@ -40,11 +45,7 @@ public class GainDexterity extends ScoreNeededListProperty {
             value = random.nextInt(3) + (random.nextInt(5) == 0 ? 1 : 0);
             return score + scoreGain[(int) value];
         } else {
-            int result = super.tryApplyScore(score, random);
-            if (random.nextBoolean()) {
-                this.temp = true;
-            }
-            return result;
+            return super.tryApplyScore(score, random);
         }
     }
 
@@ -59,24 +60,19 @@ public class GainDexterity extends ScoreNeededListProperty {
 
     @Override
     public String getDescription() {
-        if (this.temp) {
-            return localize("GainDexterityTemp {}", 2 * getValueMayUpgrade());
-        } else if (this.isNegative) {
-            return localize("LoseDexterity {}", getValueMayUpgrade());
+        if (this.isNegative) {
+            return localize("LoseFocus {}", getValueMayUpgrade());
         } else {
-            return localize("GainDexterity {}", getValueMayUpgrade());
+            return localize("GainFocus {}", getValueMayUpgrade());
         }
     }
 
     @Override
     public void use(AbstractPlayer p, AbstractMonster m) {
-        if (this.temp) {
-            addToBot(new ApplyPowerAction(p, p, new DexterityPower(p, 2 * getValueMayUpgrade())));
-            addToBot(new ApplyPowerAction(p, p, new LoseDexterityPower(p, 2 * getValueMayUpgrade())));
-        } else if (this.isNegative) {
-            addToBot(new ApplyPowerAction(p, p, new DexterityPower(p, -getValueMayUpgrade())));
+        if (this.isNegative) {
+            addToBot(new ApplyPowerAction(p, p, new FocusPower(p, -getValueMayUpgrade())));
         } else {
-            addToBot(new ApplyPowerAction(p, p, new DexterityPower(p, getValueMayUpgrade())));
+            addToBot(new ApplyPowerAction(p, p, new FocusPower(p, getValueMayUpgrade())));
         }
     }
 }

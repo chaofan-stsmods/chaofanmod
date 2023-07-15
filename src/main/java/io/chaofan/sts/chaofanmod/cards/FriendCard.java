@@ -18,6 +18,7 @@ import com.megacrit.cardcrawl.localization.CardStrings;
 import com.megacrit.cardcrawl.monsters.AbstractMonster;
 import io.chaofan.sts.chaofanmod.ChaofanMod;
 import io.chaofan.sts.chaofanmod.cards.friendcard.FriendCardProperty;
+import io.chaofan.sts.chaofanmod.utils.CharacterAnalyzer;
 import io.chaofan.sts.chaofanmod.utils.TextureLoader;
 
 import java.util.ArrayList;

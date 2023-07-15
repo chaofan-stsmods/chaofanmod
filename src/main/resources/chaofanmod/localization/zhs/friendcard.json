@@ -49,5 +49,15 @@
   "Condition FIRST_CARD {}": "如果本回合第一张打出的是这张牌， {}",
   "Condition ATTACK_ONLY {}": "如果所有手牌都是攻击牌， {}",
   "Condition SINGLE_ATTACK {}": "如果这张牌是手中唯一的攻击牌， {}",
-  "EachEnemy {}": "当前每有一名敌人， {}"
+  "EachEnemy {}": "当前每有一名敌人， {}",
+  "ChannelOrbs {} {orb}": "生成 {} 个 {orb} 充能球。",
+  "LoseOrbSlot {}": "失去 {} 个充能球栏位。",
+  "GainOrbSlot {}": "获得 {} 个充能球栏位。",
+  "GainFocus {}": "获得 {} 点 集中 。",
+  "LoseFocus {}": "失去 {} 点 集中 。",
+  "EndYourTurn": "结束你的回合。",
+  "EnterStance {}": "进入 {} 。",
+  "ExitStance": "退出当前 姿态 。",
+  "EachOrb {}": "你每拥有一个充能球， {}",
+  "EachUniqueOrb {}": "你每有一种不同的充能球， {}"
 }

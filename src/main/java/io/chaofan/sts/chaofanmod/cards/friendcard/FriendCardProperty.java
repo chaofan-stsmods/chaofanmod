@@ -10,6 +10,7 @@ import com.megacrit.cardcrawl.characters.AbstractPlayer;
 import com.megacrit.cardcrawl.dungeons.AbstractDungeon;
 import com.megacrit.cardcrawl.monsters.AbstractMonster;
 import io.chaofan.sts.chaofanmod.cards.FriendCard;
+import io.chaofan.sts.chaofanmod.utils.CharacterAnalyzer;
 
 import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
@@ -21,7 +22,7 @@ import static io.chaofan.sts.CommonModUtils.getLocalizationFilePath;
 import static io.chaofan.sts.chaofanmod.ChaofanMod.MOD_ID;
 
 public abstract class FriendCardProperty {
-    private static final int[] costScoreMap = new int[] { 4, 9, 16, 30 };
+    protected static final int[] costScoreMap = CharacterAnalyzer.costScoreMap;
     private static final int[] costScoreUpgradeMap = new int[] { 3, 4, 7, 10 };
     private static final TreeMap<Integer, Class<? extends FriendCardProperty>> allCardProperties = new TreeMap<>();
     private static int allCardPropertiesPowerSum;
@@ -46,10 +47,16 @@ public abstract class FriendCardProperty {
         registerProperty(Discard.class, 100);
         registerProperty(GainArtifact.class, 50);
         registerProperty(Heal.class, 50);
-        registerProperty(LoseStrength.class, 50);
+        registerProperty(EnemyLoseStrength.class, 50);
         registerProperty(Condition.class, 100);
         registerProperty(GainBlockNextTurn.class, 100);
         registerProperty(EachEnemy.class, 100);
+        registerProperty(ChannelOrbs.class, 100);
+        registerProperty(GainOrbSlot.class, 100);
+        registerProperty(GainFocus.class, 100);
+        registerProperty(EndYourTurn.class, 80);
+        registerProperty(EnterStance.class, 100);
+        registerProperty(EachOrb.class, 100);
     }
 
     protected boolean shouldUpgrade;
@@ -146,7 +153,8 @@ public abstract class FriendCardProperty {
     }
 
     protected String localize(String key, int value) {
-        return localize(key).replace("{}", (shouldUpgrade && card.displayingUpgrades ? "[#7fff00]" + value + "[]" : String.valueOf(value)));
+        return localize(key).replace("{}", (shouldUpgrade && card.displayingUpgrades ? "[#7fff00]" + value + "[]" : String.valueOf(value)))
+                .replace("(s)", value == 1 ? "" : "s");
     }
 
     protected String localize(String key, String targetAllKey, int value) {
@@ -184,6 +192,8 @@ public abstract class FriendCardProperty {
     }
 
     public static void addProperties(FriendCard friendCard, List<FriendCardProperty> properties, Random random) {
+        CharacterAnalyzer.tryAnalyzeCurrentCharacter();
+
         if (random.nextInt(4) == 0) {
             properties.add(new Exhaust(friendCard));
         }
@@ -389,7 +399,7 @@ public abstract class FriendCardProperty {
     }
 
     protected static String toLowerPrefix(String s) {
-        if (s.length() == 0) {
+        if (s.length() == 0 || s.startsWith("ALL ")) {
             return s;
         }
 

@@ -65,7 +65,7 @@ public class GainBlockNextTurn extends FriendCardProperty {
 
     @Override
     public int applyPriority() {
-        return 0;
+        return 10;
     }
 
     @Override

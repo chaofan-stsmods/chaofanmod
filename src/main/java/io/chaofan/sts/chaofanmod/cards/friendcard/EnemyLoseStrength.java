@@ -9,10 +9,10 @@ import io.chaofan.sts.chaofanmod.cards.FriendCard;
 
 import java.util.Random;
 
-public class LoseStrength extends ScoreNeededListProperty {
+public class EnemyLoseStrength extends ScoreNeededListProperty {
     private static final int[] scoreNeeded = { 0, 6, 12, 20, 30, 40 };
 
-    public LoseStrength(FriendCard card) {
+    public EnemyLoseStrength(FriendCard card) {
         super(card, scoreNeeded);
     }
 

@@ -1,23 +1,27 @@
 package io.chaofan.sts.chaofanmod.cards.friendcard;
 
 import com.megacrit.cardcrawl.characters.AbstractPlayer;
-import com.megacrit.cardcrawl.dungeons.AbstractDungeon;
 import com.megacrit.cardcrawl.monsters.AbstractMonster;
+import com.megacrit.cardcrawl.orbs.EmptyOrbSlot;
 import io.chaofan.sts.chaofanmod.cards.FriendCard;
 import io.chaofan.sts.chaofanmod.utils.CharacterAnalyzer;
 
 import java.util.Random;
 
-public class EachEnemy extends NoUpgradeProperty {
+public class EachUniqueOrb extends NoUpgradeProperty {
     protected FriendCardProperty actionProperty;
 
-    public EachEnemy(FriendCard card) {
+    public EachUniqueOrb(FriendCard card) {
         super(card);
         isActionableEffect = false;
+        alternateOf = EachOrb.class;
     }
 
     @Override
     public boolean canUse(Random random) {
+        if (CharacterAnalyzer.useOrbs.isEmpty() || card.properties.stream().anyMatch(p -> p instanceof EachEnemy || p.alternateOf == EachEnemy.class)) {
+            return false;
+        }
         if (card.properties.size() > 0) {
             FriendCardProperty lastProperty;
             if (card.properties.contains(this)) {
@@ -55,21 +59,11 @@ public class EachEnemy extends NoUpgradeProperty {
 
     @Override
     public String getDescription() {
-        return localize("EachEnemy {}").replace("{}", toLowerPrefix(actionProperty.getDescription()));
+        return localize("EachUniqueOrb {}").replace("{}", toLowerPrefix(actionProperty.getDescription()));
     }
 
     @Override
     public void use(AbstractPlayer p, AbstractMonster monster) {
-        AbstractDungeon.getMonsters().monsters.stream().filter(m -> !m.isDeadOrEscaped()).forEach(m -> actionProperty.use(p, monster));
+        p.orbs.stream().filter(o -> !(o instanceof EmptyOrbSlot)).map(o -> o.ID).distinct().forEach(o -> actionProperty.use(p, monster));
     }
-
-    @Override
-    public FriendCardProperty makeAlternateProperty(Random random) {
-        if (random.nextBoolean()) {
-            return new EachEnemyDamageOrBlock(card);
-        } else {
-            return this;
-        }
-    }
-
 }

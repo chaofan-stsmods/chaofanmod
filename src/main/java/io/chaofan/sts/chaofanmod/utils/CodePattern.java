@@ -91,6 +91,10 @@ public class CodePattern {
         return result;
     }
 
+    public static CodePattern anyOf(int... ops) {
+        return new CodePattern(Arrays.stream(ops).mapToObj(CodePattern::new).toArray(CodePattern[]::new), MatchType.ANY);
+    }
+
     public static CodePattern anyOf(CodePattern... codePatterns) {
         return new CodePattern(codePatterns, MatchType.ANY);
     }

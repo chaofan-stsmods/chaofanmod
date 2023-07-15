@@ -14,7 +14,7 @@ public class LoseTempStrength extends ScoreNeededListProperty {
 
     public LoseTempStrength(FriendCard card) {
         super(card, scoreNeeded);
-        alternateOf = LoseStrength.class;
+        alternateOf = EnemyLoseStrength.class;
     }
 
     @Override

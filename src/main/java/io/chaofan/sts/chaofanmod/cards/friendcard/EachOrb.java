@@ -3,21 +3,25 @@ package io.chaofan.sts.chaofanmod.cards.friendcard;
 import com.megacrit.cardcrawl.characters.AbstractPlayer;
 import com.megacrit.cardcrawl.dungeons.AbstractDungeon;
 import com.megacrit.cardcrawl.monsters.AbstractMonster;
+import com.megacrit.cardcrawl.orbs.EmptyOrbSlot;
 import io.chaofan.sts.chaofanmod.cards.FriendCard;
 import io.chaofan.sts.chaofanmod.utils.CharacterAnalyzer;
 
 import java.util.Random;
 
-public class EachEnemy extends NoUpgradeProperty {
+public class EachOrb extends NoUpgradeProperty {
     protected FriendCardProperty actionProperty;
 
-    public EachEnemy(FriendCard card) {
+    public EachOrb(FriendCard card) {
         super(card);
         isActionableEffect = false;
     }
 
     @Override
     public boolean canUse(Random random) {
+        if (CharacterAnalyzer.useOrbs.isEmpty() || card.properties.stream().anyMatch(p -> p instanceof EachEnemy || p.alternateOf == EachEnemy.class)) {
+            return false;
+        }
         if (card.properties.size() > 0) {
             FriendCardProperty lastProperty;
             if (card.properties.contains(this)) {
@@ -47,7 +51,7 @@ public class EachEnemy extends NoUpgradeProperty {
 
     @Override
     public void modifyCard() {
-        actionProperty.multiplyValues(0.7f);
+        actionProperty.multiplyValues(0.4f);
         super.modifyCard();
         actionProperty.shouldUse = false;
         actionProperty.shouldShowDescription = false;
@@ -55,21 +59,23 @@ public class EachEnemy extends NoUpgradeProperty {
 
     @Override
     public String getDescription() {
-        return localize("EachEnemy {}").replace("{}", toLowerPrefix(actionProperty.getDescription()));
+        return localize("EachOrb {}").replace("{}", toLowerPrefix(actionProperty.getDescription()));
     }
 
     @Override
     public void use(AbstractPlayer p, AbstractMonster monster) {
-        AbstractDungeon.getMonsters().monsters.stream().filter(m -> !m.isDeadOrEscaped()).forEach(m -> actionProperty.use(p, monster));
+        p.orbs.stream().filter(o -> !(o instanceof EmptyOrbSlot)).forEach(o -> actionProperty.use(p, monster));
     }
 
     @Override
     public FriendCardProperty makeAlternateProperty(Random random) {
-        if (random.nextBoolean()) {
-            return new EachEnemyDamageOrBlock(card);
+        int n = random.nextInt(3);
+        if (n == 2) {
+            return new EachOrbDamageOrBlock(card);
+        } else if (n == 1) {
+            return new EachUniqueOrb(card);
         } else {
             return this;
         }
     }
-
 }

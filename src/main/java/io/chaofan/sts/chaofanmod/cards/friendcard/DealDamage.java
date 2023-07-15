@@ -1,18 +1,35 @@
 package io.chaofan.sts.chaofanmod.cards.friendcard;
 
 import com.megacrit.cardcrawl.actions.AbstractGameAction;
+import com.megacrit.cardcrawl.actions.animations.VFXAction;
 import com.megacrit.cardcrawl.actions.common.DamageAction;
 import com.megacrit.cardcrawl.actions.common.DamageAllEnemiesAction;
 import com.megacrit.cardcrawl.actions.common.DamageRandomEnemyAction;
+import com.megacrit.cardcrawl.actions.utility.SFXAction;
+import com.megacrit.cardcrawl.actions.utility.WaitAction;
 import com.megacrit.cardcrawl.cards.AbstractCard;
 import com.megacrit.cardcrawl.cards.DamageInfo;
 import com.megacrit.cardcrawl.characters.AbstractPlayer;
 import com.megacrit.cardcrawl.monsters.AbstractMonster;
+import com.megacrit.cardcrawl.vfx.combat.HemokinesisEffect;
+import com.megacrit.cardcrawl.vfx.combat.MindblastEffect;
+import com.megacrit.cardcrawl.vfx.combat.WeightyImpactEffect;
 import io.chaofan.sts.chaofanmod.cards.FriendCard;
 
 import java.util.Random;
 
 public class DealDamage extends FriendCardProperty {
+
+    private static final AbstractGameAction.AttackEffect[] attackEffects = new AbstractGameAction.AttackEffect[] {
+            AbstractGameAction.AttackEffect.BLUNT_LIGHT,
+            AbstractGameAction.AttackEffect.BLUNT_HEAVY,
+            AbstractGameAction.AttackEffect.SLASH_DIAGONAL,
+            AbstractGameAction.AttackEffect.SMASH,
+            AbstractGameAction.AttackEffect.SLASH_HEAVY,
+            AbstractGameAction.AttackEffect.SLASH_HORIZONTAL,
+            AbstractGameAction.AttackEffect.SLASH_VERTICAL,
+            AbstractGameAction.AttackEffect.FIRE,
+    };
 
     // randomEnemy take effects only toAllEnemy is enabled.
     private boolean randomEnemy;
@@ -70,6 +87,7 @@ public class DealDamage extends FriendCardProperty {
         if (attackCount > 1) {
             randomEnemy = random.nextInt(4) != 0;
         }
+        attackEffect = attackEffects[random.nextInt(attackEffects.length)];
         return 0;
     }
 
@@ -134,6 +152,28 @@ public class DealDamage extends FriendCardProperty {
     @Override
     public void use(AbstractPlayer p, AbstractMonster m) {
         int attackCount = getAttackCountMayUpgrade();
+        AbstractGameAction.AttackEffect attackEffect = this.attackEffect;
+
+        // Bludgeon
+        if (attackCount == 1 && !toAllEnemies && getBaseDamage() >= 25 && m != null) {
+            addToBot(new VFXAction(new WeightyImpactEffect(m.hb.cX, m.hb.cY)));
+            addToBot(new WaitAction(0.8F));
+            attackEffect = AbstractGameAction.AttackEffect.NONE;
+        }
+
+        // Hyper beam
+        if (attackCount == 1 && toAllEnemies && !randomEnemy && card.properties.stream().anyMatch(p1 -> p1 instanceof GainFocus && p1.isNegative)) {
+            addToBot(new SFXAction("ATTACK_HEAVY"));
+            addToBot(new VFXAction(p, new MindblastEffect(p.dialogX, p.dialogY, p.flipHorizontal), 0.1F));
+            attackEffect = AbstractGameAction.AttackEffect.NONE;
+        }
+
+        // Hemokinesis
+        if (attackCount == 1 && !toAllEnemies && card.properties.stream().anyMatch(p1 -> p1 instanceof LoseHp) && m != null) {
+            addToBot(new VFXAction(new HemokinesisEffect(p.hb.cX, p.hb.cY, m.hb.cX, m.hb.cY), 0.5F));
+            attackEffect = AbstractGameAction.AttackEffect.BLUNT_HEAVY;
+        }
+
         for (int i = 0; i < attackCount; i++) {
             if (randomEnemy && toAllEnemies) {
                 this.addToBot(new DamageRandomEnemyAction(new DamageInfo(p, useSecondaryDamage ? card.secondaryDamage : card.damage), attackEffect));

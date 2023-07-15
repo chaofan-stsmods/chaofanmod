@@ -22,8 +22,8 @@ import static io.chaofan.sts.chaofanmod.ChaofanMod.makeId;
 public class BlessOfNetwork extends CustomRelic {
     public static final String ID = makeId("relic.BlessOfNetwork");
 
-    private static final Texture IMG = TextureLoader.getTexture(getImagePath("relics/manhole_cover.png"));
-    private static final Texture OUTLINE = TextureLoader.getTexture(getImagePath("relics/outline/manhole_cover.png"));
+    private static final Texture IMG = TextureLoader.getTexture(getImagePath("relics/bless_of_network.png"));
+    private static final Texture OUTLINE = TextureLoader.getTexture(getImagePath("relics/outline/bless_of_network.png"));
 
     public BlessOfNetwork() {
         super(ID, IMG, OUTLINE, RelicTier.RARE, LandingSound.MAGICAL);
