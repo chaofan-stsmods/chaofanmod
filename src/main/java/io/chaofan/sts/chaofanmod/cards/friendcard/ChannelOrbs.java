@@ -3,15 +3,13 @@ package io.chaofan.sts.chaofanmod.cards.friendcard;
 import com.megacrit.cardcrawl.actions.defect.ChannelAction;
 import com.megacrit.cardcrawl.characters.AbstractPlayer;
 import com.megacrit.cardcrawl.monsters.AbstractMonster;
-import com.megacrit.cardcrawl.orbs.AbstractOrb;
 import io.chaofan.sts.chaofanmod.cards.FriendCard;
 import io.chaofan.sts.chaofanmod.utils.CharacterAnalyzer;
 
 import java.util.Random;
 
 public class ChannelOrbs extends FriendCardProperty {
-    private int scorePerOrb;
-    private AbstractOrb orb;
+    private CharacterAnalyzer.OrbInfo orbInfo;
 
     public ChannelOrbs(FriendCard card) {
         super(card);
@@ -29,21 +27,20 @@ public class ChannelOrbs extends FriendCardProperty {
 
     @Override
     public int getScoreLose() {
-        return (int) value * scorePerOrb;
+        return (int) value * orbInfo.score;
     }
 
     @Override
     public int tryApplyScore(int score, Random random) {
-        orb = CharacterAnalyzer.useOrbs.get(random.nextInt(CharacterAnalyzer.useOrbs.size()));
-        scorePerOrb = CharacterAnalyzer.orbScores.get(orb.getClass());
-        value = (int) (score / scorePerOrb);
-        return (int) (score - value * scorePerOrb);
+        orbInfo = CharacterAnalyzer.useOrbs.get(random.nextInt(CharacterAnalyzer.useOrbs.size()));
+        value = (int) (score / orbInfo.score);
+        return (int) (score - value * orbInfo.score);
     }
 
     @Override
     public int tryApplyUpgradeScore(int additionalScore, Random random) {
-        upgradeValue = (int) (additionalScore / scorePerOrb);
-        return (int) (additionalScore - upgradeValue * scorePerOrb);
+        upgradeValue = (int) (additionalScore / orbInfo.score);
+        return (int) (additionalScore - upgradeValue * orbInfo.score);
     }
 
     @Override
@@ -54,7 +51,7 @@ public class ChannelOrbs extends FriendCardProperty {
     @Override
     public String getDescription() {
         return localize(
-                localize("ChannelOrbs {} {orb}").replace("{orb}", CharacterAnalyzer.getKeyword(orb.name)),
+                localize("ChannelOrbs {} {orb}").replace("{orb}", CharacterAnalyzer.getKeyword(orbInfo.orb.name)),
                 getValueMayUpgrade());
     }
 
@@ -62,7 +59,7 @@ public class ChannelOrbs extends FriendCardProperty {
     public void use(AbstractPlayer p, AbstractMonster m) {
         int count = getValueMayUpgrade();
         for (int i = 0; i < count; i++) {
-            this.addToBot(new ChannelAction(orb.makeCopy()));
+            this.addToBot(new ChannelAction(orbInfo.newInstance()));
         }
     }
 }

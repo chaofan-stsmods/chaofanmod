@@ -6,12 +6,11 @@ import com.megacrit.cardcrawl.monsters.AbstractMonster;
 import io.chaofan.sts.chaofanmod.actions.common.XCardAction;
 import io.chaofan.sts.chaofanmod.cards.FriendCard;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 public class XCard extends FriendCardProperty {
     private final List<FriendCardProperty> affectedProperties = new ArrayList<>();
+    private final Map<FriendCardProperty, Boolean> originalShouldUse = new HashMap<>();
 
     public XCard(FriendCard card) {
         super(card);
@@ -54,9 +53,10 @@ public class XCard extends FriendCardProperty {
             if (property == this) {
                 break;
             }
+            affectedProperties.add(property);
+            originalShouldUse.put(property, property.shouldUse);
             property.shouldUse = false;
             property.multiplyValues(0.7f);
-            affectedProperties.add(property);
         }
     }
 
@@ -78,7 +78,7 @@ public class XCard extends FriendCardProperty {
                 card.freeToPlayOnce,
                 card.energyOnUse,
                 (amount) -> {
-                    affectedProperties.forEach(p -> p.shouldUse = true);
+                    affectedProperties.forEach(p -> p.shouldUse = originalShouldUse.get(p));
                     for (int i = shouldUpgrade && card.upgraded ? -1 : 0; i < amount; i++) {
                         FriendCardProperty.use(affectedProperties, player, m);
                     }

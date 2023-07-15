@@ -158,6 +158,10 @@ public class CodePattern {
             this.end = end;
         }
 
+        public boolean contains(Range anotherRange) {
+            return anotherRange.start >= start && anotherRange.end <= end;
+        }
+
         @Override
         public String toString() {
             return String.format("Range(%X, %X)", start, end);

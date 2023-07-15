@@ -59,5 +59,8 @@
   "EnterStance {}": "进入 {} 。",
   "ExitStance": "退出当前 姿态 。",
   "EachOrb {}": "你每拥有一个充能球， {}",
-  "EachUniqueOrb {}": "你每有一种不同的充能球， {}"
+  "EachUniqueOrb {}": "你每有一种不同的充能球， {}",
+  "Apply {} {power}": "给予 {} 层 {power} 。",
+  "ApplyAll {} {power}": "给予所有敌人 {} 层 {power} 。",
+  "Gain {} {power}": "获得 {} 层 {power} 。"
 }

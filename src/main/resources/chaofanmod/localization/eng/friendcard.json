@@ -59,5 +59,8 @@
   "EnterStance {}": "Enter {}.",
   "ExitStance": "Exit your Stance.",
   "EachOrb {}": "For each Channeled Orb, {}",
-  "EachUniqueOrb {}": "For each unique Orb you have, {}"
+  "EachUniqueOrb {}": "For each unique Orb you have, {}",
+  "Apply {} {power}": "Apply {} {power}.",
+  "ApplyAll {} {power}": "Apply {} {power} to ALL enemies.",
+  "Gain {} {power}": "Gain {} {power}."
 }

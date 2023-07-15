@@ -23,7 +23,7 @@ import static io.chaofan.sts.chaofanmod.ChaofanMod.MOD_ID;
 
 public abstract class FriendCardProperty {
     protected static final int[] costScoreMap = CharacterAnalyzer.costScoreMap;
-    private static final int[] costScoreUpgradeMap = new int[] { 3, 4, 7, 10 };
+    private static final int[] costScoreUpgradeMap = CharacterAnalyzer.costScoreUpgradeMap;
     private static final TreeMap<Integer, Class<? extends FriendCardProperty>> allCardProperties = new TreeMap<>();
     private static int allCardPropertiesPowerSum;
 
@@ -57,6 +57,8 @@ public abstract class FriendCardProperty {
         registerProperty(EndYourTurn.class, 80);
         registerProperty(EnterStance.class, 100);
         registerProperty(EachOrb.class, 100);
+        registerProperty(ApplyPower.class, 100);
+        registerProperty(GainPower.class, 100);
     }
 
     protected boolean shouldUpgrade;

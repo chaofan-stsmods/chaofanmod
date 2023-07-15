@@ -4,7 +4,6 @@ import com.megacrit.cardcrawl.actions.common.ApplyPowerAction;
 import com.megacrit.cardcrawl.characters.AbstractPlayer;
 import com.megacrit.cardcrawl.monsters.AbstractMonster;
 import com.megacrit.cardcrawl.powers.StrengthPower;
-import com.megacrit.cardcrawl.powers.WeakPower;
 import io.chaofan.sts.chaofanmod.cards.FriendCard;
 
 import java.util.Random;
@@ -45,7 +44,7 @@ public class EnemyLoseStrength extends ScoreNeededListProperty {
     @Override
     public FriendCardProperty makeAlternateProperty(Random random) {
         if (random.nextBoolean()) {
-            return new LoseTempStrength(card);
+            return new EnemyLoseTempStrength(card);
         } else {
             return this;
         }

@@ -58,7 +58,7 @@ public class Condition extends NoUpgradeProperty {
         boolean increaseScore = lastProperty.getScoreLose() < 4 || random.nextBoolean();
         if (increaseScore) {
             int remainingScore = lastProperty.tryApplyScore((int) (lastProperty.getScoreLose() / type.multiplier), random);
-            scoreGain = Math.min(1, (int) Math.ceil(remainingScore * type.multiplier));
+            scoreGain = Math.max(1, (int) Math.ceil(remainingScore * type.multiplier));
         } else {
             scoreGain = (int) Math.ceil(lastProperty.getScoreLose() * type.multiplier);
         }

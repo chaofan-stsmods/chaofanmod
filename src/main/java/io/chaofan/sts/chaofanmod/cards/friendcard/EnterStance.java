@@ -3,7 +3,6 @@ package io.chaofan.sts.chaofanmod.cards.friendcard;
 import com.megacrit.cardcrawl.actions.watcher.ChangeStanceAction;
 import com.megacrit.cardcrawl.characters.AbstractPlayer;
 import com.megacrit.cardcrawl.monsters.AbstractMonster;
-import com.megacrit.cardcrawl.stances.AbstractStance;
 import com.megacrit.cardcrawl.stances.NeutralStance;
 import io.chaofan.sts.chaofanmod.cards.FriendCard;
 import io.chaofan.sts.chaofanmod.utils.CharacterAnalyzer;
@@ -11,8 +10,7 @@ import io.chaofan.sts.chaofanmod.utils.CharacterAnalyzer;
 import java.util.Random;
 
 public class EnterStance extends NoUpgradeProperty {
-    private int score;
-    private AbstractStance stance;
+    private CharacterAnalyzer.StanceInfo stanceInfo;
 
     public EnterStance(FriendCard card) {
         super(card);
@@ -25,15 +23,14 @@ public class EnterStance extends NoUpgradeProperty {
 
     @Override
     public int getScoreLose() {
-        return score;
+        return stanceInfo.score;
     }
 
     @Override
     public int tryApplyScore(int score, Random random) {
-        stance = CharacterAnalyzer.useStances.get(random.nextInt(CharacterAnalyzer.useStances.size()));
-        this.score = CharacterAnalyzer.stanceScores.get(stance.getClass());
-        if (score > this.score) {
-            return score - this.score;
+        this.stanceInfo = CharacterAnalyzer.useStances.get(random.nextInt(CharacterAnalyzer.useStances.size()));
+        if (score > this.stanceInfo.score) {
+            return score - this.stanceInfo.score;
         } else {
             return score;
         }
@@ -41,10 +38,10 @@ public class EnterStance extends NoUpgradeProperty {
 
     @Override
     public String getDescription() {
-        if (stance instanceof NeutralStance) {
+        if (stanceInfo.stance instanceof NeutralStance) {
             return localize("ExitStance");
         }
-        return localize("EnterStance {}").replace("{}", stance.name == null ? stance.ID : CharacterAnalyzer.getKeyword(stance.name));
+        return localize("EnterStance {}").replace("{}", stanceInfo.stance.name == null ? stanceInfo.stance.ID : CharacterAnalyzer.getKeyword(stanceInfo.stance.name));
     }
 
     @Override
@@ -54,10 +51,6 @@ public class EnterStance extends NoUpgradeProperty {
 
     @Override
     public void use(AbstractPlayer p, AbstractMonster m) {
-        try {
-            this.addToBot(new ChangeStanceAction(stance.getClass().newInstance()));
-        } catch (InstantiationException | IllegalAccessException e) {
-            this.addToBot(new ChangeStanceAction(stance));
-        }
+        this.addToBot(new ChangeStanceAction(stanceInfo.newInstance()));
     }
 }

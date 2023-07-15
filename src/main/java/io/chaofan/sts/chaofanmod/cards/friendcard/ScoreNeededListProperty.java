@@ -6,7 +6,7 @@ import java.util.Arrays;
 import java.util.Random;
 
 public abstract class ScoreNeededListProperty extends FriendCardProperty {
-    private final int[] scoreNeeded;
+    protected int[] scoreNeeded;
 
     public ScoreNeededListProperty(FriendCard card, int[] scoreNeeded) {
         super(card);
@@ -46,7 +46,11 @@ public abstract class ScoreNeededListProperty extends FriendCardProperty {
             return additionalScore;
         }
 
-        upgradeValue = index - value;
+        upgradeValue = Math.max(0, index - value);
+        if (upgradeValue > 0 && scoreNeeded[index] == scoreNeeded[(int) value]) {
+            return additionalScore - 1;
+        }
+
         return additionalScore - scoreNeeded[index] + scoreNeeded[(int) value];
     }
 
