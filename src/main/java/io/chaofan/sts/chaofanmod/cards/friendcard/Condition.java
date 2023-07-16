@@ -12,6 +12,7 @@ import java.util.Random;
 import java.util.function.Function;
 
 public class Condition extends NoUpgradeProperty {
+    protected FriendCardProperty disableProperty;
     protected FriendCardProperty actionProperty;
     protected Type type;
     protected int scoreGain = 0;
@@ -54,12 +55,18 @@ public class Condition extends NoUpgradeProperty {
         } while (!type.conditionCheck.apply(this));
 
         FriendCardProperty lastProperty = card.properties.get(card.properties.size() - 1);
-        this.actionProperty = lastProperty;
         boolean increaseScore = lastProperty.getScoreLose() < 4 || random.nextBoolean();
         if (increaseScore) {
-            int remainingScore = lastProperty.tryApplyScore((int) (lastProperty.getScoreLose() / type.multiplier), random);
+            this.disableProperty = lastProperty;
+            this.actionProperty = lastProperty.makeNew();
+            int remainingScore = this.actionProperty.tryApplyScore((int) (lastProperty.getScoreLose() / type.multiplier), random);
             scoreGain = Math.max(1, (int) Math.ceil(remainingScore * type.multiplier));
+            if (this.actionProperty.gainScores) {
+                scoreGain = 0;
+            }
         } else {
+            this.disableProperty = null;
+            this.actionProperty = lastProperty;
             scoreGain = (int) Math.ceil(lastProperty.getScoreLose() * type.multiplier);
         }
         return score + scoreGain;
@@ -70,6 +77,13 @@ public class Condition extends NoUpgradeProperty {
         super.modifyCard();
         actionProperty.shouldUse = false;
         actionProperty.shouldShowDescription = false;
+        if (disableProperty != null) {
+            disableProperty.shouldUse = false;
+            disableProperty.shouldShowDescription = false;
+            actionProperty.toAllEnemies = disableProperty.toAllEnemies;
+            actionProperty.upgradeValue = disableProperty.upgradeValue;
+            actionProperty.shouldUpgrade = disableProperty.shouldUpgrade;
+        }
     }
 
     @Override

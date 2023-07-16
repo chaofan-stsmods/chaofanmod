@@ -12,6 +12,7 @@ import com.megacrit.cardcrawl.monsters.AbstractMonster;
 import io.chaofan.sts.chaofanmod.cards.FriendCard;
 import io.chaofan.sts.chaofanmod.utils.CharacterAnalyzer;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -48,7 +49,7 @@ public abstract class FriendCardProperty {
         registerProperty(GainArtifact.class, 50);
         registerProperty(Heal.class, 50);
         registerProperty(EnemyLoseStrength.class, 50);
-        registerProperty(Condition.class, 100);
+        registerProperty(Condition.class, 1000);
         registerProperty(GainBlockNextTurn.class, 100);
         registerProperty(EachEnemy.class, 100);
         registerProperty(ChannelOrbs.class, 100);
@@ -141,10 +142,6 @@ public abstract class FriendCardProperty {
         AbstractDungeon.actionManager.addToBottom(action);
     }
 
-    protected void addToTop(AbstractGameAction action) {
-        AbstractDungeon.actionManager.addToTop(action);
-    }
-
     protected String localize(String key) {
         String result = friendCardStrings.get(key);
         return result != null ? result : key;
@@ -191,6 +188,16 @@ public abstract class FriendCardProperty {
         } else if (card.target == AbstractCard.CardTarget.SELF) {
             card.target = toAllEnemies ? AbstractCard.CardTarget.ALL : AbstractCard.CardTarget.SELF_AND_ENEMY;
         }
+    }
+
+    protected FriendCardProperty makeNew() {
+        try {
+            return this.getClass().getConstructor(FriendCard.class).newInstance(this.card);
+        } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+            e.printStackTrace();
+        }
+
+        throw new RuntimeException(getClass() + ".makeNew() doesn't work.");
     }
 
     public static void addProperties(FriendCard friendCard, List<FriendCardProperty> properties, Random random) {
@@ -242,6 +249,10 @@ public abstract class FriendCardProperty {
                 continue;
             }
 
+            if (propertyCount == 1 && property.gainScores) {
+                continue;
+            }
+
             int nextScore = propertyCount == 1 ? averageScore :
                     Math.max(1, Math.min((int) (averageScore * (1 + random.nextGaussian())), Math.min(averageScore * 2, score)));
             int remainingScore = property.tryApplyScore(nextScore, random);
@@ -249,6 +260,7 @@ public abstract class FriendCardProperty {
                 continue;
             }
 
+            // Check again in case GainStrength become LoseStrength
             if (propertyCount == 1 && property.gainScores) {
                 continue;
             }

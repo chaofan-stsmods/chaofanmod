@@ -42,7 +42,7 @@ public class GainFocus extends ScoreNeededListProperty {
         if (random.nextInt(5) == 0) {
             isNegative = true;
             gainScores = true;
-            value = random.nextInt(3) + (random.nextInt(5) == 0 ? 1 : 0);
+            value = Math.max(1, random.nextInt(3) + (random.nextInt(5) == 0 ? 1 : 0));
             return score + scoreGain[(int) value];
         } else {
             return super.tryApplyScore(score, random);

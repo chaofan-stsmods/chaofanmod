@@ -4,7 +4,6 @@ import com.megacrit.cardcrawl.characters.AbstractPlayer;
 import com.megacrit.cardcrawl.dungeons.AbstractDungeon;
 import com.megacrit.cardcrawl.monsters.AbstractMonster;
 import io.chaofan.sts.chaofanmod.cards.FriendCard;
-import io.chaofan.sts.chaofanmod.utils.CharacterAnalyzer;
 
 import java.util.Random;
 
