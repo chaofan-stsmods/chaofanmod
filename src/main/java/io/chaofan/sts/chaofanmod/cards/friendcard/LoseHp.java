@@ -13,6 +13,7 @@ public class LoseHp extends ScoreGainListProperty {
     public LoseHp(FriendCard card) {
         super(card, scoreGain);
         isNegative = true;
+        canBePower = true;
     }
 
     @Override

@@ -11,6 +11,7 @@ public class Exhaust extends NoUpgradeProperty {
     public Exhaust(FriendCard card) {
         super(card);
         isActionableEffect = false;
+        canBePower = true;
     }
 
     @Override

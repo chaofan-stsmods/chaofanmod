@@ -42,6 +42,7 @@ public class EachOrb extends NoUpgradeProperty {
     public int tryApplyScore(int score, Random random) {
         if (score > 0) {
             this.actionProperty = card.properties.get(card.properties.size() - 1);
+            canBePower = actionProperty.canBePower;
             return score - 1;
         } else {
             return score;

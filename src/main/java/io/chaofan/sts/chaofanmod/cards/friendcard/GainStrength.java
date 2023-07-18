@@ -17,6 +17,7 @@ public class GainStrength extends ScoreNeededListProperty {
 
     public GainStrength(FriendCard card) {
         super(card, scoreNeeded);
+        canBePower = true;
     }
 
     @Override
@@ -43,6 +44,7 @@ public class GainStrength extends ScoreNeededListProperty {
             int result = super.tryApplyScore(score, random);
             if (random.nextBoolean()) {
                 this.temp = true;
+                canBePower = false;
             }
             return result;
         }

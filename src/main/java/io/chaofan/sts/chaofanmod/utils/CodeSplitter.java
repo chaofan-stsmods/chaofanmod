@@ -1,5 +1,6 @@
 package io.chaofan.sts.chaofanmod.utils;
 
+import javassist.bytecode.BadBytecode;
 import javassist.bytecode.CodeIterator;
 import javassist.bytecode.Opcode;
 
@@ -7,6 +8,18 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class CodeSplitter {
+    public static void getCodes(CodeIterator ci, List<Integer> byteCodes, List<Integer> byteCodeIndices) throws BadBytecode {
+        ci.begin();
+        byteCodes.clear();
+        byteCodeIndices.clear();
+        while (ci.hasNext()) {
+            int index = ci.next();
+            int op = ci.byteAt(index);
+            byteCodes.add(op);
+            byteCodeIndices.add(index);
+        }
+    }
+
     public static TreeMap<Integer, CodePiece> split(List<Integer> byteCodes, List<Integer> byteCodeIndices, CodeIterator iterator) {
         TreeMap<Integer, CodePiece> codes = new TreeMap<>();
         codes.put(0, new CodePiece(0, iterator.getCodeLength(), null, null));

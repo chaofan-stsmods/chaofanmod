@@ -13,6 +13,7 @@ public class GainArtifact extends NoUpgradeProperty {
 
     public GainArtifact(FriendCard card) {
         super(card);
+        canBePower = true;
     }
 
     @Override

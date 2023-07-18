@@ -17,6 +17,7 @@ public class GainFocus extends ScoreNeededListProperty {
 
     public GainFocus(FriendCard card) {
         super(card, scoreNeeded);
+        canBePower = true;
     }
 
     @Override

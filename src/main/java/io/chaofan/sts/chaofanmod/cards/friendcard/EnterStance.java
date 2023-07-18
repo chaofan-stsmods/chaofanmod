@@ -14,6 +14,7 @@ public class EnterStance extends NoUpgradeProperty {
 
     public EnterStance(FriendCard card) {
         super(card);
+        canBePower = true;
     }
 
     @Override

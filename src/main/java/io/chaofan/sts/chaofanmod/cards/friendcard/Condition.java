@@ -59,16 +59,17 @@ public class Condition extends NoUpgradeProperty {
         if (increaseScore) {
             this.disableProperty = lastProperty;
             this.actionProperty = lastProperty.makeNew();
-            int remainingScore = this.actionProperty.tryApplyScore((int) (lastProperty.getScoreLose() / type.multiplier), random);
-            scoreGain = Math.max(1, (int) Math.ceil(remainingScore * type.multiplier));
+            int remainingScore = this.actionProperty.tryApplyScore((int) Math.ceil(lastProperty.getScoreLose() / type.multiplier), random);
+            scoreGain = Math.max(1, (int) Math.ceil(remainingScore * (1 - type.multiplier)));
             if (this.actionProperty.gainScores) {
                 scoreGain = 0;
             }
         } else {
             this.disableProperty = null;
             this.actionProperty = lastProperty;
-            scoreGain = (int) Math.ceil(lastProperty.getScoreLose() * type.multiplier);
+            scoreGain = (int) Math.ceil(lastProperty.getScoreLose() * (1 - type.multiplier));
         }
+        canBePower = actionProperty.canBePower;
         return score + scoreGain;
     }
 

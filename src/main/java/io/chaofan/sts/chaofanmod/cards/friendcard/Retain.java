@@ -11,6 +11,7 @@ public class Retain extends NoUpgradeProperty {
     public Retain(FriendCard card) {
         super(card);
         isActionableEffect = false;
+        canBePower = true;
     }
 
     @Override

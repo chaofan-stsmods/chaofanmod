@@ -274,7 +274,7 @@ public class TauntMaskPatches {
 
         int originalCodeLength = ca.length();
 
-        getCodes(ci, byteCodes, byteCodeIndices);
+        CodeSplitter.getCodes(ci, byteCodes, byteCodeIndices);
 
         if (showDecompile) {
             printCode(ca);
@@ -357,17 +357,6 @@ public class TauntMaskPatches {
             lastOp = op;
         }
         System.out.println();
-    }
-
-    private static void getCodes(CodeIterator ci, List<Integer> byteCodes, List<Integer> byteCodeIndices) throws BadBytecode {
-        byteCodes.clear();
-        byteCodeIndices.clear();
-        while (ci.hasNext()) {
-            int index = ci.next();
-            int op = ci.byteAt(index);
-            byteCodes.add(op);
-            byteCodeIndices.add(index);
-        }
     }
 
     private static List<CodePattern.Range> findRandomConditions(CodeIterator iterator, ConstPool constPool) throws BadBytecode {

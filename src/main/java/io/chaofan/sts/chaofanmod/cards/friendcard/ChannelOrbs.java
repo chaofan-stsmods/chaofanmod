@@ -13,6 +13,7 @@ public class ChannelOrbs extends FriendCardProperty {
 
     public ChannelOrbs(FriendCard card) {
         super(card);
+        canBePower = true;
     }
 
     @Override

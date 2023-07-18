@@ -26,7 +26,7 @@ public class EndYourTurn extends NoUpgradeProperty {
         return super.canUse(random) && card.cost >= 0 && card.cost <= 3 &&
                 card.properties.stream().noneMatch(p -> (p instanceof GainDexterity && ((GainDexterity) p).temp) ||
                         (p instanceof GainStrength && ((GainStrength) p).temp) ||
-                        p instanceof DrawCard);
+                        p instanceof DrawCard || p instanceof GainEnergy);
     }
 
     @Override

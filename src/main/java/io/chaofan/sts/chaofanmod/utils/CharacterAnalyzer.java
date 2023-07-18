@@ -58,6 +58,8 @@ public class CharacterAnalyzer {
     public static List<PowerInfo> applyPowers = new ArrayList<>();
     public static List<PowerInfo> gainPowers = new ArrayList<>();
 
+    private static final Map<String, CardInfo> referencedMethods = new HashMap<>();
+
     private static final Map<Class<? extends AbstractStance>, Integer> predefinedStanceScores = new HashMap<>();
     private static final Map<Class<? extends AbstractOrb>, Integer> predefinedOrbScores = new HashMap<>();
     private static final Map<String, String> analyzerStrings;
@@ -105,6 +107,8 @@ public class CharacterAnalyzer {
         ChaofanMod.logger.info("Orbs: " + useOrbs.stream().map(o -> o.orb.name).collect(Collectors.toList()));
         ChaofanMod.logger.info("ApplyPowers: " + applyPowers.stream().map(p -> p.name).collect(Collectors.toList()));
         ChaofanMod.logger.info("GainPowers: " + gainPowers.stream().map(p -> p.name).collect(Collectors.toList()));
+
+        referencedMethods.clear();
     }
 
     private static void fillCardInfoMap(List<AbstractCard> cards, ClassPool classPool) {
@@ -121,7 +125,8 @@ public class CharacterAnalyzer {
                 try { findBranches(useMethod, cardInfo); } catch (Exception e) { e.printStackTrace(); }
                 try { findStanceFromCard(classPool, useMethod, cardInfo); } catch (Exception e) { e.printStackTrace(); }
                 try { findOrbsFromCard(classPool, useMethod, cardInfo); } catch (Exception e) { e.printStackTrace(); }
-                try { findApplyPowerFromCard(classPool, useMethod, cardInfo); } catch (Exception e) { e.printStackTrace(); }
+                try { findApplyPowerFromCard(classPool, useMethod, cardInfo, 1); } catch (Exception e) { e.printStackTrace(); }
+                try { mergeReferencedMethods(classPool, useMethod, cardInfo, 1); } catch (Exception e) { e.printStackTrace(); }
             } catch (NotFoundException e) {
                 ChaofanMod.logger.warn("fillCardInfoMap failed on card " + card);
             }
@@ -267,7 +272,7 @@ public class CharacterAnalyzer {
         }
     }
 
-    private static void findApplyPowerFromCard(ClassPool classPool, CtMethod useMethod, CardInfo cardInfo) throws BadBytecode, ClassNotFoundException {
+    private static void findApplyPowerFromCard(ClassPool classPool, CtMethod useMethod, CardInfo cardInfo, int playerParameterIndex) throws BadBytecode, ClassNotFoundException {
         MethodInfo methodInfo = useMethod.getMethodInfo();
         CodeAttribute ca = methodInfo.getCodeAttribute();
         CodeIterator ci = ca.iterator();
@@ -296,22 +301,27 @@ public class CharacterAnalyzer {
             String powerName = powerStrings != null ? powerStrings.NAME : powerId;
             String keyword = getKeyword(powerName);
 
-            Pattern gainPowerPattern = Pattern.compile(String.format(analyzerStrings.get("GainPower"), keyword), Pattern.CASE_INSENSITIVE);
-            boolean hasGainPower = gainPowerPattern.matcher(cardInfo.card.rawDescription).find();
-            Pattern applyPowerPattern = Pattern.compile(String.format(analyzerStrings.get("ApplyPower"), keyword), Pattern.CASE_INSENSITIVE);
-            boolean hasApplyPower = applyPowerPattern.matcher(cardInfo.card.rawDescription).find();
-            if (!hasGainPower && !hasApplyPower) {
-                continue;
+            boolean hasGainPower;
+            if (cardInfo.card != null) {
+                Pattern gainPowerPattern = Pattern.compile(String.format(analyzerStrings.get("GainPower"), keyword), Pattern.CASE_INSENSITIVE);
+                hasGainPower = gainPowerPattern.matcher(cardInfo.card.rawDescription).find();
+                Pattern applyPowerPattern = Pattern.compile(String.format(analyzerStrings.get("ApplyPower"), keyword), Pattern.CASE_INSENSITIVE);
+                boolean hasApplyPower = applyPowerPattern.matcher(cardInfo.card.rawDescription).find();
+                if (!hasGainPower && !hasApplyPower) {
+                    continue;
+                }
+            } else {
+                hasGainPower = false;
             }
 
-            int applyPowerActionFirstParameter = ci.byteAt(applyPowerAction.start + 4);
-            boolean isToPlayer = applyPowerActionFirstParameter == Opcode.ALOAD_1;
+            boolean isToPlayer = isAloadN(ci, applyPowerAction.start + 4, playerParameterIndex) ||
+                    isAbstractDungeonPlayer(ci, applyPowerAction.start + 4);
             boolean isGain = isToPlayer || hasGainPower;
 
             if (isGain && !cardInfo.gainPowers.containsKey(powerClass)) {
                 cardInfo.gainPowers.put(powerClass, makeGainPowerConstructor(powerClass, power, ci, cp));
             } else if (!cardInfo.applyPowers.containsKey(powerClass)) {
-                cardInfo.applyPowers.put(powerClass, makeApplyPowerConstructor(powerClass, power, ci, cp));
+                cardInfo.applyPowers.put(powerClass, makeApplyPowerConstructor(powerClass, power, ci, cp, playerParameterIndex));
             }
         }
     }
@@ -404,7 +414,7 @@ public class CharacterAnalyzer {
         return null;
     }
 
-    private static PowerFactory makeApplyPowerConstructor(Class<? extends AbstractPower> powerClass, CodePattern.Range power, CodeIterator ci, ConstPool cp) throws ClassNotFoundException, BadBytecode {
+    private static PowerFactory makeApplyPowerConstructor(Class<? extends AbstractPower> powerClass, CodePattern.Range power, CodeIterator ci, ConstPool cp, int playerParameterIndex) throws ClassNotFoundException, BadBytecode {
         String signature = cp.getMethodrefType(ci.s16bitAt(power.end - 2));
         List<Class<?>> parameterList = getParameterList(signature);
         if (parameterList.size() == 2 && parameterList.stream().filter(c -> c == int.class).count() == 1
@@ -415,24 +425,25 @@ public class CharacterAnalyzer {
                 && parameterList.stream().filter(c -> c.isAssignableFrom(AbstractMonster.class)).count() > 1
                 && parameterList.stream().filter(c -> c.isAssignableFrom(AbstractPlayer.class)).count() > 1
                 && parameterList.stream().noneMatch(c -> c != int.class && !c.isAssignableFrom(AbstractMonster.class) && !c.isAssignableFrom(AbstractPlayer.class))) {
-            ci.move(power.start);
-            int pos = power.start;
-            int stack = 0;
-            while (pos < power.end && ci.hasNext()) {
-                pos = ci.next();
-                int op = ci.byteAt(pos);
-                if (op == Opcode.ALOAD_1) {
-                    return new ApplyPowerFactory(powerClass, parameterList, stack - 2);
+
+            int[] stack = StackAnalyzer.getStacks(ci, power.start, power.end - 3);
+            if (stack != null) {
+                int offset = stack.length - parameterList.size();
+                for (int i = 0; i < stack.length; i++) {
+                    int pos = stack[i];
+                    if ((isAloadN(ci, pos, playerParameterIndex) || isAbstractDungeonPlayer(ci, pos)) &&
+                            parameterList.get(i - offset).isAssignableFrom(AbstractPlayer.class)) {
+                        return new ApplyPowerFactory(powerClass, parameterList, i - offset);
+                    }
                 }
-                stack += Opcode.STACK_GROW[op];
             }
         }
         return null;
     }
 
-    private static List<Class<?>> getParameterList(String signature) throws ClassNotFoundException {
+    private static List<Class<?>> getParameterList(String descriptor) throws ClassNotFoundException {
         List<Class<?>> result = new ArrayList<>();
-        String paramList = signature.substring(1, signature.indexOf(')'));
+        String paramList = descriptor.substring(1, descriptor.indexOf(')'));
         int pointer = 0;
         while (pointer < paramList.length()) {
             int start = pointer;
@@ -486,6 +497,101 @@ public class CharacterAnalyzer {
             }
         }
         return result;
+    }
+
+    private static boolean isAloadN(CodeIterator ci, int index, int n) {
+        if (n < 0) {
+            return false;
+        }
+
+        int op = ci.byteAt(index);
+        if (op == Opcode.ALOAD) {
+            return ci.byteAt(index + 1) == n;
+        } else if (op >= Opcode.ALOAD_0 && op <= Opcode.ALOAD_3) {
+            return (op - Opcode.ALOAD_0) == n;
+        }
+        return false;
+    }
+
+    private static boolean isAbstractDungeonPlayer(CodeIterator ci, int index) {
+        int op = ci.byteAt(index);
+        if (op == Opcode.GETSTATIC) {
+            int argument = ci.s16bitAt(index + 1);
+            ConstPool constPool = ci.get().getConstPool();
+            return constPool.getFieldrefClassName(argument).equals(AbstractDungeon.class.getName()) &&
+                    constPool.getFieldrefName(argument).equals("player");
+        }
+
+        return false;
+    }
+
+    private static void mergeReferencedMethods(ClassPool classPool, CtMethod useMethod, CardInfo cardInfo, int playerParameterIndex) throws BadBytecode, ClassNotFoundException, NotFoundException {
+        MethodInfo methodInfo = useMethod.getMethodInfo();
+        CodeAttribute ca = methodInfo.getCodeAttribute();
+        CodeIterator ci = ca.iterator();
+        ConstPool cp = ca.getConstPool();
+        List<CodePattern.Range> methodCalls = CodePattern.find(ci, CodePattern.anyOf(
+                Opcode.INVOKESTATIC, Opcode.INVOKEVIRTUAL
+        ));
+
+        for (CodePattern.Range methodCall : methodCalls) {
+            int argument = ci.u16bitAt(methodCall.start + 1);
+            String desc = cp.getMethodrefType(argument);
+            List<Class<?>> parameterList = getParameterList(desc);
+            int[] stack = StackAnalyzer.getStacks(ci, 0, methodCall.start);
+            int childPlayerParameterIndex = -1;
+            if (stack != null) {
+                int offset = stack.length - parameterList.size();
+                for (int i = offset; i < stack.length; i++) {
+                    int pos = stack[i];
+                    if ((isAloadN(ci, pos, playerParameterIndex) || isAbstractDungeonPlayer(ci, pos)) &&
+                            parameterList.get(i - offset).isAssignableFrom(AbstractPlayer.class)) {
+                        childPlayerParameterIndex = i - offset;
+                        break;
+                    }
+                }
+            }
+
+            String className = cp.getMethodrefClassName(argument);
+            CtClass targetClass = classPool.get(className);
+            CtMethod targetMethod = targetClass.getMethod(cp.getMethodrefName(argument), desc);
+            if (Modifier.isAbstract(targetMethod.getModifiers())) {
+                continue;
+            }
+
+            CardInfo referencedMethod = getReferencedMethodInfo(classPool, targetMethod, childPlayerParameterIndex);
+
+            cardInfo.actionCount += referencedMethod.actionCount;
+            referencedMethod.applyPowers.forEach((k, v) -> cardInfo.applyPowers.putIfAbsent(k, v));
+            referencedMethod.gainPowers.forEach((k, v) -> cardInfo.gainPowers.putIfAbsent(k, v));
+            referencedMethod.channelOrbs.forEach(o -> {
+                if (cardInfo.channelOrbs.stream().noneMatch(o1 -> o1.getClass() == o.getClass())) {
+                    cardInfo.channelOrbs.add(o);
+                }
+            });
+            referencedMethod.changeToStances.forEach(s -> {
+                if (cardInfo.changeToStances.stream().noneMatch(s1 -> s1.getClass() == s.getClass())) {
+                    cardInfo.changeToStances.add(s);
+                }
+            });
+        }
+    }
+
+    private static CardInfo getReferencedMethodInfo(ClassPool classPool, CtMethod method, int playerParameterIndex) {
+        String key = method.getDeclaringClass().getName() + "." + method.getName() + method.getSignature() + "_" + playerParameterIndex;
+        CardInfo existingCardInfo = referencedMethods.get(key);
+        if (existingCardInfo != null) {
+            return existingCardInfo;
+        }
+
+        CardInfo cardInfo = new CardInfo();
+        try { findNewActions(classPool, method, cardInfo); } catch (Exception e) { e.printStackTrace(); }
+        try { findBranches(method, cardInfo); } catch (Exception e) { e.printStackTrace(); }
+        try { findStanceFromCard(classPool, method, cardInfo); } catch (Exception e) { e.printStackTrace(); }
+        try { findOrbsFromCard(classPool, method, cardInfo); } catch (Exception e) { e.printStackTrace(); }
+        try { findApplyPowerFromCard(classPool, method, cardInfo, playerParameterIndex); } catch (Exception e) { e.printStackTrace(); }
+        referencedMethods.put(key, cardInfo);
+        return cardInfo;
     }
 
     private static void calculateStancesScore() {

@@ -11,6 +11,7 @@ public class Ethereal extends NoUpgradeProperty {
     public Ethereal(FriendCard card) {
         super(card);
         isActionableEffect = false;
+        canBePower = true;
     }
 
     @Override

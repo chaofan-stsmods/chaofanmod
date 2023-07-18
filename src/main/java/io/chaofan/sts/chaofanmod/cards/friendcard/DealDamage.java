@@ -154,25 +154,24 @@ public class DealDamage extends FriendCardProperty {
         int attackCount = getAttackCountMayUpgrade();
         AbstractGameAction.AttackEffect attackEffect = this.attackEffect;
 
-        // Bludgeon
-        if (attackCount == 1 && !toAllEnemies && getBaseDamage() >= 25 && m != null) {
-            addToBot(new VFXAction(new WeightyImpactEffect(m.hb.cX, m.hb.cY)));
-            addToBot(new WaitAction(0.8F));
-            attackEffect = AbstractGameAction.AttackEffect.NONE;
-        }
-
-        // Hyper beam
-        if (attackCount == 1 && toAllEnemies && !randomEnemy && card.properties.stream().anyMatch(p1 -> p1 instanceof GainFocus && p1.isNegative)) {
-            addToBot(new SFXAction("ATTACK_HEAVY"));
-            addToBot(new VFXAction(p, new MindblastEffect(p.dialogX, p.dialogY, p.flipHorizontal), 0.1F));
-            attackEffect = AbstractGameAction.AttackEffect.NONE;
-        }
-
         // Hemokinesis
         if (attackCount == 1 && !toAllEnemies && card.properties.stream().anyMatch(p1 -> p1 instanceof LoseHp) && m != null) {
             addToBot(new VFXAction(new HemokinesisEffect(p.hb.cX, p.hb.cY, m.hb.cX, m.hb.cY), 0.5F));
             attackEffect = AbstractGameAction.AttackEffect.BLUNT_HEAVY;
         }
+        // Bludgeon
+        else if (attackCount == 1 && !toAllEnemies && getBaseDamage() >= 25 && m != null) {
+            addToBot(new VFXAction(new WeightyImpactEffect(m.hb.cX, m.hb.cY)));
+            addToBot(new WaitAction(0.8F));
+            attackEffect = AbstractGameAction.AttackEffect.NONE;
+        }
+        // Hyper beam
+        else if (attackCount == 1 && toAllEnemies && !randomEnemy && card.properties.stream().anyMatch(p1 -> p1 instanceof GainFocus && p1.isNegative)) {
+            addToBot(new SFXAction("ATTACK_HEAVY"));
+            addToBot(new VFXAction(p, new MindblastEffect(p.dialogX, p.dialogY, p.flipHorizontal), 0.1F));
+            attackEffect = AbstractGameAction.AttackEffect.NONE;
+        }
+
 
         for (int i = 0; i < attackCount; i++) {
             if (randomEnemy && toAllEnemies) {

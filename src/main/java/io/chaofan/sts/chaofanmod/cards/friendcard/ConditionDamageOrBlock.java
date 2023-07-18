@@ -6,11 +6,13 @@ import io.chaofan.sts.chaofanmod.cards.FriendCard;
 import java.util.Random;
 
 public class ConditionDamageOrBlock extends Condition {
+    private int score;
     public ConditionDamageOrBlock(FriendCard card) {
         super(card);
         isActionableEffect = false;
         gainScores = false;
         alternateOf = Condition.class;
+        weight = 2;
     }
 
     @Override
@@ -25,7 +27,7 @@ public class ConditionDamageOrBlock extends Condition {
 
     @Override
     public int getScoreLose() {
-        return scoreGain;
+        return score;
     }
 
     @Override
@@ -44,8 +46,8 @@ public class ConditionDamageOrBlock extends Condition {
         useSecondaryDamage = isAttack;
         useSecondaryBlock = !isAttack;
         actionProperty = isAttack ? new DealDamage(card, true) : new GainBlock(card, true);
-        actionProperty.tryApplyScore((int) (score / type.multiplier), random);
-        scoreGain = score;
+        actionProperty.tryApplyScore((int) Math.ceil(score / type.multiplier), random);
+        this.score = score;
         return 0;
     }
 
@@ -64,6 +66,11 @@ public class ConditionDamageOrBlock extends Condition {
     public void modifyCard() {
         actionProperty.modifyCard();
         super.modifyCard();
+    }
+
+    @Override
+    public int applyPriority() {
+        return 0;
     }
 
     @Override

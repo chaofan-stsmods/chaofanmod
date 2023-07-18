@@ -12,6 +12,7 @@ public class Heal extends ScoreNeededListProperty {
 
     public Heal(FriendCard card) {
         super(card, scoreNeeded);
+        canBePower = true;
     }
 
     @Override

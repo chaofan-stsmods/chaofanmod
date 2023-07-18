@@ -15,6 +15,7 @@ public class GainOrbSlot extends ScoreNeededListProperty {
 
     public GainOrbSlot(FriendCard card) {
         super(card, scoreNeeded);
+        canBePower = true;
     }
 
     @Override

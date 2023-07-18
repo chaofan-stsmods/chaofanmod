@@ -49,7 +49,7 @@ public abstract class FriendCardProperty {
         registerProperty(GainArtifact.class, 50);
         registerProperty(Heal.class, 50);
         registerProperty(EnemyLoseStrength.class, 50);
-        registerProperty(Condition.class, 1000);
+        registerProperty(Condition.class, 150);
         registerProperty(GainBlockNextTurn.class, 100);
         registerProperty(EachEnemy.class, 100);
         registerProperty(ChannelOrbs.class, 100);
@@ -58,8 +58,8 @@ public abstract class FriendCardProperty {
         registerProperty(EndYourTurn.class, 80);
         registerProperty(EnterStance.class, 100);
         registerProperty(EachOrb.class, 100);
-        registerProperty(ApplyPower.class, 100);
-        registerProperty(GainPower.class, 100);
+        registerProperty(ApplyPower.class, 150);
+        registerProperty(GainPower.class, 150);
     }
 
     protected boolean shouldUpgrade;
@@ -76,6 +76,8 @@ public abstract class FriendCardProperty {
     protected boolean isAttack;
     protected boolean useSecondaryDamage;
     protected boolean useSecondaryBlock;
+    protected int weight = 1;
+    protected boolean canBePower = false;
 
     public FriendCardProperty(FriendCard card) {
         this.card = card;
@@ -223,6 +225,40 @@ public abstract class FriendCardProperty {
             score = property.multiplyScore(score);
         }
 
+        // Force adding an effect that provides score.
+        if (friendCard.cost == 0 && random.nextInt(5) == 0) {
+            int tryCount = 100;
+            while (tryCount > 0) {
+                tryCount--;
+                Class<? extends FriendCardProperty> propertyClass = allCardProperties
+                        .ceilingEntry(random.nextInt(allCardPropertiesPowerSum)).getValue();
+                FriendCardProperty property;
+                try {
+                    property = propertyClass.getConstructor(FriendCard.class).newInstance(friendCard).makeAlternateProperty(random);
+                } catch (Exception ex) {
+                    continue;
+                }
+
+                if (!property.canUse(random)) {
+                    continue;
+                }
+
+                int remainingScore = property.tryApplyScore(score, random);
+                if (remainingScore == score || !property.gainScores) {
+                    continue;
+                }
+
+                properties.add(property);
+                if (properties.stream().anyMatch(p -> !p.canUse(null))) {
+                    properties.remove(property);
+                    continue;
+                }
+
+                score = remainingScore;
+                break;
+            }
+        }
+
         while (score / propertyCount < 2 && propertyCount > 1) {
             propertyCount--;
         }
@@ -249,7 +285,7 @@ public abstract class FriendCardProperty {
                 continue;
             }
 
-            if (propertyCount == 1 && property.gainScores) {
+            if (propertyCount <= property.weight && property.gainScores) {
                 continue;
             }
 
@@ -261,7 +297,7 @@ public abstract class FriendCardProperty {
             }
 
             // Check again in case GainStrength become LoseStrength
-            if (propertyCount == 1 && property.gainScores) {
+            if (propertyCount <= property.weight && property.gainScores) {
                 continue;
             }
 
@@ -272,8 +308,8 @@ public abstract class FriendCardProperty {
             }
 
             score = score - nextScore + remainingScore;
-            effectPropertyCount--;
-            propertyCount--;
+            effectPropertyCount -= property.weight;
+            propertyCount -= property.weight;
             if (propertyCount > 0) {
                 averageScore = score / propertyCount;
             }
@@ -374,6 +410,12 @@ public abstract class FriendCardProperty {
 
         if (random.nextInt(5) == 0) {
             properties.forEach(FriendCardProperty::setToAllEnemies);
+        }
+
+        if (properties.stream().anyMatch(p -> p instanceof Exhaust) &&
+                properties.stream().allMatch(p -> p.canBePower) && random.nextInt(3) != 0) {
+            friendCard.type = AbstractCard.CardType.POWER;
+            properties.removeIf(p -> p instanceof Exhaust);
         }
     }
 

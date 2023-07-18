@@ -13,6 +13,7 @@ public class GainPower extends ScoreNeededListProperty {
 
     public GainPower(FriendCard card) {
         super(card, new int[] { 0 });
+        canBePower = true;
     }
 
     @Override
