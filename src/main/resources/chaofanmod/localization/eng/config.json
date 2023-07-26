@@ -1,3 +1,4 @@
 {
-  "UseOldPhoneV2": "Use 3D effect for Old Phone"
+  "UseOldPhoneV2": "Use 3D effect for Old Phone",
+  "DisableTauntMask": "Disable Taunt Mask to speed up starting the game (Restart game to take effect)"
 }

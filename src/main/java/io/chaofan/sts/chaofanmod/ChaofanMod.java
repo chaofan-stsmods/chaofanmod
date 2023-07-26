@@ -35,10 +35,7 @@ import io.chaofan.sts.chaofanmod.monsters.SpiritFireMonsterAct3;
 import io.chaofan.sts.chaofanmod.patches.ThirdPerspectiveViewPatches;
 import io.chaofan.sts.chaofanmod.powers.AddFuelPower;
 import io.chaofan.sts.chaofanmod.powers.HeavyHandPower;
-import io.chaofan.sts.chaofanmod.relics.ManholeCover;
-import io.chaofan.sts.chaofanmod.relics.OldPhone;
-import io.chaofan.sts.chaofanmod.relics.SpotLight;
-import io.chaofan.sts.chaofanmod.relics.Stool;
+import io.chaofan.sts.chaofanmod.relics.*;
 import io.chaofan.sts.chaofanmod.rewards.HealReward;
 import io.chaofan.sts.chaofanmod.rewards.RubyKeyReward;
 import io.chaofan.sts.chaofanmod.utils.ChaofanModEnums;
@@ -72,7 +69,9 @@ public class ChaofanMod implements
     private static SpireConfig config;
 
     public static final String USE_OLD_PHONE_V2 = "UseOldPhoneV2";
-    public static boolean useOldPhoneV2;
+    public static final String DISABLE_TAUNT_MASK = "DisableTauntMask";
+    public static boolean useOldPhoneV2 = true;
+    public static boolean disableTauntMask = false;
 
     public static SteamworksHelper steamworksHelper;
 
@@ -101,6 +100,12 @@ public class ChaofanMod implements
         ChaofanMod chaofanMod = new ChaofanMod();
         BaseMod.subscribe(chaofanMod);
         // EnhancedSteamStatus.initialize();
+
+        config = tryCreateConfig();
+        if (config != null) {
+            useOldPhoneV2 = !config.has(USE_OLD_PHONE_V2) || config.getBool(USE_OLD_PHONE_V2);
+            disableTauntMask = config.has(DISABLE_TAUNT_MASK) && config.getBool(DISABLE_TAUNT_MASK);
+        }
     }
 
     @Override
@@ -142,6 +147,7 @@ public class ChaofanMod implements
 
         if (config != null) {
             useOldPhoneV2 = !config.has(USE_OLD_PHONE_V2) || config.getBool(USE_OLD_PHONE_V2);
+            disableTauntMask = config.has(DISABLE_TAUNT_MASK) && config.getBool(DISABLE_TAUNT_MASK);
         }
 
         ModPanel modPanel = new ModPanel();
@@ -170,7 +176,25 @@ public class ChaofanMod implements
                     }
                 });
 
+        yPos -= 50f;
+        ModLabeledToggleButton disableTauntMaskButton = new ModLabeledToggleButton(
+                configStrings.get(DISABLE_TAUNT_MASK),
+                350.0f,
+                yPos,
+                Settings.CREAM_COLOR,
+                FontHelper.charDescFont,
+                disableTauntMask,
+                modPanel,
+                (label) -> {},
+                (button) -> {
+                    if (config != null) {
+                        config.setBool(DISABLE_TAUNT_MASK, button.enabled);
+                        trySaveConfig(config);
+                    }
+                });
+
         modPanel.addUIElement(useOldPhoneV2Button);
+        modPanel.addUIElement(disableTauntMaskButton);
 
         return modPanel;
     }
@@ -193,6 +217,9 @@ public class ChaofanMod implements
     public void receiveEditRelics() {
         Set<String> excludeRelics = new HashSet<>();
         excludeRelics.add(ManholeCover.class.getName());
+        if (disableTauntMask) {
+            excludeRelics.add(TauntMask.class.getName());
+        }
         new AutoAdd(MOD_ID)
                 .packageFilter(Stool.class)
                 .filter((classInfo, classFinder) -> !excludeRelics.contains(classInfo.getClassName()))
@@ -275,7 +302,7 @@ public class ChaofanMod implements
         postProcessors.clear();
     }
 
-    private static SpireConfig tryCreateConfig() {
+    public static SpireConfig tryCreateConfig() {
         String configFileName = MOD_ID + "config";
         try {
             return new SpireConfig(MOD_ID, configFileName);

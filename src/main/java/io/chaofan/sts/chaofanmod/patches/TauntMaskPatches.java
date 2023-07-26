@@ -2,6 +2,7 @@ package io.chaofan.sts.chaofanmod.patches;
 
 import com.evacipated.cardcrawl.modthespire.Loader;
 import com.evacipated.cardcrawl.modthespire.ModInfo;
+import com.evacipated.cardcrawl.modthespire.lib.SpireConfig;
 import com.evacipated.cardcrawl.modthespire.lib.SpirePatch;
 import com.evacipated.cardcrawl.modthespire.lib.SpireRawPatch;
 import com.google.gson.Gson;
@@ -11,6 +12,7 @@ import com.megacrit.cardcrawl.dungeons.AbstractDungeon;
 import com.megacrit.cardcrawl.monsters.AbstractMonster;
 import com.megacrit.cardcrawl.powers.AbstractPower;
 import com.megacrit.cardcrawl.powers.StrengthPower;
+import io.chaofan.sts.chaofanmod.ChaofanMod;
 import io.chaofan.sts.chaofanmod.relics.TauntMask;
 import io.chaofan.sts.chaofanmod.utils.CodePattern;
 import io.chaofan.sts.chaofanmod.utils.CodeSplitter;
@@ -174,6 +176,11 @@ public class TauntMaskPatches {
     public static class MonsterIntentPatch {
         @SpireRawPatch
         public static void Raw(CtBehavior method) throws Exception {
+            SpireConfig config = ChaofanMod.tryCreateConfig();
+            if (config != null && config.has(ChaofanMod.DISABLE_TAUNT_MASK) && config.getBool(ChaofanMod.DISABLE_TAUNT_MASK)) {
+                return;
+            }
+
             ClassPool pool = method.getDeclaringClass().getClassPool();
             List<CtClass> monsters = listAllMonsterClasses(pool);
 
