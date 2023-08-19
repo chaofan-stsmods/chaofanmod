@@ -115,7 +115,9 @@ public class ChaofanMod implements
         Texture badgeTexture = ImageMaster.loadImage(MOD_ID + "/images/badge.png");
         BaseMod.registerModBadge(badgeTexture, "Chaofan Mod", "Chaofan", "", settingsPanel);
 
-        BaseMod.addMonster(SpiritFireMonster.ID, () -> {
+        BaseMod.addMonster(SpiritFireMonster.ID,
+                CardCrawlGame.languagePack.getMonsterStrings(SpiritFireMonster.ID).NAME,
+                () -> {
             if (AbstractDungeon.actNum == 3) {
                 return new MonsterGroup(new SpiritFireMonsterAct3());
             } else if (AbstractDungeon.actNum == 2) {
@@ -203,6 +205,7 @@ public class ChaofanMod implements
     public void receiveEditCards() {
         Set<String> excludeCards = new HashSet<>();
         excludeCards.add(AhhMyEyes.class.getName());
+        excludeCards.add(CutGlassCard.class.getName());
         excludeCards.add(SampleEffectCard.class.getName());
         excludeCards.add(ProgressCard.class.getName());
         new AutoAdd(MOD_ID)
