@@ -94,7 +94,7 @@ public class StackMapTableUpdater extends StackMapTable.Walker {
         while (newOffsetIndex < this.newOffsets.size()) {
             NewOffset newOffset = this.newOffsets.get(newOffsetIndex);
             int nextSameFrameOffset = newOffset.offset;
-            if (offset + offsetDelta + 1 > nextSameFrameOffset) {
+            if (offset + offsetDelta + 1 > nextSameFrameOffset || (newOffset.isReplace && offset + offsetDelta == nextSameFrameOffset)) {
                 int newOffsetDelta = nextSameFrameOffset - offset;
 
                 if (newOffset.isReplace) {
@@ -108,6 +108,7 @@ public class StackMapTableUpdater extends StackMapTable.Walker {
                 offsetDelta -= newOffsetDelta;
                 newOffsetIndex++;
                 if (skipNextFrame) {
+                    offset++;
                     return -1;
                 } else {
                     continue;
