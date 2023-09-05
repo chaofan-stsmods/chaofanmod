@@ -1,0 +1,4 @@
+{
+  "duplicateCount": "Number of each cost in the pool",
+  "remainingCount": "Reset pool if remaining item is less than following value"
+}

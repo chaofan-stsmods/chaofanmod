@@ -4,11 +4,11 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>io.chaofan.sts.chaofanmod</groupId>
-    <artifactId>chaofanmod</artifactId>
-    <version>1.0.18</version>
-    <name>Chaofan Mod</name>
-    <description>Playground of Chaofan.</description>
+    <groupId>io.chaofan.sts.pseudoconfusion</groupId>
+    <artifactId>pseudoconfusion</artifactId>
+    <version>1.0.0</version>
+    <name>Pseudo Confusion</name>
+    <description>Pseudo Confusion</description>
 
     <properties>
         <maven.compiler.source>1.8</maven.compiler.source>
@@ -107,7 +107,7 @@
                 </executions>
                 <configuration>
                     <stsInstallPath>${Steam.path}/common/SlayTheSpire</stsInstallPath>
-                    <uploadModPath>moduploader/chaofanmod</uploadModPath>
+                    <uploadModPath>moduploader/pseudoconfusion</uploadModPath>
                 </configuration>
             </plugin>
         </plugins>

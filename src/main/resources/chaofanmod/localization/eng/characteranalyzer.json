@@ -1,5 +1,0 @@
-{
-  "ChannelOrbs": "Channel\\s+(!M!|\\d+)\\s+\\*?%s",
-  "ApplyPower": "Apply\\s+(![^!\\s]+!|\\d+)\\s+\\*?%s(?:\\s+(![^!\\s]+!|\\d+)\\s+times?)?",
-  "GainPower": "Gain\\s+(![^!\\s]+!|\\d+)\\s+\\*?%s(?:\\s+(![^!\\s]+!|\\d+)\\s+times?)?"
-}
