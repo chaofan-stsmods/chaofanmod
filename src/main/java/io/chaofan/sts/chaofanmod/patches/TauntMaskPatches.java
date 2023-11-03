@@ -187,7 +187,7 @@ public class TauntMaskPatches {
             System.out.println();
             for (CtClass monster : monsters) {
                 try {
-                    patchGetMove(monster, "SpiritFireMonster");
+                    patchGetMove(monster, null);
                 } catch (Exception ex) {
                     if (!enableDebug) {
                         System.out.println(" [Fail]");
@@ -284,7 +284,6 @@ public class TauntMaskPatches {
         CodeSplitter.getCodes(ci, byteCodes, byteCodeIndices);
 
         if (showDecompile) {
-            smt.println(System.out);
             printCode(ca);
         }
 
@@ -333,12 +332,6 @@ public class TauntMaskPatches {
 
         debug("TauntMaskPatches.patchGetMove: done processing " + monster.getName() +
                 ". length gain: " + originalCodeLength + " -> " + ca.length() + ".");
-
-        /*StackMapTableUpdater smtUpdater = new StackMapTableUpdater(smt.get());
-        smtUpdater.replaceFrame(265, (w,i) -> w.appendFrame(i, new int[]{StackMapTable.INTEGER}, new int[]{0}));
-        smtUpdater.replaceFrame(273, StackMapTable.Writer::sameFrame);
-        smt.set(smtUpdater.doIt());
-*/
 
         if (showDecompile) {
             smt.println(System.out);

@@ -110,18 +110,7 @@ public class SpiritFireMonster extends AbstractMonster {
 
     @Override
     protected void getMove(int i) {
-        int a = this.lastDamageTaken;
-        int b = this.nextMove;
-        if (i > 25) {
-            int d = AbstractDungeon.aiRng.random(99);
-            if (a > 10 && b < 5 || i > 50) {
-                setMove(INTENT_DEBUFF, Intent.STRONG_DEBUFF, d);
-            } else {
-                setMove(INTENT_DEBUFF, Intent.STRONG_DEBUFF);
-            }
-        } else {
-            setMove(INTENT_FLAME, Intent.ATTACK, this.damage.get(1).base);
-        }
+        setMove(INTENT_DEBUFF, Intent.STRONG_DEBUFF);
     }
 
     @Override
