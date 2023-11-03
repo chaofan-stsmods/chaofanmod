@@ -11,6 +11,7 @@ import com.megacrit.cardcrawl.screens.custom.CustomMod;
 import com.megacrit.cardcrawl.screens.custom.CustomModeScreen;
 import com.megacrit.cardcrawl.trials.CustomTrial;
 import io.chaofan.sts.chaofanmod.mods.Lonely;
+import io.chaofan.sts.chaofanmod.mods.SummarizedMap;
 import javassist.CtBehavior;
 
 import java.util.ArrayList;
@@ -22,6 +23,7 @@ public class LonelyRunModPatches {
         public static void Postfix(CustomModeScreen __instance) {
             ArrayList<CustomMod> modList = ReflectionHacks.getPrivate(__instance, CustomModeScreen.class, "modList");
             addMod(modList, Lonely.ID, "r", false);
+            addMod(modList, SummarizedMap.ID, "r", false);
         }
 
         private static CustomMod addMod(ArrayList<CustomMod> modList, String id, String color, boolean isDailyMod) {
@@ -42,6 +44,9 @@ public class LonelyRunModPatches {
             if (modId.equals(Lonely.ID)) {
                 trial.addDailyMod(Lonely.ID);
                 trial.setShouldKeepStarterRelic(false);
+            }
+            if (modId.equals(SummarizedMap.ID)) {
+                trial.addDailyMod(SummarizedMap.ID);
             }
         }
 

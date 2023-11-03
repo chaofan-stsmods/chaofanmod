@@ -69,5 +69,12 @@
       "At the start of each combat, add a card from a random friend to your hand.",
       "Ahh, I don't have a #rfriend."
     ]
+  },
+  "chaofanmod:relic.ZMap": {
+    "NAME": "Z Map",
+    "FLAVOR": "This isn't a bridge! This is just a pipe!",
+    "DESCRIPTIONS": [
+      "Gain [E] at the start of your turn. You can only see distributions of room amount instead of paths on map."
+    ]
   }
 }

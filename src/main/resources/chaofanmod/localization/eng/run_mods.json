@@ -2,5 +2,9 @@
   "chaofanmod:Lonely": {
     "NAME": "Lonely",
     "DESCRIPTION": "Start without relic. You can not obtain relics."
+  },
+  "chaofanmod:SummarizedMap": {
+    "NAME": "Summarized Map",
+    "DESCRIPTION": "You can only see distributions of room amount instead of paths on map."
   }
 }

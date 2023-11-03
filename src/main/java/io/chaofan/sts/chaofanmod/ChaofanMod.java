@@ -29,6 +29,7 @@ import io.chaofan.sts.chaofanmod.cards.*;
 import io.chaofan.sts.chaofanmod.commands.FriendCardCommand;
 import io.chaofan.sts.chaofanmod.events.Gremlin2048;
 import io.chaofan.sts.chaofanmod.mods.Lonely;
+import io.chaofan.sts.chaofanmod.mods.SummarizedMap;
 import io.chaofan.sts.chaofanmod.monsters.SpiritFireMonster;
 import io.chaofan.sts.chaofanmod.monsters.SpiritFireMonsterAct2;
 import io.chaofan.sts.chaofanmod.monsters.SpiritFireMonsterAct3;
@@ -132,6 +133,7 @@ public class ChaofanMod implements
 
         HashMap<String, AbstractDailyMod> difficultyMods = ReflectionHacks.getPrivate(null, ModHelper.class, "difficultyMods");
         difficultyMods.put(Lonely.ID, new Lonely());
+        difficultyMods.put(SummarizedMap.ID, new SummarizedMap());
 
         BaseMod.addEvent(Gremlin2048.ID, Gremlin2048.class);
 
