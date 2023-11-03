@@ -346,7 +346,7 @@ public class ZMapPatches {
             Set<String> roomTypes = new HashSet<>();
 
             for (MapEdge edge : node.getEdges()) {
-                if (edge.dstY >= AbstractDungeon.map.size()) {
+                if (edge.dstY >= AbstractDungeon.map.size() || edge.dstY < 0) {
                     continue;
                 }
 
@@ -361,7 +361,7 @@ public class ZMapPatches {
             }
 
             for (MapEdge edge : node.getEdges()) {
-                if (edge.dstY >= AbstractDungeon.map.size()) {
+                if (edge.dstY >= AbstractDungeon.map.size() || edge.dstY < 0) {
                     continue;
                 }
 

@@ -2,13 +2,10 @@ package io.chaofan.sts.chaofanmod.relics;
 
 import basemod.abstracts.CustomRelic;
 import com.badlogic.gdx.graphics.Texture;
-import com.megacrit.cardcrawl.actions.common.GainBlockAction;
-import com.megacrit.cardcrawl.actions.utility.UseCardAction;
-import com.megacrit.cardcrawl.cards.AbstractCard;
+import com.evacipated.cardcrawl.modthespire.Loader;
 import com.megacrit.cardcrawl.dungeons.AbstractDungeon;
 import com.megacrit.cardcrawl.helpers.ModHelper;
-import com.megacrit.cardcrawl.monsters.AbstractMonster;
-import io.chaofan.sts.chaofanmod.mods.Lonely;
+import io.chaofan.sts.chaofanmod.crossover.downfall.DownfallHelper;
 import io.chaofan.sts.chaofanmod.mods.SummarizedMap;
 import io.chaofan.sts.chaofanmod.utils.TextureLoader;
 
@@ -40,6 +37,7 @@ public class ZMap extends CustomRelic {
 
     @Override
     public boolean canSpawn() {
-        return !ModHelper.isModEnabled(SummarizedMap.ID);
+        return !ModHelper.isModEnabled(SummarizedMap.ID) &&
+                (!Loader.isModLoaded("downfall") || !DownfallHelper.isDownfallMap());
     }
 }
