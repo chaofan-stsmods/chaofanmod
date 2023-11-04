@@ -16,7 +16,6 @@ import io.chaofan.sts.chaofanmod.ChaofanMod;
 import io.chaofan.sts.chaofanmod.relics.TauntMask;
 import io.chaofan.sts.chaofanmod.utils.CodePattern;
 import io.chaofan.sts.chaofanmod.utils.CodeSplitter;
-import io.chaofan.sts.chaofanmod.utils.StackMapTableUpdater;
 import javassist.*;
 import javassist.bytecode.*;
 
@@ -187,7 +186,7 @@ public class TauntMaskPatches {
             System.out.println();
             for (CtClass monster : monsters) {
                 try {
-                    patchGetMove(monster, null);
+                    patchGetMove(pool, monster, null);
                 } catch (Exception ex) {
                     if (!enableDebug) {
                         System.out.println(" [Fail]");
@@ -256,7 +255,7 @@ public class TauntMaskPatches {
         }
     }
 
-    private static void patchGetMove(CtClass monster, String targetMonster) throws Exception {
+    private static void patchGetMove(ClassPool pool, CtClass monster, String targetMonster) throws Exception {
         boolean showDecompile = targetMonster != null;
 
         if (showDecompile && !monster.getName().endsWith(targetMonster)) {
@@ -273,7 +272,6 @@ public class TauntMaskPatches {
         MethodInfo mi = getMove.getMethodInfo();
         ConstPool cp = mi.getConstPool();
         CodeAttribute ca = mi.getCodeAttribute();
-        StackMapTable smt = (StackMapTable)ca.getAttribute(StackMapTable.tag);
         CodeIterator ci = ca.iterator();
 
         List<Integer> byteCodes = new ArrayList<>();
@@ -284,6 +282,8 @@ public class TauntMaskPatches {
         CodeSplitter.getCodes(ci, byteCodes, byteCodeIndices);
 
         if (showDecompile) {
+            StackMapTable smt = (StackMapTable)ca.getAttribute(StackMapTable.tag);
+            smt.println(System.out);
             printCode(ca);
         }
 
@@ -307,21 +307,18 @@ public class TauntMaskPatches {
 
         CodeNodeBundle codeNodeBundle = makeCodeNodes(randomConditions, codeGraph, codeExtensions);
 
-        List<Integer> sameFrames = new ArrayList<>();
-        List<Integer> sameLocals = new ArrayList<>();
-
         int[] offset = { 0 };
         Bytecode attackInitCode = generateAttackIntentInitialize(attackIntents, ca.iterator(), cp, offset);
-        Bytecode predictableConditionInitCode = generatePredictableConditionInitialize(predictableConditions, ca.iterator(), cp, sameFrames, sameLocals, offset);
+        Bytecode predictableConditionInitCode = generatePredictableConditionInitialize(predictableConditions, ca.iterator(), cp, offset);
 
         offset[0] = 0;
         for (CodePattern.Range randomCondition : randomConditions) {
-            if (updateConditionToBoolean(ca.iterator(), smt, randomCondition.end, cp, offset)) {
+            if (updateConditionToBoolean(ca.iterator(), randomCondition.end, cp, offset)) {
                 insertModifyRandomResult(randomCondition.end, codeGraph, codeExtensions, ca.iterator(), cp, offset);
             }
         }
 
-        insertInitCodes(codeNodeBundle, attackInitCode, predictableConditionInitCode, ca.iterator(), smt, sameFrames, sameLocals);
+        insertInitCodes(codeNodeBundle, attackInitCode, predictableConditionInitCode, ca.iterator());
         if (ca.getMaxStack() < 6) {
             ca.setMaxStack(6);
         }
@@ -333,7 +330,10 @@ public class TauntMaskPatches {
         debug("TauntMaskPatches.patchGetMove: done processing " + monster.getName() +
                 ". length gain: " + originalCodeLength + " -> " + ca.length() + ".");
 
+        mi.rebuildStackMap(pool);
+
         if (showDecompile) {
+            StackMapTable smt = (StackMapTable)ca.getAttribute(StackMapTable.tag);
             smt.println(System.out);
             printCode(ca);
         }
@@ -493,7 +493,7 @@ public class TauntMaskPatches {
         return result;
     }
 
-    private static boolean updateConditionToBoolean(CodeIterator ci, StackMapTable smt, int condition, ConstPool constPool, int[] offset) {
+    private static boolean updateConditionToBoolean(CodeIterator ci, int condition, ConstPool constPool, int[] offset) {
         condition += offset[0];
         int op = ci.byteAt(condition);
         if (op == Opcode.IFEQ) {
@@ -520,10 +520,6 @@ public class TauntMaskPatches {
 
             try {
                 ci.insert(condition, bytecode.get());
-                StackMapTableUpdater smtUpdater = new StackMapTableUpdater(smt.get());
-                smtUpdater.addFrame(condition + 7, StackMapTable.Writer::sameFrame);
-                smtUpdater.addFrame(condition + 8, (w, od) -> w.sameLocals(od, StackMapTable.INTEGER, 0));
-                smt.set(smtUpdater.doIt());
             } catch (BadBytecode e) {
                 debug("TauntMaskPatches.updateConditionToBoolean: BadBytecode: " + e.getMessage());
                 return false;
@@ -619,7 +615,7 @@ public class TauntMaskPatches {
         return bytecode;
     }
 
-    private static Bytecode generatePredictableConditionInitialize(List<CodePattern.Range> predictableConditions, CodeIterator iterator, ConstPool constPool, List<Integer> sameFrames, List<Integer> sameLocals, int[] offset) {
+    private static Bytecode generatePredictableConditionInitialize(List<CodePattern.Range> predictableConditions, CodeIterator iterator, ConstPool constPool, int[] offset) {
         Bytecode bytecode = new Bytecode(constPool);
         for (CodePattern.Range predictableCondition : predictableConditions) {
             for (int i = predictableCondition.start; i <= predictableCondition.end; i++) {
@@ -629,9 +625,7 @@ public class TauntMaskPatches {
             bytecode.addOpcode(Opcode.ICONST_1);
             bytecode.addOpcode(Opcode.GOTO);
             bytecode.add(0, 4);
-            sameFrames.add(offset[0] + bytecode.length());
             bytecode.addOpcode(Opcode.ICONST_0);
-            sameLocals.add(offset[0] + bytecode.length());
             bytecode.addAload(0);
             bytecode.addInvokestatic(TauntMaskPatchesClassName,
                     "addPredictableConditionValue",
@@ -642,7 +636,7 @@ public class TauntMaskPatches {
         return bytecode;
     }
 
-    private static void insertInitCodes(CodeNodeBundle codeNodeBundle, Bytecode attackInitCode, Bytecode predictableConditionInitCode, CodeIterator iterator, StackMapTable smt, List<Integer> sameFrames, List<Integer> sameLocals) throws BadBytecode {
+    private static void insertInitCodes(CodeNodeBundle codeNodeBundle, Bytecode attackInitCode, Bytecode predictableConditionInitCode, CodeIterator iterator) throws BadBytecode {
         Bytecode initSetMove = new Bytecode(iterator.get().getConstPool());
 
         initSetMove.addAload(0);
@@ -665,16 +659,6 @@ public class TauntMaskPatches {
         length += predictableConditionInitCode.length();
 
         iterator.write16bit(length - offset + 3, firstBranch); // Update first branch
-
-        StackMapTableUpdater smtUpdater = new StackMapTableUpdater(smt.get());
-        smtUpdater.addFrame(length, StackMapTable.Writer::sameFrame);
-        for (int sameFrame : sameFrames) {
-            smtUpdater.addFrame(offset + sameFrame, StackMapTable.Writer::sameFrame);
-        }
-        for (int sameLocal : sameLocals) {
-            smtUpdater.addFrame(offset + sameLocal, (w, od) -> w.sameLocals(od, StackMapTable.INTEGER, 0));
-        }
-        smt.set(smtUpdater.doIt());
     }
 
     private static TreeMap<CodeSplitter.CodePiece, CodePieceExtension> fillCodePieceExtension(TreeMap<Integer, CodeSplitter.CodePiece> codes, List<AttackIntentInfo> attackIntents, List<CodePattern.Range> randomConditions, List<CodePattern.Range> predictableConditions) {
