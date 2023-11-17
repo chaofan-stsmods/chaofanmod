@@ -34,5 +34,11 @@
     "EXTENDED_DESCRIPTION": [
       "%s's Card"
     ]
+  },
+  "chaofanmod:ExhaustCounterMod": {
+    "DESCRIPTION": " NL This card is Exhausted after played %d times.",
+    "EXTENDED_DESCRIPTION": [
+      " NL Exhaust."
+    ]
   }
 }

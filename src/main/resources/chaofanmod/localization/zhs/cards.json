@@ -29,10 +29,16 @@
     "DESCRIPTION": "失去 !M! 金币。 NL 每回合开始获得 [E] 。"
   },
   "chaofanmod:card.FriendCard": {
-    "NAME": "好友卡",
-    "DESCRIPTION": "一张来自你朋友的卡。",
+    "NAME": "好友牌",
+    "DESCRIPTION": "一张来自你朋友的卡牌。",
     "EXTENDED_DESCRIPTION": [
       "%s的卡牌"
+    ]
+  },
+  "chaofanmod:ExhaustCounterMod": {
+    "DESCRIPTION": " NL 这张牌打出%d次后 消耗 。",
+    "EXTENDED_DESCRIPTION": [
+      " NL 消耗 。"
     ]
   }
 }

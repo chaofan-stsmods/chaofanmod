@@ -59,6 +59,7 @@ public class ChaofanMod implements
         EditRelicsSubscriber,
         EditCardsSubscriber,
         EditKeywordsSubscriber,
+        AddAudioSubscriber,
         PostInitializeSubscriber,
         PostExhaustSubscriber,
         StartGameSubscriber,
@@ -78,6 +79,10 @@ public class ChaofanMod implements
 
     public static String getImagePath(String file) {
         return MOD_ID + "/images/" + file;
+    }
+
+    public static String getAudioPath(String file) {
+        return MOD_ID + "/audio/" + file;
     }
 
     public static String getShaderPath(String file) {
@@ -246,6 +251,11 @@ public class ChaofanMod implements
     public void receiveEditKeywords() {
         ChaofanMod.keywords = new HashMap<>();
         CommonModUtils.loadKeywordsFile(ChaofanMod.keywords);
+    }
+
+    @Override
+    public void receiveAddAudio() {
+        BaseMod.addAudio("chaofanmod:WoodSmash", getAudioPath("sound/wood_smash.ogg"));
     }
 
     @Override

@@ -5,6 +5,7 @@ import basemod.helpers.CardModifierManager;
 import com.badlogic.gdx.graphics.Texture;
 import com.megacrit.cardcrawl.cards.AbstractCard;
 import com.megacrit.cardcrawl.dungeons.AbstractDungeon;
+import io.chaofan.sts.chaofanmod.cards.modifiers.ExhaustCounterMod;
 import io.chaofan.sts.chaofanmod.cards.modifiers.StrikeMod;
 import io.chaofan.sts.chaofanmod.utils.TextureLoader;
 
@@ -32,6 +33,9 @@ public class Stool extends CustomRelic {
         for (AbstractCard card : AbstractDungeon.player.drawPile.group) {
             if (card.type == AbstractCard.CardType.ATTACK && !CardModifierManager.hasModifier(card, StrikeMod.ID)) {
                 CardModifierManager.addModifier(card, new StrikeMod());
+            }
+            if (card.hasTag(AbstractCard.CardTags.STARTER_STRIKE) && !CardModifierManager.hasModifier(card, ExhaustCounterMod.ID)) {
+                CardModifierManager.addModifier(card, new ExhaustCounterMod(1));
             }
         }
     }
