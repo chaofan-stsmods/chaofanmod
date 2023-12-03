@@ -16,6 +16,7 @@ import com.megacrit.cardcrawl.helpers.ModHelper;
 import com.megacrit.cardcrawl.map.MapEdge;
 import com.megacrit.cardcrawl.map.MapGenerator;
 import com.megacrit.cardcrawl.map.MapRoomNode;
+import com.megacrit.cardcrawl.relics.WingBoots;
 import com.megacrit.cardcrawl.rooms.AbstractRoom;
 import com.megacrit.cardcrawl.screens.DungeonMapScreen;
 import com.megacrit.cardcrawl.vfx.FlameAnimationEffect;
@@ -66,7 +67,7 @@ public class ZMapPatches {
                 return;
             }
 
-            if (currentMapNode != null && node != currentMapNode && (node.y != 0 || currentMapNode.y == node.y) && !currentMapNode.isConnectedTo(node)) {
+            if (shouldHideSummary(node, currentMapNode)) {
                 return;
             }
 
@@ -114,7 +115,7 @@ public class ZMapPatches {
                 return SpireReturn.Continue();
             }
 
-            if (currentMapNode != null && node != currentMapNode && (node.y != 0 || currentMapNode.y == node.y) && !currentMapNode.isConnectedTo(node)) {
+            if (shouldHideSummary(node, currentMapNode)) {
                 return SpireReturn.Continue();
             }
 
@@ -156,7 +157,7 @@ public class ZMapPatches {
                 return;
             }
 
-            if (currentMapNode != null && node != currentMapNode && (node.y != 0 || currentMapNode.y == node.y) && !currentMapNode.isConnectedTo(node)) {
+            if (shouldHideSummary(node, currentMapNode)) {
                 return;
             }
 
@@ -451,5 +452,12 @@ public class ZMapPatches {
             isBeforeFirstRoom = true;
         }
         return isBeforeFirstRoom;
+    }
+
+    private static boolean shouldHideSummary(MapRoomNode node, MapRoomNode currentMapNode) {
+        AbstractPlayer player = AbstractDungeon.player;
+        boolean hasWingBoots = player != null && player.hasRelic(WingBoots.ID) && player.getRelic(WingBoots.ID).counter > 0;
+        return currentMapNode != null && node != currentMapNode &&
+                (node.y != 0 || currentMapNode.y == node.y) && !currentMapNode.isConnectedTo(node) && !hasWingBoots;
     }
 }
