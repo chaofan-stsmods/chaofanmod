@@ -1,7 +1,6 @@
 package io.chaofan.sts.chaofanmod.patches;
 
 import com.evacipated.cardcrawl.modthespire.Loader;
-import com.evacipated.cardcrawl.modthespire.ModInfo;
 import com.evacipated.cardcrawl.modthespire.lib.SpireConfig;
 import com.evacipated.cardcrawl.modthespire.lib.SpirePatch;
 import com.evacipated.cardcrawl.modthespire.lib.SpireRawPatch;
@@ -14,18 +13,15 @@ import com.megacrit.cardcrawl.powers.AbstractPower;
 import com.megacrit.cardcrawl.powers.StrengthPower;
 import io.chaofan.sts.chaofanmod.ChaofanMod;
 import io.chaofan.sts.chaofanmod.relics.TauntMask;
+import io.chaofan.sts.chaofanmod.utils.ClassUtils;
 import io.chaofan.sts.chaofanmod.utils.CodePattern;
 import io.chaofan.sts.chaofanmod.utils.CodeSplitter;
 import javassist.*;
 import javassist.bytecode.*;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.*;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
 import java.util.stream.Collectors;
 
 public class TauntMaskPatches {
@@ -203,14 +199,14 @@ public class TauntMaskPatches {
         CtClass abstractMonsterClass = pool.get(AbstractMonsterClassName);
 
         List<URI> jars = Arrays.stream(Loader.MODINFOS)
-                .map(TauntMaskPatches::modInfoToUri)
+                .map(ClassUtils::modInfoToUri)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
         jars.add(new File(Loader.STS_JAR).getAbsoluteFile().toURI());
 
         List<String> classes = new ArrayList<>();
         for (URI jar : jars) {
-            getClassesFromJar(jar, classes);
+            ClassUtils.getClassesFromJar(jar, classes);
         }
 
         List<CtClass> monsters = new ArrayList<>();
@@ -225,34 +221,6 @@ public class TauntMaskPatches {
             }
         }
         return monsters;
-    }
-
-    private static URI modInfoToUri(ModInfo modInfo) {
-        try {
-            return modInfo.jarURL.toURI();
-        } catch (URISyntaxException e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
-
-    private static void getClassesFromJar(URI jar, List<String> results) {
-        File cpFile = new File(jar);
-
-        try {
-            JarFile jFile = new JarFile(cpFile);
-            Enumeration<JarEntry> jEntrys = jFile.entries();
-
-            while (jEntrys.hasMoreElements()) {
-                JarEntry jClass = jEntrys.nextElement();
-                String jClassPath = jClass.getName();
-                if (jClassPath.endsWith(".class")) {
-                    results.add(jClassPath.replace('/', '.').substring(0, jClassPath.length() - ".class".length()));
-                }
-            }
-        } catch (IOException e) {
-            debug("TauntMaskPatches.getClassesFromJar: failed to get classes from jar: " + jar);
-        }
     }
 
     private static void patchGetMove(ClassPool pool, CtClass monster, String targetMonster) throws Exception {
@@ -284,7 +252,7 @@ public class TauntMaskPatches {
         if (showDecompile) {
             StackMapTable smt = (StackMapTable)ca.getAttribute(StackMapTable.tag);
             smt.println(System.out);
-            printCode(ca);
+            ClassUtils.printCode(ca);
         }
 
         List<CodePattern.Range> randomConditions = findRandomConditions(ca.iterator(), cp);
@@ -335,35 +303,8 @@ public class TauntMaskPatches {
         if (showDecompile) {
             StackMapTable smt = (StackMapTable)ca.getAttribute(StackMapTable.tag);
             smt.println(System.out);
-            printCode(ca);
+            ClassUtils.printCode(ca);
         }
-    }
-
-    private static void printCode(CodeAttribute ca) throws BadBytecode {
-        int lastIndex = 0;
-        int lastOp = -1;
-        CodeIterator ci2 = ca.iterator();
-        ConstPool cp = ca.getConstPool();
-        while (ci2.hasNext()) {
-            int index = ci2.next();
-            int op = ci2.byteAt(index);
-            if (lastOp == Opcode.INVOKESTATIC || lastOp == Opcode.INVOKEVIRTUAL || lastOp == Opcode.INVOKESPECIAL || lastOp == Opcode.INVOKEINTERFACE) {
-                int argument = ci2.u16bitAt(lastIndex);
-                System.out.printf(" %s.%s %s", cp.getMethodrefClassName(argument), cp.getMethodrefName(argument), cp.getMethodrefType(argument));
-            } else if (lastOp == Opcode.GETSTATIC || lastOp == Opcode.GETFIELD) {
-                int argument = ci2.u16bitAt(lastIndex);
-                System.out.printf(" %s.%s", cp.getFieldrefClassName(argument), cp.getFieldrefName(argument));
-            } else {
-                for (int i = lastIndex; i < index; i++) {
-                    System.out.printf(" %02X", ci2.byteAt(i));
-                }
-            }
-            System.out.println();
-            System.out.printf("%04X: %20s", index, Mnemonic.OPCODE[op]);
-            lastIndex = index + 1;
-            lastOp = op;
-        }
-        System.out.println();
     }
 
     private static List<CodePattern.Range> findRandomConditions(CodeIterator iterator, ConstPool constPool) throws BadBytecode {

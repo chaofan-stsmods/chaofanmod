@@ -76,5 +76,14 @@
     "DESCRIPTIONS": [
       "Gain [E] at the start of your turn. You can only see distributions of room amount instead of paths on map."
     ]
+  },
+  "chaofanmod:relic.MsWrithing": {
+    "NAME": "Ms. Writhing",
+    "FLAVOR": "She swallowed my tools! - The Architect",
+    "DESCRIPTIONS": [
+      "Gain [E] at the start of your turn, then disable a random relic for the rest of combat.",
+      "Disabled",
+      "This relic is disabled for the rest of combat."
+    ]
   }
 }
