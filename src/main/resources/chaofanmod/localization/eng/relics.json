@@ -81,9 +81,10 @@
     "NAME": "Ms. Writhing",
     "FLAVOR": "She swallowed my tools! - The Architect",
     "DESCRIPTIONS": [
-      "Gain [E] at the start of your turn, then disable a random relic for the rest of combat.",
+      "Gain [E] at the start of your turn, then choose 1 of 3 random relics that you have to disable it for the rest of combat.",
       "Disabled",
-      "This relic is disabled for the rest of combat."
+      "This relic is disabled for the rest of combat.",
+      "Choose a Relic to Disable"
     ]
   }
 }

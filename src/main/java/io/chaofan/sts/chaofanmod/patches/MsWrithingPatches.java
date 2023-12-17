@@ -121,6 +121,10 @@ public class MsWrithingPatches {
 
         public static void addRelicInfo(CtClass clz) {
             try {
+                if (Arrays.stream(clz.getInterfaces()).anyMatch(i -> i.getName().equals(DisableRelic.class.getName()))) {
+                    return;
+                }
+
                 CtMethod method = clz.getDeclaredMethod("onUnequip");
                 MethodInfo mi = method.getMethodInfo();
                 ConstPool constPool = mi.getConstPool();
@@ -169,8 +173,10 @@ public class MsWrithingPatches {
                 }
 
                 if (code.length() > 0) {
-                    CtMethod newMethod = CtNewMethod.make("public void disableByMsWrithing() { " + code + " }", clz);
-                    clz.addMethod(newMethod);
+                    CtMethod disableMethod = CtNewMethod.make("public void disableByMsWrithing() { " + code + " }", clz);
+                    clz.addMethod(disableMethod);
+                    CtMethod enableMethod = CtNewMethod.make("public void enableByMsWrithing() {}", clz);
+                    clz.addMethod(enableMethod);
                     clz.addInterface(clz.getClassPool().get(DisableRelic.class.getName()));
                 }
 
@@ -184,6 +190,7 @@ public class MsWrithingPatches {
 
     public interface DisableRelic {
         void disableByMsWrithing();
+        void enableByMsWrithing();
     }
 
     public static Iterator<?> replaceIterator(ArrayList<?> list, Iterator<?> iterator) {
@@ -264,8 +271,8 @@ public class MsWrithingPatches {
 
     @SpirePatch(clz = AbstractPlayer.class, method = "onVictory")
     public static class ResetRelicDisablePatch {
-        @SpirePostfixPatch
-        public static void Postfix(AbstractPlayer instance) {
+        @SpirePrefixPatch
+        public static void Prefix(AbstractPlayer instance) {
             for (AbstractRelic relic : instance.relics) {
                 if (!Fields.disabled.get(relic)) {
                     continue;
@@ -276,6 +283,9 @@ public class MsWrithingPatches {
                 PowerTip powerTip = Fields.disabledTooltip.get(relic);
                 if (powerTip != null) {
                     relic.tips.remove(powerTip);
+                }
+                if (relic instanceof MsWrithingPatches.DisableRelic) {
+                    ((MsWrithingPatches.DisableRelic) relic).enableByMsWrithing();
                 }
             }
         }

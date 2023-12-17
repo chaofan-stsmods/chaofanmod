@@ -215,6 +215,7 @@ public class ChaofanMod implements
         excludeCards.add(CutGlassCard.class.getName());
         excludeCards.add(SampleEffectCard.class.getName());
         excludeCards.add(ProgressCard.class.getName());
+        excludeCards.add(MsWrithingOptionCard.class.getName());
         new AutoAdd(MOD_ID)
                 .packageFilter(AlphaBlue.class)
                 .filter((classInfo, classFinder) -> !excludeCards.contains(classInfo.getClassName()))

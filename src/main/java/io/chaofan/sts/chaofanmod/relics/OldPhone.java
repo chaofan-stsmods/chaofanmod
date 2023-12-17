@@ -16,12 +16,13 @@ import com.megacrit.cardcrawl.dungeons.AbstractDungeon;
 import com.megacrit.cardcrawl.helpers.ImageMaster;
 import com.megacrit.cardcrawl.helpers.ShaderHelper;
 import io.chaofan.sts.chaofanmod.ChaofanMod;
+import io.chaofan.sts.chaofanmod.patches.MsWrithingPatches;
 import io.chaofan.sts.chaofanmod.utils.TextureLoader;
 import io.chaofan.sts.chaofanmod.vfx.OldPhoneEffectV2;
 
 import static io.chaofan.sts.chaofanmod.ChaofanMod.*;
 
-public class OldPhone extends CustomRelic {
+public class OldPhone extends CustomRelic implements MsWrithingPatches.DisableRelic {
     public static final String ID = makeId("relic.OldPhone");
 
     private static final Texture IMG = TextureLoader.getTexture(getImagePath("relics/old_phone.png"));
@@ -44,6 +45,17 @@ public class OldPhone extends CustomRelic {
     public void onUnequip() {
         --AbstractDungeon.player.energy.energyMaster;
         ChaofanMod.removePostProcessor(getEffectClass());
+    }
+
+    @Override
+    public void disableByMsWrithing() {
+        --AbstractDungeon.player.energy.energy;
+        ChaofanMod.removePostProcessor(getEffectClass());
+    }
+
+    @Override
+    public void enableByMsWrithing() {
+        ChaofanMod.registerPostProcessor(createEffect(true));
     }
 
     public static ScreenPostProcessor createEffect(boolean waitForLoading) {

@@ -2,15 +2,19 @@ package io.chaofan.sts.chaofanmod.relics;
 
 import basemod.abstracts.CustomRelic;
 import com.badlogic.gdx.graphics.Texture;
+import com.megacrit.cardcrawl.actions.AbstractGameAction;
+import com.megacrit.cardcrawl.cards.AbstractCard;
 import com.megacrit.cardcrawl.characters.AbstractPlayer;
 import com.megacrit.cardcrawl.dungeons.AbstractDungeon;
 import com.megacrit.cardcrawl.helpers.PowerTip;
 import com.megacrit.cardcrawl.relics.AbstractRelic;
 import io.chaofan.sts.chaofanmod.actions.common.AnonymousAction;
+import io.chaofan.sts.chaofanmod.actions.common.SelectFromRewardAction;
+import io.chaofan.sts.chaofanmod.cards.MsWrithingOptionCard;
 import io.chaofan.sts.chaofanmod.patches.MsWrithingPatches;
 import io.chaofan.sts.chaofanmod.utils.TextureLoader;
 
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static io.chaofan.sts.chaofanmod.ChaofanMod.getImagePath;
@@ -47,22 +51,46 @@ public class MsWrithing extends CustomRelic {
     public void atTurnStartPostDraw() {
         flash();
         addToBot(new AnonymousAction(() -> {
-            AbstractPlayer player = AbstractDungeon.player;
-            List<AbstractRelic> enabledRelics = player.relics.stream()
+            List<AbstractRelic> enabledRelics = AbstractDungeon.player.relics.stream()
                     .filter(r -> !MsWrithingPatches.Fields.disabled.get(r))
                     .collect(Collectors.toList());
             if (enabledRelics.size() > 0) {
-                AbstractRelic relic = enabledRelics.get(AbstractDungeon.cardRandomRng.random(enabledRelics.size() - 1));
-                MsWrithingPatches.Fields.disabled.set(relic, true);
-                MsWrithingPatches.Fields.disabledProgress.set(relic, DISABLE_RELIC_DURATION);
-                PowerTip tip = new PowerTip(DESCRIPTIONS[1], DESCRIPTIONS[2]);
-                MsWrithingPatches.Fields.disabledTooltip.set(relic, tip);
-                relic.tips.add(tip);
-                if (relic instanceof MsWrithingPatches.DisableRelic) {
-                    ((MsWrithingPatches.DisableRelic) relic).disableByMsWrithing();
+                Collections.shuffle(enabledRelics, new Random(AbstractDungeon.cardRandomRng.randomLong()));
+                ArrayList<AbstractCard> cards = enabledRelics.stream()
+                        .limit(3)
+                        .map(MsWrithingOptionCard::new)
+                        .collect(Collectors.toCollection(ArrayList::new));
+
+                if (cards.size() > 1) {
+                    addToTop(new SelectFromRewardAction(
+                            cards,
+                            c -> c.ifPresent(this::afterSelect),
+                            DESCRIPTIONS[3],
+                            false,
+                            AbstractGameAction.ActionType.POWER));
+                } else {
+                    afterSelect(cards.get(0));
                 }
-                player.hand.applyPowers();
             }
         }));
+    }
+
+    private void afterSelect(AbstractCard abstractCard) {
+        MsWrithingOptionCard card = (MsWrithingOptionCard) abstractCard;
+        AbstractRelic relic = card.relic;
+        MsWrithingPatches.Fields.disabled.set(relic, true);
+        MsWrithingPatches.Fields.disabledProgress.set(relic, DISABLE_RELIC_DURATION);
+        PowerTip tip = new PowerTip(DESCRIPTIONS[1], DESCRIPTIONS[2]);
+        MsWrithingPatches.Fields.disabledTooltip.set(relic, tip);
+        relic.tips.add(tip);
+        if (relic instanceof MsWrithingPatches.DisableRelic) {
+            ((MsWrithingPatches.DisableRelic) relic).disableByMsWrithing();
+        }
+        AbstractDungeon.player.hand.applyPowers();
+    }
+
+    @Override
+    public boolean canSpawn() {
+        return AbstractDungeon.player.relics.size() >= 4;
     }
 }

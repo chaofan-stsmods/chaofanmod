@@ -13,11 +13,12 @@ import com.megacrit.cardcrawl.dungeons.AbstractDungeon;
 import com.megacrit.cardcrawl.helpers.ShaderHelper;
 import com.megacrit.cardcrawl.helpers.input.InputHelper;
 import io.chaofan.sts.chaofanmod.ChaofanMod;
+import io.chaofan.sts.chaofanmod.patches.MsWrithingPatches;
 import io.chaofan.sts.chaofanmod.utils.TextureLoader;
 
 import static io.chaofan.sts.chaofanmod.ChaofanMod.*;
 
-public class SpotLight extends CustomRelic {
+public class SpotLight extends CustomRelic implements MsWrithingPatches.DisableRelic {
     public static final String ID = makeId("relic.SpotLight");
 
     private static final Texture IMG = TextureLoader.getTexture(getImagePath("relics/spot_light.png"));
@@ -40,6 +41,17 @@ public class SpotLight extends CustomRelic {
     public void onUnequip() {
         --AbstractDungeon.player.energy.energyMaster;
         ChaofanMod.removePostProcessor(SpotLightPostProcessor.class);
+    }
+
+    @Override
+    public void disableByMsWrithing() {
+        --AbstractDungeon.player.energy.energy;
+        ChaofanMod.removePostProcessor(SpotLightPostProcessor.class);
+    }
+
+    @Override
+    public void enableByMsWrithing() {
+        ChaofanMod.registerPostProcessor(new SpotLightPostProcessor());
     }
 
     public static class SpotLightPostProcessor implements ScreenPostProcessor {
