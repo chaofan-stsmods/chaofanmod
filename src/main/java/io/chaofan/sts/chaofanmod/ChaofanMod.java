@@ -8,6 +8,7 @@ import basemod.helpers.ScreenPostProcessorManager;
 import basemod.interfaces.*;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
+import com.evacipated.cardcrawl.modthespire.Loader;
 import com.evacipated.cardcrawl.modthespire.lib.SpireConfig;
 import com.evacipated.cardcrawl.modthespire.lib.SpireInitializer;
 import com.google.gson.Gson;
@@ -72,8 +73,10 @@ public class ChaofanMod implements
 
     public static final String USE_OLD_PHONE_V2 = "UseOldPhoneV2";
     public static final String DISABLE_TAUNT_MASK = "DisableTauntMask";
+    public static final String DISABLE_MS_WRITHING = "DisableMsWrithing";
     public static boolean useOldPhoneV2 = true;
     public static boolean disableTauntMask = false;
+    public static boolean disableMsWrithing = false;
 
     public static SteamworksHelper steamworksHelper;
 
@@ -111,6 +114,9 @@ public class ChaofanMod implements
         if (config != null) {
             useOldPhoneV2 = !config.has(USE_OLD_PHONE_V2) || config.getBool(USE_OLD_PHONE_V2);
             disableTauntMask = config.has(DISABLE_TAUNT_MASK) && config.getBool(DISABLE_TAUNT_MASK);
+            disableMsWrithing = config.has(DISABLE_MS_WRITHING) && config.getBool(DISABLE_MS_WRITHING);
+
+            disableMsWrithing = disableMsWrithing || Loader.isModLoadedOrSideloaded("testmod");
         }
     }
 
@@ -157,6 +163,7 @@ public class ChaofanMod implements
         if (config != null) {
             useOldPhoneV2 = !config.has(USE_OLD_PHONE_V2) || config.getBool(USE_OLD_PHONE_V2);
             disableTauntMask = config.has(DISABLE_TAUNT_MASK) && config.getBool(DISABLE_TAUNT_MASK);
+            disableMsWrithing = config.has(DISABLE_MS_WRITHING) && config.getBool(DISABLE_MS_WRITHING);
         }
 
         ModPanel modPanel = new ModPanel();
@@ -202,8 +209,26 @@ public class ChaofanMod implements
                     }
                 });
 
+        yPos -= 50f;
+        ModLabeledToggleButton disableMsWrithingButton = new ModLabeledToggleButton(
+                configStrings.get(DISABLE_MS_WRITHING),
+                350.0f,
+                yPos,
+                Settings.CREAM_COLOR,
+                FontHelper.charDescFont,
+                disableMsWrithing,
+                modPanel,
+                (label) -> {},
+                (button) -> {
+                    if (config != null) {
+                        config.setBool(DISABLE_MS_WRITHING, button.enabled);
+                        trySaveConfig(config);
+                    }
+                });
+
         modPanel.addUIElement(useOldPhoneV2Button);
         modPanel.addUIElement(disableTauntMaskButton);
+        modPanel.addUIElement(disableMsWrithingButton);
 
         return modPanel;
     }
@@ -230,6 +255,9 @@ public class ChaofanMod implements
         excludeRelics.add(ManholeCover.class.getName());
         if (disableTauntMask) {
             excludeRelics.add(TauntMask.class.getName());
+        }
+        if (disableMsWrithing) {
+            excludeRelics.add(MsWrithing.class.getName());
         }
         new AutoAdd(MOD_ID)
                 .packageFilter(Stool.class)

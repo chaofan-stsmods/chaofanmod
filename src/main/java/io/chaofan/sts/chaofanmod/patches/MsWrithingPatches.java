@@ -14,6 +14,7 @@ import com.megacrit.cardcrawl.dungeons.AbstractDungeon;
 import com.megacrit.cardcrawl.helpers.Hitbox;
 import com.megacrit.cardcrawl.helpers.PowerTip;
 import com.megacrit.cardcrawl.relics.AbstractRelic;
+import io.chaofan.sts.chaofanmod.ChaofanMod;
 import io.chaofan.sts.chaofanmod.relics.MsWrithing;
 import io.chaofan.sts.chaofanmod.utils.ClassUtils;
 import io.chaofan.sts.chaofanmod.utils.CodePattern;
@@ -45,6 +46,16 @@ public class MsWrithingPatches {
     public static class DisableLifecyclePatchV2 {
         @SpireRawPatch
         public static void Raw(CtBehavior method) throws NotFoundException {
+            SpireConfig config = ChaofanMod.tryCreateConfig();
+            if (config != null && config.has(ChaofanMod.DISABLE_MS_WRITHING) && config.getBool(ChaofanMod.DISABLE_MS_WRITHING)) {
+                return;
+            }
+
+            // conflict mod
+            if (Loader.isModLoadedOrSideloaded("testmod")) {
+                return;
+            }
+
             ClassPool pool = method.getDeclaringClass().getClassPool();
             CtClass abstractRelicClass = pool.get(AbstractRelic.class.getName());
 
@@ -83,10 +94,16 @@ public class MsWrithingPatches {
                     } catch (CannotCompileException ignored) {
                     }
                 }
+                for (CtConstructor method : clz.getConstructors()) {
+                    try {
+                        patchMethod(method);
+                    } catch (CannotCompileException ignored) {
+                    }
+                }
             } catch (Throwable ignored) {}
         }
 
-        private static void patchMethod(CtMethod method) throws CannotCompileException {
+        private static void patchMethod(CtBehavior method) throws CannotCompileException {
             if (method.getName().equals("renderRelics") && method.getDeclaringClass().getName().equals(AbstractPlayer.class.getName())) {
                 return;
             }
@@ -116,6 +133,8 @@ public class MsWrithingPatches {
                         }
                     }
                 });
+
+                System.out.println("MrWrithingPatches.patchMethod: " + method.getDeclaringClass().getName() + "." + method.getName() + method.getSignature() + " patched successfully.");
             }
         }
 
@@ -174,11 +193,18 @@ public class MsWrithingPatches {
 
                 if (code.length() > 0) {
                     CtMethod disableMethod = CtNewMethod.make("public void disableByMsWrithing() { " + code + " }", clz);
-                    clz.addMethod(disableMethod);
+                    CtMethod[] methods = clz.getMethods();
+                    if (Arrays.stream(methods).noneMatch(m -> m.getName().equals("disableByMsWrithing") && m.getSignature().equals("()V"))) {
+                        clz.addMethod(disableMethod);
+                    }
                     CtMethod enableMethod = CtNewMethod.make("public void enableByMsWrithing() {}", clz);
-                    clz.addMethod(enableMethod);
+                    if (Arrays.stream(methods).noneMatch(m -> m.getName().equals("enableByMsWrithing") && m.getSignature().equals("()V"))) {
+                        clz.addMethod(enableMethod);
+                    }
                     clz.addInterface(clz.getClassPool().get(DisableRelic.class.getName()));
                 }
+
+                System.out.println("MrWrithingPatches.addRelicInfo: " + clz.getName() + " patched successfully.");
 
             } catch (NotFoundException | BadBytecode | CannotCompileException ignored) { }
         }
@@ -271,8 +297,8 @@ public class MsWrithingPatches {
 
     @SpirePatch(clz = AbstractPlayer.class, method = "onVictory")
     public static class ResetRelicDisablePatch {
-        @SpirePrefixPatch
-        public static void Prefix(AbstractPlayer instance) {
+        @SpirePostfixPatch
+        public static void Postfix(AbstractPlayer instance) {
             for (AbstractRelic relic : instance.relics) {
                 if (!Fields.disabled.get(relic)) {
                     continue;
