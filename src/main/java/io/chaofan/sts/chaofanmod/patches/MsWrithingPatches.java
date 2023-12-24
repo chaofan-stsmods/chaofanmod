@@ -220,14 +220,16 @@ public class MsWrithingPatches {
     }
 
     public static Iterator<?> replaceIterator(ArrayList<?> list, Iterator<?> iterator) {
-        if (list == AbstractDungeon.player.relics && doDisabledRelicCheck) {
+        AbstractPlayer player = AbstractDungeon.player;
+        if (player != null && list == player.relics && doDisabledRelicCheck) {
             return new RemoveDisabledIterator((Iterator<AbstractRelic>) iterator);
         }
         return iterator;
     }
 
     public static Stream<?> replaceStream(ArrayList<?> list, Stream<?> stream) {
-        if (list == AbstractDungeon.player.relics && doDisabledRelicCheck) {
+        AbstractPlayer player = AbstractDungeon.player;
+        if (player != null && list == player.relics && doDisabledRelicCheck) {
             return stream.filter(relic -> !Fields.disabled.get(relic));
         }
         return stream;
