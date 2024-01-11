@@ -86,5 +86,12 @@
       "This relic is disabled for the rest of combat.",
       "Choose a Relic to Disable"
     ]
+  },
+  "chaofanmod:relic.GoldenCube": {
+    "NAME": "Golden Cube",
+    "FLAVOR": "It's said that this is made by combining 3 cubes.",
+    "DESCRIPTIONS": [
+      "Your #yEnergy can be negative. If so, whenever you play a card, lose HP equal to absolute value of current #yEnergy."
+    ]
   }
 }
