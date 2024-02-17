@@ -3,6 +3,7 @@ package io.chaofan.sts.chaofanmod.cards.friendcard;
 import com.megacrit.cardcrawl.actions.common.ApplyPowerAction;
 import com.megacrit.cardcrawl.characters.AbstractPlayer;
 import com.megacrit.cardcrawl.monsters.AbstractMonster;
+import com.megacrit.cardcrawl.powers.ArtifactPower;
 import com.megacrit.cardcrawl.powers.GainStrengthPower;
 import com.megacrit.cardcrawl.powers.StrengthPower;
 import io.chaofan.sts.chaofanmod.cards.FriendCard;
@@ -48,7 +49,9 @@ public class EnemyLoseTempStrength extends ScoreNeededListProperty {
         forEnemyOrAllEnemies(monster, m -> {
             if (m != null) {
                 addToBot(new ApplyPowerAction(m, p, new StrengthPower(m, -getValueMayUpgrade())));
-                addToBot(new ApplyPowerAction(m, p, new GainStrengthPower(m, getValueMayUpgrade())));
+                if (!m.hasPower(ArtifactPower.POWER_ID)) {
+                    addToBot(new ApplyPowerAction(m, p, new GainStrengthPower(m, getValueMayUpgrade())));
+                }
             }
         });
     }

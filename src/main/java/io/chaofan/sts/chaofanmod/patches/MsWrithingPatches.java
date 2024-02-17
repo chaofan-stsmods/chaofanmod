@@ -339,7 +339,7 @@ public class MsWrithingPatches {
         @SpireInsertPatch(locator = Locator.class)
         public static void Insert(AbstractRelic instance, SpriteBatch sb) {
             float progress = Fields.disabledProgress.get(instance) / DISABLE_RELIC_DURATION;
-            float scale = Settings.scale;
+            float scale = 1;
             boolean shouldRender = false;
             if (Fields.disabled.get(instance)) {
                 color.a = 1 - progress;
