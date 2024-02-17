@@ -116,7 +116,7 @@ public class ChaofanMod implements
             disableTauntMask = config.has(DISABLE_TAUNT_MASK) && config.getBool(DISABLE_TAUNT_MASK);
             disableMsWrithing = config.has(DISABLE_MS_WRITHING) && config.getBool(DISABLE_MS_WRITHING);
 
-            disableMsWrithing = disableMsWrithing || Loader.isModLoadedOrSideloaded("testmod");
+            disableMsWrithing = disableMsWrithing || disableMsWrithingByOtherMod();
         }
     }
 
@@ -209,18 +209,22 @@ public class ChaofanMod implements
                     }
                 });
 
+        boolean disableMsWrithingByOtherMod = disableMsWrithingByOtherMod();
         yPos -= 50f;
         ModLabeledToggleButton disableMsWrithingButton = new ModLabeledToggleButton(
                 configStrings.get(DISABLE_MS_WRITHING),
+                disableMsWrithingByOtherMod ? String.format(configStrings.get(DISABLE_MS_WRITHING + ".conflict"), conflictModNames("testmod", "Downfall")) : null,
                 350.0f,
                 yPos,
                 Settings.CREAM_COLOR,
                 FontHelper.charDescFont,
-                disableMsWrithing,
+                disableMsWrithing || disableMsWrithingByOtherMod,
                 modPanel,
                 (label) -> {},
                 (button) -> {
-                    if (config != null) {
+                    if (disableMsWrithingByOtherMod) {
+                        button.enabled = true;
+                    } else if (config != null) {
                         config.setBool(DISABLE_MS_WRITHING, button.enabled);
                         trySaveConfig(config);
                     }
@@ -355,6 +359,23 @@ public class ChaofanMod implements
             logger.warn(e);
             return null;
         }
+    }
+
+    public static boolean disableMsWrithingByOtherMod() {
+        return Loader.isModLoadedOrSideloaded("testmod") || Loader.isModLoadedOrSideloaded("Downfall");
+    }
+
+    private static String conflictModNames(String... modIds) {
+        StringBuilder sb = new StringBuilder();
+        for (String modId : modIds) {
+            if (Loader.isModLoadedOrSideloaded(modId)) {
+                if (sb.length() > 0) {
+                    sb.append(", ");
+                }
+                sb.append(modId);
+            }
+        }
+        return sb.toString();
     }
 
     private static void trySaveConfig(SpireConfig config) {

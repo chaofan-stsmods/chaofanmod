@@ -38,6 +38,6 @@ public class ZMap extends CustomRelic {
     @Override
     public boolean canSpawn() {
         return !ModHelper.isModEnabled(SummarizedMap.ID) &&
-                (!Loader.isModLoaded("downfall") || !DownfallHelper.isDownfallMap());
+                (!Loader.isModLoadedOrSideloaded("Downfall") || !DownfallHelper.isDownfallMap());
     }
 }

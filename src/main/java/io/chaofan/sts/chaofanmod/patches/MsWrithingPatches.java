@@ -51,8 +51,7 @@ public class MsWrithingPatches {
                 return;
             }
 
-            // conflict mod
-            if (Loader.isModLoadedOrSideloaded("testmod")) {
+            if (ChaofanMod.disableMsWrithingByOtherMod()) {
                 return;
             }
 

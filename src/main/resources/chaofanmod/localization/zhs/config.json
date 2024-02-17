@@ -1,5 +1,6 @@
 {
   "UseOldPhoneV2": "旧手机使用3D特效",
   "DisableTauntMask": "禁用嘲讽面具以加速游戏启动 (须重启游戏)",
-  "DisableMsWrithing": "禁用扭曲妹妹以加速游戏启动 (须重启游戏)"
+  "DisableMsWrithing": "禁用扭曲妹妹以加速游戏启动 (须重启游戏)",
+  "DisableMsWrithing.conflict": "已自动禁用。与以下Mod冲突：%s。"
 }
