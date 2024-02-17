@@ -41,7 +41,9 @@ public class GoldenCubePatches {
 
         @SpirePostfixPatch
         public static void Postfix(int e) {
-            EnergyPanel.totalCount = estimatedEnergy;
+            if (hasGoldenCube(null)) {
+                EnergyPanel.totalCount = estimatedEnergy;
+            }
         }
     }
 

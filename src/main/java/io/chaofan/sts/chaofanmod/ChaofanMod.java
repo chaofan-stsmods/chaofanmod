@@ -253,6 +253,7 @@ public class ChaofanMod implements
     public void receiveEditRelics() {
         Set<String> excludeRelics = new HashSet<>();
         excludeRelics.add(ManholeCover.class.getName());
+        excludeRelics.add(GoldenCube.class.getName());
         if (disableTauntMask) {
             excludeRelics.add(TauntMask.class.getName());
         }
