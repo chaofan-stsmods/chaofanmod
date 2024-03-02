@@ -77,6 +77,7 @@ public class ChaofanMod implements
     public static boolean useOldPhoneV2 = true;
     public static boolean disableTauntMask = false;
     public static boolean disableMsWrithing = false;
+    public static boolean loadoutEnabled = false;
 
     public static SteamworksHelper steamworksHelper;
 
@@ -153,6 +154,8 @@ public class ChaofanMod implements
         steamworksHelper = new SteamworksHelper();
         BaseMod.subscribe(steamworksHelper);
         ConsoleCommand.addCommand("addfriendcard", FriendCardCommand.class);
+
+        loadoutEnabled = Loader.isModLoadedOrSideloaded("loadout");
     }
 
     private ModPanel initSettings() {

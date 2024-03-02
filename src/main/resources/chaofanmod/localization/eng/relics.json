@@ -14,7 +14,8 @@
       "Combat",
       "Fight and get reward.",
       "Ruby Key",
-      "Heal %d HP"
+      "Heal %d HP",
+      "You can't claim this because you enabled loadout mod"
     ]
   },
   "chaofanmod:relic.OldPhone": {

@@ -5,6 +5,7 @@ import basemod.abstracts.CustomReward;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.evacipated.cardcrawl.modthespire.Loader;
 import com.megacrit.cardcrawl.core.CardCrawlGame;
 import com.megacrit.cardcrawl.core.Settings;
 import com.megacrit.cardcrawl.dungeons.AbstractDungeon;
@@ -16,6 +17,7 @@ import com.megacrit.cardcrawl.rewards.RewardItem;
 import com.megacrit.cardcrawl.rewards.RewardSave;
 import com.megacrit.cardcrawl.vfx.AbstractGameEffect;
 import com.megacrit.cardcrawl.vfx.ObtainKeyEffect;
+import io.chaofan.sts.chaofanmod.ChaofanMod;
 import io.chaofan.sts.chaofanmod.relics.SpiritFire;
 import io.chaofan.sts.chaofanmod.utils.ChaofanModEnums;
 
@@ -25,7 +27,7 @@ import java.util.ArrayList;
 
 public class RubyKeyReward extends CustomReward {
     public RubyKeyReward(RewardItem link) {
-        super((Texture) null, CardCrawlGame.languagePack.getRelicStrings(SpiritFire.ID).DESCRIPTIONS[3], ChaofanModEnums.CHAOFAN_MOD_RUBY_KEY);
+        super((Texture) null, CardCrawlGame.languagePack.getRelicStrings(SpiritFire.ID).DESCRIPTIONS[ChaofanMod.loadoutEnabled ? 5 : 3], ChaofanModEnums.CHAOFAN_MOD_RUBY_KEY);
 
         this.img = ImageMaster.loadImage("images/relics/ruby_key.png");
         this.outlineImg = ImageMaster.loadImage("images/relics/outline/ruby_key.png");
@@ -35,6 +37,10 @@ public class RubyKeyReward extends CustomReward {
 
     @Override
     public boolean claimReward() {
+        if (ChaofanMod.loadoutEnabled) {
+            return false;
+        }
+
         if (!this.ignoreReward) {
             AbstractDungeon.topLevelEffects.add(new ObtainKeyEffect(ObtainKeyEffect.KeyColor.RED));
         }
