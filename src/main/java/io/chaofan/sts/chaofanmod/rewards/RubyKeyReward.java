@@ -27,7 +27,7 @@ import java.util.ArrayList;
 
 public class RubyKeyReward extends CustomReward {
     public RubyKeyReward(RewardItem link) {
-        super((Texture) null, CardCrawlGame.languagePack.getRelicStrings(SpiritFire.ID).DESCRIPTIONS[ChaofanMod.loadoutEnabled ? 5 : 3], ChaofanModEnums.CHAOFAN_MOD_RUBY_KEY);
+        super((Texture) null, CardCrawlGame.languagePack.getRelicStrings(SpiritFire.ID).DESCRIPTIONS[3], ChaofanModEnums.CHAOFAN_MOD_RUBY_KEY);
 
         this.img = ImageMaster.loadImage("images/relics/ruby_key.png");
         this.outlineImg = ImageMaster.loadImage("images/relics/outline/ruby_key.png");
@@ -37,10 +37,6 @@ public class RubyKeyReward extends CustomReward {
 
     @Override
     public boolean claimReward() {
-        if (ChaofanMod.loadoutEnabled) {
-            return false;
-        }
-
         if (!this.ignoreReward) {
             AbstractDungeon.topLevelEffects.add(new ObtainKeyEffect(ObtainKeyEffect.KeyColor.RED));
         }

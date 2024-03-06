@@ -40,6 +40,7 @@ import io.chaofan.sts.chaofanmod.powers.HeavyHandPower;
 import io.chaofan.sts.chaofanmod.relics.*;
 import io.chaofan.sts.chaofanmod.rewards.HealReward;
 import io.chaofan.sts.chaofanmod.rewards.RubyKeyReward;
+import io.chaofan.sts.chaofanmod.ui.WheelSelectScreen;
 import io.chaofan.sts.chaofanmod.utils.ChaofanModEnums;
 import io.chaofan.sts.chaofanmod.utils.SteamworksHelper;
 import io.chaofan.sts.chaofanmod.variables.SecondaryBlock;
@@ -78,6 +79,7 @@ public class ChaofanMod implements
     public static boolean disableTauntMask = false;
     public static boolean disableMsWrithing = false;
     public static boolean loadoutEnabled = false;
+    public static WheelSelectScreen wheelSelectScreen;
 
     public static SteamworksHelper steamworksHelper;
 
@@ -150,6 +152,9 @@ public class ChaofanMod implements
         BaseMod.addEvent(Gremlin2048.ID, Gremlin2048.class);
 
         BaseMod.addPower(HeavyHandPower.class, HeavyHandPower.POWER_ID);
+
+        BaseMod.addCustomScreen(new WheelSelectScreen());
+        wheelSelectScreen = (WheelSelectScreen) BaseMod.getCustomScreen(WheelSelectScreen.Enum.WHEEL_SELECT_SCREEN);
 
         steamworksHelper = new SteamworksHelper();
         BaseMod.subscribe(steamworksHelper);
@@ -245,6 +250,7 @@ public class ChaofanMod implements
         Set<String> excludeCards = new HashSet<>();
         excludeCards.add(AhhMyEyes.class.getName());
         excludeCards.add(CutGlassCard.class.getName());
+        excludeCards.add(Huihun.class.getName());
         excludeCards.add(SampleEffectCard.class.getName());
         excludeCards.add(ProgressCard.class.getName());
         excludeCards.add(MsWrithingOptionCard.class.getName());
