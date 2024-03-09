@@ -7,16 +7,19 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.evacipated.cardcrawl.modthespire.lib.SpireEnum;
 import com.megacrit.cardcrawl.characters.AbstractPlayer;
+import com.megacrit.cardcrawl.core.CardCrawlGame;
 import com.megacrit.cardcrawl.core.Settings;
 import com.megacrit.cardcrawl.dungeons.AbstractDungeon;
+import io.chaofan.sts.chaofanmod.ChaofanMod;
 
 import java.util.ArrayList;
 
 public class WheelSelectScreen extends CustomScreen {
-
+    private boolean canCancel;
     public float closeTimer;
     public boolean closing;
     public WheelButton clickedButton;
+    public MyCancelButton cancelButton;
 
     public static class Enum
     {
@@ -24,17 +27,21 @@ public class WheelSelectScreen extends CustomScreen {
         public static AbstractDungeon.CurrentScreen WHEEL_SELECT_SCREEN;
     }
 
-    public static Color WHEEL_COLOR = new Color(0.6f, 0.6f, 0.6f, 0.3f);
-    public static Color WHEEL_HOVER_COLOR = new Color(0.8f, 0.8f, 0.8f, 0.7f);
+    public static Color WHEEL_COLOR = new Color(0.6f, 0.6f, 0.6f, 0.5f);
+    public static Color WHEEL_HOVER_COLOR = new Color(0.8f, 0.8f, 0.8f, 0.8f);
 
     public ArrayList<WheelButton> buttons = new ArrayList<>();
+
+    public WheelSelectScreen() {
+        cancelButton = new MyCancelButton(this::onClickCancelButton);
+    }
 
     @Override
     public AbstractDungeon.CurrentScreen curScreen() {
         return Enum.WHEEL_SELECT_SCREEN;
     }
 
-    private void open(ArrayList<WheelButton> buttons) {
+    private void open(ArrayList<WheelButton> buttons, boolean canCancel) {
         if (AbstractDungeon.screen != AbstractDungeon.CurrentScreen.NONE) {
             AbstractDungeon.previousScreen = AbstractDungeon.screen;
         }
@@ -45,18 +52,26 @@ public class WheelSelectScreen extends CustomScreen {
         }
 
         this.buttons = buttons;
+        this.canCancel = canCancel;
+
+        for (WheelButton button : buttons) {
+            button.parent = this;
+        }
 
         reopen();
     }
 
-    public void openScreen(ArrayList<WheelButton> buttons) {
-        BaseMod.openCustomScreen(Enum.WHEEL_SELECT_SCREEN, buttons);
+    public void openScreen(ArrayList<WheelButton> buttons, boolean canCancel) {
+        BaseMod.openCustomScreen(Enum.WHEEL_SELECT_SCREEN, buttons, canCancel);
     }
 
     @Override
     public void reopen() {
         closing = false;
         clickedButton = null;
+        if (canCancel) {
+            cancelButton.show(CardCrawlGame.languagePack.getUIString("GridCardSelectScreen").TEXT[1]);
+        }
         AbstractDungeon.screen = curScreen();
         AbstractDungeon.isScreenUp = true;
         AbstractDungeon.overlayMenu.hideBlackScreen();
@@ -70,6 +85,7 @@ public class WheelSelectScreen extends CustomScreen {
     @Override
     public void update() {
         if (closing) {
+            cancelButton.hide();
             closeTimer -= Gdx.graphics.getDeltaTime();
             if (closeTimer <= 0) {
                 closing = false;
@@ -87,6 +103,8 @@ public class WheelSelectScreen extends CustomScreen {
             button.update();
         }
 
+        cancelButton.update();
+
         AbstractDungeon.currMapNode.room.update();
     }
 
@@ -100,6 +118,8 @@ public class WheelSelectScreen extends CustomScreen {
         for (WheelButton button : buttons) {
             button.render(sb);
         }
+
+        cancelButton.render(sb);
     }
 
     @Override
@@ -125,5 +145,11 @@ public class WheelSelectScreen extends CustomScreen {
     @Override
     public boolean allowOpenMap() {
         return true;
+    }
+
+    private void onClickCancelButton() {
+        closing = true;
+        closeTimer = 0.3f;
+        clickedButton = null;
     }
 }

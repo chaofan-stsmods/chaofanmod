@@ -1,5 +1,7 @@
 package io.chaofan.sts.chaofanmod.ui;
 
+import basemod.ReflectionHacks;
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.SpriteBatchExtension;
@@ -9,6 +11,9 @@ import com.megacrit.cardcrawl.core.Settings;
 import com.megacrit.cardcrawl.helpers.FontHelper;
 import com.megacrit.cardcrawl.helpers.ImageMaster;
 import com.megacrit.cardcrawl.helpers.MathHelper;
+import com.megacrit.cardcrawl.helpers.controller.CInputActionSet;
+import com.megacrit.cardcrawl.helpers.controller.CInputHelper;
+import com.megacrit.cardcrawl.helpers.controller.CInputListener;
 import com.megacrit.cardcrawl.helpers.input.InputHelper;
 import io.chaofan.sts.chaofanmod.ChaofanMod;
 import io.chaofan.sts.chaofanmod.utils.TextureLoader;
@@ -32,23 +37,45 @@ public class WheelButton {
     public boolean clickStarted;
     public float iconCenterX;
     public float iconCenterY;
+    public WheelSelectScreen parent;
 
     public void update() {
         scale = MathHelper.scaleLerpSnap(scale, targetScale);
 
         isHovered = false;
         if (enabled) {
-            float diffX = InputHelper.mX - centerX;
-            float diffY = InputHelper.mY - centerY;
-            float sqrDistance = (diffX * diffX + diffY * diffY) / Settings.scale / Settings.scale * 4;
-            if (sqrDistance <= SIZE * SIZE && sqrDistance >= SIZE * SIZE / 4f) {
-                float angle = MathUtils.atan2(diffY, diffX) * MathUtils.radiansToDegrees;
-                if (angle > startRotation && angle < endRotation) {
-                    isHovered = true;
+            if (!Settings.isControllerMode) {
+                float diffX = InputHelper.mX - centerX;
+                float diffY = InputHelper.mY - centerY;
+                float sqrDistance = (diffX * diffX + diffY * diffY) / Settings.scale / Settings.scale * 4;
+                if (sqrDistance <= SIZE * SIZE && sqrDistance >= SIZE * SIZE / 4f) {
+                    float angle = MathUtils.atan2(diffY, diffX) * MathUtils.radiansToDegrees;
+                    if (angle > startRotation && angle < endRotation) {
+                        isHovered = true;
+                    }
+                    angle = angle + 360;
+                    if (angle > startRotation && angle < endRotation) {
+                        isHovered = true;
+                    }
                 }
-                angle = angle + 360;
-                if (angle > startRotation && angle < endRotation) {
-                    isHovered = true;
+            } else  {
+                float[] axisValues = ReflectionHacks.getPrivate(CInputHelper.listener, CInputListener.class, "axisValues");
+                float y = -axisValues[0];
+                float x = axisValues[1];
+                float sqrAxisDistance = x * x + y * y;
+                if (sqrAxisDistance > 0.25f) {
+                    float angle = MathUtils.atan2(y, x) * MathUtils.radiansToDegrees;
+                    if (angle > startRotation && angle < endRotation) {
+                        isHovered = true;
+                    }
+                    angle = angle + 360;
+                    if (angle > startRotation && angle < endRotation) {
+                        isHovered = true;
+                    }
+                }
+
+                if (isHovered) {
+                    Gdx.input.setCursorPosition((int) iconCenterX, Settings.HEIGHT - (int) iconCenterY);
                 }
             }
         }
@@ -64,10 +91,10 @@ public class WheelButton {
         color.g = MathHelper.scaleLerpSnap(color.g, targetColor.g);
         color.b = MathHelper.scaleLerpSnap(color.b, targetColor.b);
 
-        if (isHovered && InputHelper.justClickedLeft) {
+        if (isHovered && (InputHelper.justClickedLeft || CInputActionSet.select.isJustPressed())) {
             clickStarted = true;
         }
-        if (clickStarted && InputHelper.justReleasedClickLeft) {
+        if (clickStarted && (InputHelper.justReleasedClickLeft || CInputActionSet.select.isJustReleased())) {
             if (isHovered && !closing) {
                 onClick();
             }
@@ -89,10 +116,14 @@ public class WheelButton {
                 endRotation);
 
         if (ChaofanMod.wheelSelectScreen.closing) {
-            sb.setColor(1, 1, 1, color.a);
+            renderIcon(sb, color.a);
         } else {
-            sb.setColor(Color.WHITE);
+            renderIcon(sb, 1);
         }
+    }
+
+    public void renderIcon(SpriteBatch sb, float alpha) {
+        sb.setColor(1, 1, 1, alpha);
         int imgSize = ImageMaster.INTENT_ATK_1.getWidth();
         sb.draw(ImageMaster.INTENT_ATK_1,
                 iconCenterX - imgSize / 2f,
@@ -111,13 +142,13 @@ public class WheelButton {
                 false,
                 false);
         FontHelper.cardEnergyFont_L.getData().setScale(scale);
-        FontHelper.renderFontCentered(sb, FontHelper.cardEnergyFont_L, "?", iconCenterX, iconCenterY, Color.WHITE);
+        FontHelper.renderFontCentered(sb, FontHelper.topPanelInfoFont, "?", iconCenterX + 20 * scale * Settings.scale, iconCenterY - 20 * scale * Settings.scale, Color.WHITE);
         FontHelper.cardEnergyFont_L.getData().setScale(1);
     }
 
     public void onClick() {
-        ChaofanMod.wheelSelectScreen.closing = true;
-        ChaofanMod.wheelSelectScreen.closeTimer = 0.3f;
-        ChaofanMod.wheelSelectScreen.clickedButton = this;
+        parent.closing = true;
+        parent.closeTimer = 0.3f;
+        parent.clickedButton = this;
     }
 }

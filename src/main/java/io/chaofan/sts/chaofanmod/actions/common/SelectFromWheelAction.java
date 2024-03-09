@@ -34,11 +34,10 @@ public class SelectFromWheelAction extends AbstractGameAction {
                 button.hoverColor = WheelSelectScreen.WHEEL_HOVER_COLOR;
                 button.centerX = player.hb.cX;
                 button.centerY = player.hb.cY;
-                button.enabled = i % 2 == 0;
                 buttons.add(button);
             }
 
-            ChaofanMod.wheelSelectScreen.openScreen(buttons);
+            ChaofanMod.wheelSelectScreen.openScreen(buttons, true);
 
         } else if (!complete && AbstractDungeon.screen == AbstractDungeon.CurrentScreen.NONE) {
             complete = true;
