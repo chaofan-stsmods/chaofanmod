@@ -40,8 +40,8 @@ void main() {
     highlightCoord = vec2(highlightCoord.x, 1.0 - highlightCoord.y);
 
     //sample the texture
-    vec4 texColor = texture2D(u_diffuseTexture, v_texCoord);
-    vec4 highlightColor = texture2D(u_highlightTexture, vec2(v_texCoord.x, 1.0 - v_texCoord.y) + highlightCoord * 0.1);
+    vec4 texColor = texture2D(u_diffuseTexture, vec2(v_texCoord.x, 1.0 - v_texCoord.y));
+    vec4 highlightColor = texture2D(u_highlightTexture, v_texCoord + highlightCoord * 0.1);
 
     float r = texColor.r;
     float g = texColor.g;

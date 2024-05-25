@@ -62,7 +62,7 @@ public class CutEffect extends AbstractGameEffect {
     public void render(SpriteBatch sb) {
         if (cutShader == null) {
             cutShader = new ShaderProgram(
-                    Gdx.files.internal(getShaderPath("cut.vs")).readString(),
+                    Gdx.files.internal(getShaderPath("common.vs")).readString(),
                     Gdx.files.internal(getShaderPath("cuts.fs")).readString());
             if (!cutShader.isCompiled()) {
                 throw new RuntimeException(cutShader.getLog());

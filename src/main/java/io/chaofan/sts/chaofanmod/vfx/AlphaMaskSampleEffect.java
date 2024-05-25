@@ -27,7 +27,7 @@ public class AlphaMaskSampleEffect extends AbstractGameEffect {
         this.boxGlow = ImageMaster.loadImage(getImagePath("ui/box_glow.png"));
         this.boxGlowMultiplier = ImageMaster.loadImage(getImagePath("ui/box_glow_multiplier.png"));
         this.shader = new ShaderProgram(
-                Gdx.files.internal(getShaderPath("alphaMask.vs")).readString(),
+                Gdx.files.internal(getShaderPath("common.vs")).readString(),
                 Gdx.files.internal(getShaderPath("alphaMask.fs")).readString());
         if (!shader.isCompiled()) {
             throw new RuntimeException(shader.getLog());

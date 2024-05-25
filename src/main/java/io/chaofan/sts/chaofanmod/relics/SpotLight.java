@@ -59,7 +59,7 @@ public class SpotLight extends CustomRelic implements MsWrithingPatches.DisableR
 
         static {
             shader = new ShaderProgram(
-                    Gdx.files.internal(getShaderPath("spotlight.vs")).readString(),
+                    Gdx.files.internal(getShaderPath("common.vs")).readString(),
                     Gdx.files.internal(getShaderPath("spotlight.fs")).readString());
             if (!shader.isCompiled()) {
                 throw new RuntimeException(shader.getLog());

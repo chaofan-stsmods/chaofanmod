@@ -85,7 +85,7 @@ public class OldPhone extends CustomRelic implements MsWrithingPatches.DisableRe
             screen = ImageMaster.loadImage(getImagePath("ui/screen.png"));
             screenHighlight = ImageMaster.loadImage(getImagePath("ui/screen_highlight.png"));
             shader = new ShaderProgram(
-                    Gdx.files.internal(getShaderPath("screen.vs")).readString(),
+                    Gdx.files.internal(getShaderPath("common.vs")).readString(),
                     Gdx.files.internal(getShaderPath("screen.fs")).readString());
             if (!shader.isCompiled()) {
                 throw new RuntimeException(shader.getLog());

@@ -27,7 +27,7 @@ public class MsWrithingOptionCard extends CustomCard {
 
     static {
         shader = new ShaderProgram(
-                Gdx.files.internal(getShaderPath("friendcard.vs")).readString(),
+                Gdx.files.internal(getShaderPath("common.vs")).readString(),
                 Gdx.files.internal(getShaderPath("friendcard.fs")).readString());
         if (!shader.isCompiled()) {
             throw new RuntimeException(shader.getLog());

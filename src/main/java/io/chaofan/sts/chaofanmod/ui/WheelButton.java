@@ -83,7 +83,7 @@ public class WheelButton {
         iconCenterX = centerX + MathUtils.cosDeg((startRotation + endRotation) / 2) * SIZE * 3 / 8 * scale * Settings.scale;
         iconCenterY = centerY + MathUtils.sinDeg((startRotation + endRotation) / 2) * SIZE * 3 / 8 * scale * Settings.scale;
 
-        boolean closing = ChaofanMod.wheelSelectScreen.closing;
+        boolean closing = parent.closing;
         Color targetColor = closing ? TRANSPARENT : (isHovered ? hoverColor : idleColor);
         targetScale = closing ? 0.01f : (isHovered ? 1.1f : 1.0f);
         color.a = MathHelper.scaleLerpSnap(color.a, targetColor.a);
@@ -115,7 +115,7 @@ public class WheelButton {
                 startRotation,
                 endRotation);
 
-        if (ChaofanMod.wheelSelectScreen.closing) {
+        if (parent.closing) {
             renderIcon(sb, color.a);
         } else {
             renderIcon(sb, 1);

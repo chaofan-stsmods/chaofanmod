@@ -13,6 +13,7 @@ import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
 import com.badlogic.gdx.graphics.g3d.shaders.DefaultShader;
 import com.badlogic.gdx.graphics.g3d.utils.DefaultShaderProvider;
 import com.badlogic.gdx.graphics.g3d.utils.RenderContext;
+import com.badlogic.gdx.graphics.glutils.FrameBuffer;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.utils.Array;
@@ -32,8 +33,31 @@ public class OldPhoneEffectV2 implements ScreenPostProcessor {
         screenHighlight = ImageMaster.loadImage(getImagePath("ui/screen_highlight.png"));
     }
 
+    private static final FrameBuffer frameBuffer = new FrameBuffer(Pixmap.Format.RGBA8888, Settings.WIDTH, Settings.HEIGHT, true, false);
+    private static final TextureRegion frameBufferTexture = new TextureRegion(frameBuffer.getColorBufferTexture());
+    public static final ShaderProgram glareShader;
+    private static final ShaderProgram fxaaShader;
+    static {
+        frameBufferTexture.flip(false, true);
+
+        glareShader = new ShaderProgram(
+                Gdx.files.internal(getShaderPath("common.vs")).readString(),
+                Gdx.files.internal(getShaderPath("glare.fs")).readString());
+        if (!glareShader.isCompiled()) {
+            throw new RuntimeException(glareShader.getLog());
+        }
+
+        fxaaShader = new ShaderProgram(
+                Gdx.files.internal(getShaderPath("common.vs")).readString(),
+                Gdx.files.internal(getShaderPath("fxaa.fs")).readString());
+        if (!fxaaShader.isCompiled()) {
+            throw new RuntimeException(fxaaShader.getLog());
+        }
+    }
+
     private EnvironmentProvider ep;
-    private ModelBatch modelBatch;
+    private ModelBatch mainModelBatch;
+    private ModelBatch secondaryModelBatch;
     private Environment environment;
     private PerspectiveCamera cam;
     private volatile boolean waitForLoading;
@@ -53,7 +77,8 @@ public class OldPhoneEffectV2 implements ScreenPostProcessor {
     public void create() {
         ep = EnvironmentProvider.getInstance();
 
-        modelBatch = new ModelBatch(new MyShaderProvider(this));
+        mainModelBatch = new ModelBatch(new MainShaderProvider(this));
+        secondaryModelBatch = new ModelBatch();
         environment = new Environment();
         environment.set(new ColorAttribute(ColorAttribute.AmbientLight, 0.5f, 0.5f, 0.5f, 1f));
         environment.add(new DirectionalLight().set(0.8f, 0.8f, 0.8f, -0.2f, -1f, -1f));
@@ -123,32 +148,112 @@ public class OldPhoneEffectV2 implements ScreenPostProcessor {
 
         Gdx.gl.glClear(GL20.GL_DEPTH_BUFFER_BIT);
 
+        // Step 1. Monitor
+        frameBuffer.begin();
+        Gdx.gl.glClearColor(0.0F, 0.0F, 0.0F, 1.0F);
+        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
+        frameBuffer.end();
+
+        setModelTexture(frameBufferTexture, 0xffffffff);
+
+        frameBuffer.begin();
+        secondaryModelBatch.begin(cam);
+        secondaryModelBatch.render(ep.instances, environment);
+        secondaryModelBatch.end();
+        frameBuffer.end();
+
+        Gdx.gl.glDepthMask(false);
+        Gdx.gl.glDisable(GL20.GL_DEPTH_TEST);
+
+        sb.setShader(fxaaShader);
+        sb.setColor(Color.WHITE);
+        sb.begin();
+        sb.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+        fxaaShader.setUniformf("resolution", Settings.WIDTH, Settings.HEIGHT);
+        sb.draw(frameBufferTexture, 0, 0, Settings.WIDTH, Settings.HEIGHT);
+        sb.end();
+
+        // Step 2. Screen
+        Gdx.gl.glDepthMask(true);
+        Gdx.gl.glEnable(GL20.GL_DEPTH_TEST);
+
+        setModelTexture(textureRegion, 0xFF);
+
+        frameBuffer.begin();
+        Gdx.gl.glClearColor(0.0F, 0.0F, 0.0F, 0.0F);
+        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
+        mainModelBatch.begin(cam);
+        mainModelBatch.render(ep.instances, environment);
+        mainModelBatch.end();
+        frameBuffer.end();
+
+        Gdx.gl.glDepthMask(false);
+        Gdx.gl.glDisable(GL20.GL_DEPTH_TEST);
+
+        sb.setShader(null);
+        sb.setColor(Color.WHITE);
+        sb.begin();
+        sb.setBlendFunction(GL20.GL_ONE, GL20.GL_ONE);
+        sb.draw(frameBufferTexture, 0, 0, Settings.WIDTH, Settings.HEIGHT);
+        sb.end();
+
+        // Step 3. Glare
+        Gdx.gl.glDepthMask(true);
+        Gdx.gl.glEnable(GL20.GL_DEPTH_TEST);
+
+        setModelTexture(textureRegion, 0xff);
+
+        frameBuffer.begin();
+        Gdx.gl.glClearColor(0.0F, 0.0F, 0.0F, 0.0F);
+        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
+        secondaryModelBatch.begin(cam);
+        secondaryModelBatch.render(ep.instances, environment);
+        secondaryModelBatch.end();
+        frameBuffer.end();
+
+        Gdx.gl.glDepthMask(false);
+        Gdx.gl.glDisable(GL20.GL_DEPTH_TEST);
+
+        sb.setShader(glareShader);
+        sb.setColor(Color.WHITE);
+        sb.begin();
+        sb.setBlendFunction(GL20.GL_ONE, GL20.GL_ONE);
+        glareShader.setUniformf("resolution", Settings.WIDTH, Settings.HEIGHT);
+        sb.draw(frameBufferTexture, 0, 0, Settings.WIDTH, Settings.HEIGHT);
+
+        sb.end();
+
+        // Reset sprite batch
+        sb.setShader(null);
+        sb.begin();
+    }
+
+    private void setModelTexture(TextureRegion screenTexture, int remainingOther) {
         if (ep.instances.size > 0) {
             ModelInstance model = ep.instances.get(0);
             for (Material m : model.materials) {
                 if (m.id.equals("screen-show")) {
                     for (Attribute attribute : m) {
                         if (attribute.type == TextureAttribute.Diffuse) {
-                            ((TextureAttribute) attribute).set(textureRegion);
+                            ((TextureAttribute) attribute).set(screenTexture);
+                        }
+                    }
+                } else {
+                    for (Attribute attribute : m) {
+                        if (attribute.type == ColorAttribute.Diffuse) {
+                            Color color = ((ColorAttribute) attribute).color;
+                            color.set(remainingOther);
                         }
                     }
                 }
             }
         }
-
-        modelBatch.begin(cam);
-        modelBatch.render(ep.instances, environment);
-        modelBatch.end();
-
-        Gdx.gl.glDepthMask(false);
-        Gdx.gl.glDisable(GL20.GL_DEPTH_TEST);
-
-        sb.begin();
     }
 
     @Override
     protected void finalize() throws Throwable {
-        modelBatch.dispose();
+        mainModelBatch.dispose();
+        secondaryModelBatch.dispose();
     }
 
     static class EnvironmentProvider {
@@ -193,29 +298,26 @@ public class OldPhoneEffectV2 implements ScreenPostProcessor {
     }
 
     static class MyShader extends DefaultShader {
-        private final OldPhoneEffectV2 monitorRenderer;
+        private final Runnable onBegin;
 
-        public MyShader(Renderable renderable, Config config, ShaderProgram shaderProgram, OldPhoneEffectV2 monitorRenderer) {
+        public MyShader(Renderable renderable, Config config, ShaderProgram shaderProgram, Runnable onBegin) {
             super(renderable, config, shaderProgram);
-            this.monitorRenderer = monitorRenderer;
+            this.onBegin = onBegin;
         }
 
         @Override
         public void begin(Camera camera, RenderContext context) {
             super.begin(camera, context);
-
-            screenHighlight.bind(3);
-            this.program.setUniformf("u_highLightOffset", this.monitorRenderer.currentX, this.monitorRenderer.currentY);
-            this.program.setUniformi("u_highlightTexture", 3);
+            this.onBegin.run();
         }
     }
 
-    static class MyShaderProvider extends DefaultShaderProvider {
+    static class MainShaderProvider extends DefaultShaderProvider {
         private final OldPhoneEffectV2 monitorRenderer;
         private final ShaderProgram shaderProgram;
         private MyShader shader;
 
-        public MyShaderProvider(OldPhoneEffectV2 monitorRenderer) {
+        public MainShaderProvider(OldPhoneEffectV2 monitorRenderer) {
             this.monitorRenderer = monitorRenderer;
 
             shaderProgram = new ShaderProgram(
@@ -234,7 +336,11 @@ public class OldPhoneEffectV2 implements ScreenPostProcessor {
                 }
 
                 if (shader == null) {
-                    shader = new MyShader(renderable, this.config, shaderProgram, monitorRenderer);
+                    shader = new MyShader(renderable, this.config, shaderProgram, () -> {
+                        screenHighlight.bind(3);
+                        shaderProgram.setUniformf("u_highLightOffset", this.monitorRenderer.currentX, this.monitorRenderer.currentY);
+                        shaderProgram.setUniformi("u_highlightTexture", 3);
+                    });
                     shader.init();
                 }
 

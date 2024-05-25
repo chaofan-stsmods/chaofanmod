@@ -23,7 +23,7 @@ public class RetroEffect implements ScreenPostProcessor {
 
         if (retroShader == null) {
             retroShader = new ShaderProgram(
-                    Gdx.files.internal(getShaderPath("retro.vs")).readString(),
+                    Gdx.files.internal(getShaderPath("common.vs")).readString(),
                     Gdx.files.internal(getShaderPath("retro.fs")).readString());
             if (!retroShader.isCompiled()) {
                 throw new RuntimeException(retroShader.getLog());
