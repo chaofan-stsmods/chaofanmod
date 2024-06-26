@@ -4,7 +4,6 @@ import basemod.abstracts.CustomRelic;
 import com.badlogic.gdx.graphics.Texture;
 import com.megacrit.cardcrawl.actions.AbstractGameAction;
 import com.megacrit.cardcrawl.cards.AbstractCard;
-import com.megacrit.cardcrawl.characters.AbstractPlayer;
 import com.megacrit.cardcrawl.dungeons.AbstractDungeon;
 import com.megacrit.cardcrawl.helpers.PowerTip;
 import com.megacrit.cardcrawl.relics.AbstractRelic;
@@ -54,7 +53,7 @@ public class MsWrithing extends CustomRelic {
             List<AbstractRelic> enabledRelics = AbstractDungeon.player.relics.stream()
                     .filter(r -> !MsWrithingPatches.Fields.disabled.get(r))
                     .collect(Collectors.toList());
-            if (enabledRelics.size() > 0) {
+            if (!enabledRelics.isEmpty()) {
                 Collections.shuffle(enabledRelics, new Random(AbstractDungeon.cardRandomRng.randomLong()));
                 ArrayList<AbstractCard> cards = enabledRelics.stream()
                         .limit(3)
@@ -78,14 +77,14 @@ public class MsWrithing extends CustomRelic {
     private void afterSelect(AbstractCard abstractCard) {
         MsWrithingOptionCard card = (MsWrithingOptionCard) abstractCard;
         AbstractRelic relic = card.relic;
+        if (relic instanceof MsWrithingPatches.DisableRelic) {
+            ((MsWrithingPatches.DisableRelic) relic).disableByMsWrithing();
+        }
         MsWrithingPatches.Fields.disabled.set(relic, true);
         MsWrithingPatches.Fields.disabledProgress.set(relic, DISABLE_RELIC_DURATION);
         PowerTip tip = new PowerTip(DESCRIPTIONS[1], DESCRIPTIONS[2]);
         MsWrithingPatches.Fields.disabledTooltip.set(relic, tip);
         relic.tips.add(tip);
-        if (relic instanceof MsWrithingPatches.DisableRelic) {
-            ((MsWrithingPatches.DisableRelic) relic).disableByMsWrithing();
-        }
         AbstractDungeon.player.hand.applyPowers();
     }
 
