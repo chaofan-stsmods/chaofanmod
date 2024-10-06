@@ -28,6 +28,7 @@ import com.megacrit.cardcrawl.random.Random;
 import com.megacrit.cardcrawl.vfx.cardManip.ShowCardAndObtainEffect;
 import io.chaofan.sts.chaofanmod.cards.SearingBlowFor2048;
 
+import java.util.Collections;
 import java.util.Optional;
 
 import static io.chaofan.sts.chaofanmod.ChaofanMod.getImagePath;
@@ -364,6 +365,7 @@ public class Gremlin2048 extends AbstractImageEvent {
                 if (buttonPressed == 0 && this.selectedCard != null) {
                     AbstractDungeon.effectList.add(new ShowCardAndObtainEffect(this.selectedCard, (float) Settings.WIDTH / 2.0F, (float) Settings.HEIGHT / 2.0F));
                     this.imageEventText.updateBodyText(DESCRIPTIONS[3]);
+                    logMetricObtainCards("2048", "Obtain", Collections.singletonList(this.selectedCard.cardID));
                 } else {
                     this.imageEventText.updateBodyText(DESCRIPTIONS[4]);
                 }
@@ -375,6 +377,13 @@ public class Gremlin2048 extends AbstractImageEvent {
             case COMPLETE:
                 this.openMap();
         }
+    }
+
+    @Override
+    public void dispose() {
+        super.dispose();
+        this.pressKey1.dispose();
+        this.pressKey2.dispose();
     }
 
     private void moveCard(AbstractCard card, int x, int y) {

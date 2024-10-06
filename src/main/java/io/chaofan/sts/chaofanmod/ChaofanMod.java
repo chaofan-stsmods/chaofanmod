@@ -3,6 +3,7 @@ package io.chaofan.sts.chaofanmod;
 import basemod.*;
 import basemod.abstracts.CustomRelic;
 import basemod.devcommands.ConsoleCommand;
+import basemod.eventUtil.AddEventParams;
 import basemod.helpers.RelicType;
 import basemod.helpers.ScreenPostProcessorManager;
 import basemod.interfaces.*;
@@ -29,6 +30,7 @@ import io.chaofan.sts.CommonModUtils;
 import io.chaofan.sts.chaofanmod.cards.*;
 import io.chaofan.sts.chaofanmod.commands.FriendCardCommand;
 import io.chaofan.sts.chaofanmod.events.Gremlin2048;
+import io.chaofan.sts.chaofanmod.events.GremlinMiner;
 import io.chaofan.sts.chaofanmod.mods.Lonely;
 import io.chaofan.sts.chaofanmod.mods.SummarizedMap;
 import io.chaofan.sts.chaofanmod.monsters.SpiritFireMonster;
@@ -111,7 +113,6 @@ public class ChaofanMod implements
 
         ChaofanMod chaofanMod = new ChaofanMod();
         BaseMod.subscribe(chaofanMod);
-        // EnhancedSteamStatus.initialize();
 
         config = tryCreateConfig();
         if (config != null) {
@@ -150,6 +151,9 @@ public class ChaofanMod implements
         difficultyMods.put(SummarizedMap.ID, new SummarizedMap());
 
         BaseMod.addEvent(Gremlin2048.ID, Gremlin2048.class);
+        BaseMod.addEvent(new AddEventParams.Builder(GremlinMiner.ID, GremlinMiner.class)
+                .bonusCondition(() -> AbstractDungeon.player.gold >= GremlinMiner.getPrice())
+                .create());
 
         BaseMod.addPower(HeavyHandPower.class, HeavyHandPower.POWER_ID);
 

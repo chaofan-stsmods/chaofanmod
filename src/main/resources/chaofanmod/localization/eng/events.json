@@ -14,5 +14,20 @@
       "[Play]",
       "[Take] #gObtain Searing Blow+%d."
     ]
+  },
+  "chaofanmod:event.GrimlinMiner": {
+    "NAME": "Miner",
+    "DESCRIPTIONS": [
+      "A gremlin sees you passing by and waves to you: \"Come on! Come on! There's a chance to #ymake #ymoney! Come and take a look!\" NL This monster seems to be a harmless one. You approach him out of curiosity.",
+      "\"This is what I found. You have to pay #ygold first! Whatever you get, it's yours! NL \"The time limit is 60 seconds. Are you ready... #r@Start!@ \"",
+      "You take your #yharvest and continue the journey.",
+      "\" @Time's@ @up!@ NL \"Wow! What a harvest!\"",
+      "You don't trust the gremlin and leave."
+    ],
+    "OPTIONS": [
+      "[Continue]",
+      "[Leave]",
+      "[Play] #y%d #ygold: #gVarious rewards."
+    ]
   }
 }
