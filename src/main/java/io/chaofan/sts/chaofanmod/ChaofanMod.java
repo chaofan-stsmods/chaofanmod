@@ -375,7 +375,7 @@ public class ChaofanMod implements
     }
 
     public static boolean disableMsWrithingByOtherMod() {
-        return Loader.isModLoadedOrSideloaded("testmod") || Loader.isModLoadedOrSideloaded("Downfall");
+        return Loader.isModLoadedOrSideloaded("testmod") || Loader.isModLoadedOrSideloaded("downfall");
     }
 
     private static String conflictModNames(String... modIds) {
