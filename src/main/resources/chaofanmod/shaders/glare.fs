@@ -22,7 +22,8 @@ void main()
     vec2 uv = v_texCoord;
     // Pixel colour
     vec4 color = texture(u_texture, uv);
-    vec4 luminance = color.r * 0.3 + color.g * 0.6 + color.b * 0.1;
+    float luminanceFloat = color.r * 0.3 + color.g * 0.6 + color.b * 0.1;
+    vec4 luminance = vec4(luminanceFloat, luminanceFloat, luminanceFloat, luminanceFloat);
     vec4 sumColor = color * luminance * luminance;
     float count = 1.0;
 
@@ -32,7 +33,8 @@ void main()
 		for(float i=1.0/quality; i<=1.0; i+=1.0/quality)
         {
 			color = texture( u_texture, uv+vec2(cos(d),sin(d))*radius*i);
-            luminance = color.r * 0.2 + color.g * 0.7 + color.b * 0.1;
+            luminanceFloat = color.r * 0.2 + color.g * 0.7 + color.b * 0.1;
+            luminance = vec4(luminanceFloat, luminanceFloat, luminanceFloat, luminanceFloat);
 			sumColor += color * luminance * luminance;
 			count += 1.0;
         }
