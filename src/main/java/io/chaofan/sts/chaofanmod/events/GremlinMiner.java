@@ -334,7 +334,7 @@ public class GremlinMiner extends AbstractImageEvent {
                 float scale = r.random(0.24f, 0.4f);
                 float size = scale * 400f;
                 RewardInfo reward = new RewardInfo();
-                reward.card = AbstractDungeon.getCard(AbstractCard.CardRarity.CURSE, r);
+                reward.card = AbstractDungeon.getCard(AbstractCard.CardRarity.CURSE, r).makeCopy();
                 reward.rotation = r.random(0, 360);
                 reward.weight = 2;
                 if (applyPosition(reward, scale, size, r, -540 + size / 2, 400 - size / 2)) {
@@ -395,7 +395,7 @@ public class GremlinMiner extends AbstractImageEvent {
     private boolean addCard(RewardInfo reward, AbstractCard.CardRarity rarity, Random r) {
         int tryCount = 20;
         do {
-            reward.card = AbstractDungeon.getCard(rarity, r);
+            reward.card = AbstractDungeon.getCard(rarity, r).makeCopy();
             tryCount--;
         } while (tryCount > 0 && this.rewards.stream().anyMatch(re -> re.isSameCard(reward)));
         return tryCount > 0;
