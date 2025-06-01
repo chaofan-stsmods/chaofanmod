@@ -28,6 +28,7 @@ import com.megacrit.cardcrawl.monsters.MonsterGroup;
 import com.megacrit.cardcrawl.relics.AbstractRelic;
 import io.chaofan.sts.CommonModUtils;
 import io.chaofan.sts.chaofanmod.cards.*;
+import io.chaofan.sts.chaofanmod.commands.ChaofanModEffectCommand;
 import io.chaofan.sts.chaofanmod.commands.FriendCardCommand;
 import io.chaofan.sts.chaofanmod.events.Gremlin2048;
 import io.chaofan.sts.chaofanmod.events.GremlinMiner;
@@ -47,6 +48,7 @@ import io.chaofan.sts.chaofanmod.utils.ChaofanModEnums;
 import io.chaofan.sts.chaofanmod.utils.SteamworksHelper;
 import io.chaofan.sts.chaofanmod.variables.SecondaryBlock;
 import io.chaofan.sts.chaofanmod.variables.SecondaryDamage;
+import io.chaofan.sts.chaofanmod.vfx.DitheringEffect;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -163,6 +165,7 @@ public class ChaofanMod implements
         steamworksHelper = new SteamworksHelper();
         BaseMod.subscribe(steamworksHelper);
         ConsoleCommand.addCommand("addfriendcard", FriendCardCommand.class);
+        ConsoleCommand.addCommand("chaofanmodvfx", ChaofanModEffectCommand.class);
 
         loadoutEnabled = Loader.isModLoadedOrSideloaded("loadout");
     }
