@@ -29,15 +29,21 @@ import javassist.CtBehavior;
 import javassist.expr.ExprEditor;
 import javassist.expr.MethodCall;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class ThirdPerspectiveViewPatches {
+    private static final Map<String, Boolean> enableWithSource = new HashMap<>();
     private static boolean enable = false;
     private static float oldHbX = 0;
     private static float oldHbY = 0;
     private static float oldHbH = 0;
     private static float oldHbW = 0;
 
-    public static void setEnable(boolean value) {
-        if (value == enable) {
+    public static void setEnable(boolean value, String source) {
+        enableWithSource.put(source, value);
+        boolean newEnable = enableWithSource.values().stream().anyMatch(v -> v);
+        if (newEnable == enable) {
             return;
         }
 
@@ -46,7 +52,7 @@ public class ThirdPerspectiveViewPatches {
             return;
         }
 
-        enable = value;
+        enable = newEnable;
         if (enable) {
             oldHbX = player.hb_x;
             oldHbY = player.hb_y;

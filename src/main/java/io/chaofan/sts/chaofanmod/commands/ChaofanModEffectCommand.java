@@ -1,5 +1,6 @@
 package io.chaofan.sts.chaofanmod.commands;
 
+import basemod.DevConsole;
 import basemod.devcommands.ConsoleCommand;
 import basemod.helpers.ScreenPostProcessorManager;
 import basemod.interfaces.ScreenPostProcessor;
@@ -39,9 +40,11 @@ public class ChaofanModEffectCommand extends ConsoleCommand {
                 if (enabledEffects.contains(effectName)) {
                     enabledEffects.remove(effectName);
                     ScreenPostProcessorManager.removePostProcessor(postProcessor);
+                    DevConsole.log("Effect " + effectName + " disabled.");
                 } else {
                     enabledEffects.add(effectName);
                     ScreenPostProcessorManager.addPostProcessor(postProcessor);
+                    DevConsole.log("Effect " + effectName + " enabled.");
                 }
             }
         }

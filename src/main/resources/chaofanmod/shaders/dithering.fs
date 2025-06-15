@@ -14,6 +14,7 @@ void main() {
 
     float v = 0.2 * texColor.r + 0.7 * texColor.g + 0.1 * texColor.b;
 
+/*
     float threshold0 = 0.8;
     float threshold1 = 0.55;
     float threshold2 = 0.35;
@@ -32,6 +33,7 @@ void main() {
     } else {
         gl_FragColor = vec4(0.059, 0.2196, 0.059, 1.0);
     }
+    */
 
-    // gl_FragColor = v > ditheringColor.r ? vec4(1.0, 1.0, 1.0, 1.0) : vec4(0.0, 0.0, 0.0, 1.0);
+    gl_FragColor = v > ditheringColor.r ? vec4(1.0, 1.0, 1.0, 1.0) : vec4(0.0, 0.0, 0.0, 1.0);
 }
